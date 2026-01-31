@@ -608,10 +608,10 @@
             
             <div class="avatar-section">
                 <div class="avatar" id="avatar">
-                    <!-- Professional Avatar -->
-                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face" class="avatar-img" alt="Orland" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ccircle cx=%2750%27 cy=%2735%27 r=%2725%27 fill=%27%234a5568%27/%3E%3Ccircle cx=%2750%27 cy=%27100%27 r=%2740%27 fill=%27%234a5568%27/%3E%3C/svg%3E'">
-                    <!-- Running GIF placeholder (animated version) -->
-                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face&animate" class="avatar-gif" alt="Running" onerror="this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face'">
+                    <!-- Young Asian/European Male Avatar -->
+                    <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face" class="avatar-img" alt="Orland" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ccircle cx=%2750%27 cy=%2735%27 r=%2725%27 fill=%27%23c9a66b%27/%3E%3Ccircle cx=%2750%27 cy=%27100%27 r=%2740%27 fill=%27%23365899%27/%3E%3C/svg%3E'">
+                    <!-- Running state (slightly different expression) -->
+                    <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face&brightness=1.1" class="avatar-gif" alt="Running" onerror="this.src='https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face'">
                 </div>
                 <div class="avatar-name">Orland</div>
                 <div class="status-chip idle" id="statusChip">
@@ -801,8 +801,8 @@
     </div>
     
     <script>
-        // State
-        let isRunning = false;
+        // State - Default to Running
+        let isRunning = true;  // Default to Running!
         
         const tasks = [
             { id: 1, title: "Setup nuxec-dashboard", date: "2026-01-30", status: "done", instructions: [{step:1,text:"Done!"}], links: [{text:"Dashboard",url:"https://nuxec-dashboard.vercel.app"}] },
@@ -959,7 +959,8 @@
         // Expose setRunning for external use
         window.setOrlandRunning = setRunning;
         
-        // Init
+        // Init - Default to Running!
+        setRunning(true);
         renderKanban();
     </script>
 </body>
