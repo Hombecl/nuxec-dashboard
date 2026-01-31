@@ -384,25 +384,31 @@ async function scrapeWalmartProduct(url) {
             },
             {
                 id: 4,
-                title: "Subscription Email Scanner",
+                title: "Subscription Email Scanner v2",
                 desc: "Google Apps Script to find all subscription emails across accounts",
                 status: "in-progress",
                 date: "2026-01-31",
                 instructions: [
-                    { step: 1, text: "Go to https://script.google.com/home" },
+                    { step: 1, text: "Go to Google Apps Script: https://script.google.com/home" },
                     { step: 2, text: "Click + New Project" },
-                    { step: 3, text: "Copy the script from: /root/.openclaw/workspace/subscription-scraper.gs" },
-                    { step: 4, text: "Save and click Run → Allow permissions" },
-                    { step: 5, text: "Repeat for each Gmail account" }
+                    { step: 3, text: "Copy FULL script from GitHub (click link below)" },
+                    { step: 4, text: "Paste into editor → Save" },
+                    { step: 5, text: "Click findSubscriptions() → Run → Allow permissions" },
+                    { step: 6, text: "Check View → Logs to see progress" },
+                    { step: 7, text: "Email report will be sent to your Gmail" },
+                    { step: 8, text: "Repeat for each Gmail account" }
                 ],
                 links: [
-                    { text: "Google Apps Script", url: "https://script.google.com/home" },
-                    { text: "View Script", url: "https://github.com/Hombecl/nuxec-dashboard/blob/main/subscription-scraper.gs" }
+                    { text: "📋 Copy Script (GitHub Raw)", url: "https://raw.githubusercontent.com/Hombecl/nuxec-dashboard/main/subscription-scraper.gs" },
+                    { text: "🔗 View Script on GitHub", url: "https://github.com/Hombecl/nuxec-dashboard/blob/main/subscription-scraper.gs" },
+                    { text: "🎯 Google Apps Script", url: "https://script.google.com/home" }
                 ],
-                code: `function findSubscriptions() {
-  const KEYWORDS = ['subscription', 'recurring', 'monthly charge', 'billing'];
+                code: `// Copy full script from GitHub Raw link above!
+function findSubscriptions() {
+  const KEYWORDS = ['subscription', 'recurring', 'monthly charge', 
+    'billing', 'invoice', 'receipt', 'charged', 'payment'];
   const threads = GmailApp.search('after:2023/01/01', 0, 500);
-  // ... scans emails and sends report
+  // ... scans all emails and sends report to your Gmail
 }`
             },
             {
