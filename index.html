@@ -454,6 +454,11 @@
                     <div class="tool-desc">Find subscription emails</div>
                     <div class="tool-status" style="color: #6bcb77;">✅ Setup done</div>
                 </div>
+                <div class="toolbox-card" onclick="showPromptModal('prompt-upwork', '💼 Upwork Service Tool', 'Monitor jobs + generate cover letters')">
+                    <div class="tool-title">💼 Upwork Service Tool</div>
+                    <div class="tool-desc">Monitor GMC jobs, generate cover letters</div>
+                    <div class="tool-status" style="color: #ffd93d;">🆕 Coming</div>
+                </div>
             </div>
         </div>
         
@@ -523,6 +528,21 @@ Just upload to root and tell me what it is!</div>
 5. Email report will be sent to your Gmail
 
 Done! Check your inbox for results.</div>
+        <div id="prompt-upwork">💼 Upwork GMC Service Tool (Coming Soon)
+
+Features:
+- Monitor Upwork for GMC (Google Merchant Center) suspension jobs
+- Generate customized cover letters
+- Track job applications
+
+Status: In development
+
+Next steps:
+1. Create Upwork profile
+2. Build job monitoring automation
+3. Generate case study templates
+
+Stay tuned!</div>
     </div>
     
     <script>
@@ -533,7 +553,8 @@ Done! Check your inbox for results.</div>
             { id: 4, title: "Subscription Email Scanner v2", desc: "Google Apps Script to find subscriptions", status: "in-progress", date: "2026-01-31", instructions: [{step:1,text:"Go to Google Apps Script"}, {step:2,text:"Run findSubscriptions()"}], links: [{text:"Run Scanner",url:"https://script.google.com/home"}] },
             { id: 5, title: "Private Repo Setup", desc: "Create nuxec-sensitive for sensitive files", status: "completed", date: "2026-01-31", instructions: [{step:1,text:"Done! Repo created"}], links: [{text:"Private Repo",url:"https://github.com/Hombecl/nuxec-sensitive"}] },
             { id: 6, title: "Bank Statement Analyzer", desc: "Process PDF/CSV bank statements", status: "pending", date: "2026-02-02", instructions: [{step:1,text:"Upload statements to nuxec-sensitive"}, {step:2,text:"Tell Orland 'Files uploaded'"}], links: [] },
-            { id: 7, title: "Daily Summary Automation", desc: "Morning summary at 11:00 AM HK time", status: "pending", date: "2026-02-01", instructions: [{step:1,text:"Orland will send daily summary"}], links: [] }
+            { id: 7, title: "Daily Summary Automation", desc: "Morning summary at 11:00 AM HK time", status: "pending", date: "2026-02-01", instructions: [{step:1,text:"Orland will send daily summary"}], links: [] },
+            { id: 8, title: "E-Commerce Service Business", desc: "Build side services: Keyup promotion, Upwork GMC services, professional website", status: "pending", date: "2026-02-02", instructions: [{step:1,text:"Research Keyup promotion strategy"}, {step:2,text:"Create Upwork profile for GMC suspension services"}, {step:3,text:"Build daily job monitoring + cover letter tool"}, {step:4,text:"Create professional service website"}], links: [{text:"Keyup",url:"https://keyup.tools"}, {text:"Upwork",url:"https://www.upwork.com"}] }
         ];
         
         function switchView(view) {
