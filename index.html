@@ -967,7 +967,28 @@
         // Current state: Running (actively working!)
         setRunning(true);
         
+        // PartyKit WebSocket for real-time status sync
+        if (typeof PartySocket !== 'undefined') {
+            const party = new PartySocket({
+                host: window.location.hostname === 'localhost' ? 'localhost:1999' : 'YOUR_PARTYKIT_URL.partykit.dev',
+                room: 'dashboard-status'
+            });
+            
+            party.addEventListener('message', (e) => {
+                const data = JSON.parse(e.data);
+                if (data.type === 'status') {
+                    setRunning(data.status === 'running');
+                }
+            });
+        }
+        
         renderKanban();
+    </script>
+    
+    <!-- PartyKit WebSocket -->
+    <script type="module">
+        import PartySocket from "https://unpkg.com/partysocket/dist/partysocket.js";
+        window.PartySocket = PartySocket;
     </script>
 </body>
 </html>
