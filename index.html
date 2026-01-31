@@ -28,6 +28,30 @@
         .header-right { display: flex; align-items: center; gap: 15px; }
         .date { color: #64ffda; font-size: 0.85rem; }
         
+        /* Pull to refresh indicator */
+        .pull-refresh-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 0;
+            background: linear-gradient(135deg, #64ffda 0%, #4d96ff 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #1a1a2e;
+            overflow: hidden;
+            transition: height 0.3s;
+            z-index: 1000;
+        }
+        .pull-refresh-indicator.active {
+            height: 50px;
+        }
+        .pull-refresh-indicator.loading {
+            animation: pulse 0.5s infinite;
+        }
+        
         .refresh-btn {
             background: rgba(100, 255, 218, 0.2);
             border: 1px solid #64ffda;
@@ -351,6 +375,9 @@
     </style>
 </head>
 <body>
+    <div class="pull-refresh-indicator" id="pullRefreshIndicator">
+        🔄 Pull to refresh...
+    </div>
     <div class="container">
         <header>
             <div class="header-left">
@@ -457,7 +484,12 @@
                 <div class="toolbox-card" onclick="showPromptModal('prompt-upwork', '💼 Upwork + Loom Strategy', 'GMC service, free checker, Loom videos')">
                     <div class="tool-title">💼 GMC Service Website</div>
                     <div class="tool-desc">Nuxt site with 20-point free scanner</div>
-                    <div class="tool-status" style="color: #ffd93d;">🚀 Starting</div>
+                    <div class="tool-status" style="color: #6bcb77;">✅ Nuxt Created!</div>
+                </div>
+                <div class="toolbox-card" onclick="window.open('https://github.com/Hombecl/gmc-service-website', '_blank')">
+                    <div class="tool-title">📦 GMC Website Repo</div>
+                    <div class="tool-desc">GitHub repo for GMC service site</div>
+                    <div class="tool-status" style="color: #4d96ff;">🔗 View on GitHub</div>
                 </div>
             </div>
         </div>
@@ -682,6 +714,41 @@ Start with Nuxt, deploy to Vercel!</div>
         function refreshDashboard() {
             location.reload(true);
         }
+        
+        // Pull-to-refresh for mobile
+        let pullStartY = 0;
+        let pullDistance = 0;
+        const indicator = document.getElementById('pullRefreshIndicator');
+        
+        document.addEventListener('touchstart', function(e) {
+            if (window.scrollY === 0) {
+                pullStartY = e.touches[0].clientY;
+            }
+        }, { passive: true });
+        
+        document.addEventListener('touchmove', function(e) {
+            if (window.scrollY === 0 && pullStartY > 0) {
+                pullDistance = e.touches[0].clientY - pullStartY;
+                if (pullDistance > 50 && pullDistance < 200) {
+                    indicator.classList.add('active');
+                    indicator.textContent = '🔄 Release to refresh...';
+                } else if (pullDistance >= 200) {
+                    indicator.textContent = '🔄 Refreshing...';
+                    indicator.classList.add('loading');
+                }
+            }
+        }, { passive: true });
+        
+        document.addEventListener('touchend', function(e) {
+            if (pullDistance > 100) {
+                indicator.textContent = '🔄 Refreshing...';
+                location.reload(true);
+            }
+            pullStartY = 0;
+            pullDistance = 0;
+            indicator.classList.remove('active', 'loading');
+            indicator.textContent = '🔄 Pull to refresh...';
+        }, { passive: true });
         
         function updateStats() {
             const counts = { pending: 0, progress: 0, review: 0, completed: 0 };
