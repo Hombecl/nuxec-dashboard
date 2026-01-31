@@ -22,10 +22,10 @@
         
         /* Left Sidebar */
         .sidebar {
-            width: 260px;
-            background: rgba(0, 0, 0, 0.3);
+            width: 280px;
+            background: rgba(0, 0, 0, 0.4);
             border-right: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 25px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             position: fixed;
@@ -33,6 +33,29 @@
             top: 0;
             bottom: 0;
             z-index: 100;
+            transition: width 0.3s, transform 0.3s;
+        }
+        
+        .sidebar.collapsed {
+            width: 70px;
+        }
+        
+        .sidebar-toggle {
+            position: absolute;
+            right: -12px;
+            top: 20px;
+            width: 24px;
+            height: 24px;
+            background: #64ffda;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 0.7rem;
+            color: #1a1a2e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
         }
         
         .avatar-section {
@@ -51,37 +74,28 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.5rem;
             border: 3px solid rgba(100, 255, 218, 0.3);
             overflow: hidden;
             position: relative;
         }
         
-        .avatar-face {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         
-        .avatar-eyes {
-            display: flex;
-            gap: 20px;
+        .avatar-gif {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
         }
         
-        .avatar-eye {
-            width: 10px;
-            height: 10px;
-            background: #64ffda;
-            border-radius: 50%;
-        }
-        
-        .avatar-mouth {
-            width: 24px;
-            height: 12px;
-            border-bottom: 3px solid #64ffda;
-            border-radius: 0 0 24px 24px;
-        }
+        .avatar.running .avatar-img { display: none; }
+        .avatar.running .avatar-gif { display: block; }
         
         .avatar-name {
             font-size: 1.1rem;
@@ -120,18 +134,70 @@
         }
         
         @keyframes pulse-dot {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+        }
+        
+        /* Quick Tools Section */
+        .quick-tools-section {
+            margin-bottom: 20px;
+        }
+        
+        .section-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #8892b0;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+        
+        .tool-btn {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #fff;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            text-align: left;
+        }
+        
+        .tool-btn:hover {
+            background: rgba(100, 255, 218, 0.1);
+            border-color: rgba(100, 255, 218, 0.3);
+        }
+        
+        .tool-btn .icon { font-size: 1.2rem; }
+        .tool-btn .label { flex: 1; }
+        
+        .sidebar.collapsed .tool-btn .label,
+        .sidebar.collapsed .section-label,
+        .sidebar.collapsed .sync-info,
+        .sidebar.collapsed .logout-btn {
+            display: none;
+        }
+        
+        .sidebar.collapsed .tool-btn {
+            justify-content: center;
+            padding: 12px;
         }
         
         .sidebar-bottom {
             margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .sync-info {
             color: #8892b0;
             font-size: 0.8rem;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             text-align: center;
         }
         
@@ -160,25 +226,28 @@
         /* Main Content */
         .main-content {
             flex: 1;
-            margin-left: 260px;
+            margin-left: 280px;
             padding: 25px;
+            transition: margin-left 0.3s;
         }
         
-        /* Kanban Section */
+        .sidebar.collapsed ~ .main-content {
+            margin-left: 70px;
+        }
+        
+        /* Task Board */
         .kanban-section {
-            margin-bottom: 40px;
+            margin-bottom: 35px;
         }
         
-        .kanban-header {
+        .section-header-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 18px;
         }
         
-        .kanban-title {
+        .section-title {
             font-size: 1.3rem;
             font-weight: 600;
         }
@@ -186,14 +255,14 @@
         .kanban-board {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 18px;
+            gap: 16px;
         }
         
         .kanban-column {
             background: rgba(255, 255, 255, 0.03);
             border-radius: 14px;
             padding: 16px;
-            min-height: 300px;
+            min-height: 280px;
         }
         
         .kanban-col-header {
@@ -258,37 +327,19 @@
         
         /* Deliverables Section */
         .deliverables-section {
-            margin-bottom: 40px;
-        }
-        
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            margin-bottom: 35px;
         }
         
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             gap: 12px;
         }
         
         .metric-card {
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            padding: 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            border-radius: 12px;
+            padding: 16px;
             cursor: pointer;
             transition: all 0.3s;
             border: 1px solid transparent;
@@ -299,25 +350,49 @@
             border-color: rgba(100, 255, 218, 0.3);
         }
         
-        .metric-card.active {
-            border-color: #64ffda;
-            background: rgba(100, 255, 218, 0.05);
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
         }
         
         .metric-name {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             display: flex;
             align-items: center;
             gap: 8px;
         }
         
-        .metric-value {
-            font-weight: bold;
+        .metric-count {
+            background: rgba(100, 255, 218, 0.1);
             color: #64ffda;
-            font-size: 0.85rem;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
         }
         
-        /* Bottom Section (Notes + Action Log) */
+        .metric-items {
+            font-size: 0.75rem;
+            color: #8892b0;
+        }
+        
+        .metric-item {
+            padding: 4px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .metric-item-dot {
+            width: 4px;
+            height: 4px;
+            background: #64ffda;
+            border-radius: 50%;
+        }
+        
+        /* Bottom Section */
         .bottom-section {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -376,13 +451,8 @@
             border-left: 3px solid;
         }
         
-        .note-item {
-            border-left-color: #4d96ff;
-        }
-        
-        .action-item {
-            border-left-color: #6bcb77;
-        }
+        .note-item { border-left-color: #4d96ff; }
+        .action-item { border-left-color: #6bcb77; }
         
         .item-time {
             color: #8892b0;
@@ -474,7 +544,6 @@
         .action-link:hover { background: #2ea043; transform: translateY(-2px); }
         .action-link.secondary { background: #1f6feb; }
         
-        /* Pull to refresh indicator */
         .pull-refresh-indicator {
             position: fixed;
             top: 0; left: 0; right: 0;
@@ -490,56 +559,89 @@
         }
         .pull-refresh-indicator.active { height: 50px; }
         
-        /* Responsive */
         @media (max-width: 1100px) {
-            .sidebar { width: 220px; }
-            .main-content { margin-left: 220px; }
+            .sidebar { width: 240px; }
+            .main-content { margin-left: 240px; }
             .kanban-board { grid-template-columns: repeat(2, 1fr); }
         }
         
         @media (max-width: 768px) {
-            .sidebar { 
-                width: 100%; 
-                position: relative; 
-                flex-direction: row;
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 15px;
-                padding: 20px;
+            .sidebar {
+                transform: translateX(-100%);
+                width: 240px !important;
             }
-            .avatar-section { 
-                width: 100%; 
-                border-bottom: none;
-                margin-bottom: 0;
-            }
-            .sidebar-bottom { width: 100%; margin-top: 15px; }
+            .sidebar.mobile-open { transform: translateX(0); }
             .main-content { margin-left: 0; }
             .kanban-board { grid-template-columns: 1fr; }
             .bottom-section { grid-template-columns: 1fr; }
             .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+            
+            .mobile-menu-btn {
+                display: flex !important;
+            }
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 200;
+            background: #64ffda;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 1rem;
         }
     </style>
 </head>
 <body>
+    <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰ Menu</button>
+    
     <div class="pull-refresh-indicator" id="pullRefreshIndicator">🔄 Release to refresh...</div>
     
     <div class="app-container">
         <!-- Left Sidebar -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
+            <button class="sidebar-toggle" onclick="toggleSidebar()">◀</button>
+            
             <div class="avatar-section">
-                <div class="avatar">
-                    <div class="avatar-face">
-                        <div class="avatar-eyes">
-                            <div class="avatar-eye"></div>
-                            <div class="avatar-eye"></div>
-                        </div>
-                        <div class="avatar-mouth"></div>
-                    </div>
+                <div class="avatar" id="avatar">
+                    <!-- Replace with your photo URL -->
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='35' r='25' fill='%234a5568'/%3E%3Ccircle cx='50' cy='100' r='40' fill='%234a5568'/%3E%3C/svg%3E" class="avatar-img" alt="Orland">
+                    <!-- Running GIF placeholder -->
+                    <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="avatar-gif" alt="Running">
                 </div>
                 <div class="avatar-name">Orland</div>
-                <div class="status-chip idle">
+                <div class="status-chip idle" id="statusChip">
                     <span class="status-dot"></span>
                     <span id="statusText">Idle</span>
+                </div>
+            </div>
+            
+            <!-- Quick Tools -->
+            <div class="quick-tools-section">
+                <div class="section-label">🛠️ Quick Tools</div>
+                
+                <div class="tool-btn" onclick="openQuickTool('prompt')">
+                    <span class="icon">📋</span>
+                    <span class="label">Copy Prompts</span>
+                </div>
+                
+                <div class="tool-btn" onclick="openQuickTool('code')">
+                    <span class="icon">💻</span>
+                    <span class="label">Code Snippets</span>
+                </div>
+                
+                <div class="tool-btn" onclick="openQuickTool('calc')">
+                    <span class="icon">🧮</span>
+                    <span class="label">Calculator</span>
+                </div>
+                
+                <div class="tool-btn" onclick="openQuickTool('notes')">
+                    <span class="icon">📝</span>
+                    <span class="label">Quick Notes</span>
                 </div>
             </div>
             
@@ -553,14 +655,13 @@
         
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Kanban Section -->
+            <!-- Task Board -->
             <section class="kanban-section">
-                <div class="kanban-header">
-                    <span class="kanban-title">📋 Task Board</span>
+                <div class="section-header-row">
+                    <span class="section-title">📋 Task Board</span>
                 </div>
                 
                 <div class="kanban-board">
-                    <!-- To Do -->
                     <div class="kanban-column todo">
                         <div class="kanban-col-header">
                             <span class="kanban-col-title">📌 To Do <span class="kanban-col-count" id="todoCount">0</span></span>
@@ -568,7 +669,6 @@
                         <div id="todoList"></div>
                     </div>
                     
-                    <!-- In Progress -->
                     <div class="kanban-column inprogress">
                         <div class="kanban-col-header">
                             <span class="kanban-col-title">🔄 In Progress <span class="kanban-col-count" id="progressCount">0</span></span>
@@ -576,7 +676,6 @@
                         <div id="progressList"></div>
                     </div>
                     
-                    <!-- Done -->
                     <div class="kanban-column done">
                         <div class="kanban-col-header">
                             <span class="kanban-col-title">✅ Done <span class="kanban-col-count" id="doneCount">0</span></span>
@@ -584,7 +683,6 @@
                         <div id="doneList"></div>
                     </div>
                     
-                    <!-- Archive -->
                     <div class="kanban-column archive">
                         <div class="kanban-col-header">
                             <span class="kanban-col-title">📦 Archive <span class="kanban-col-count" id="archiveCount">0</span></span>
@@ -594,38 +692,71 @@
                 </div>
             </section>
             
-            <!-- Deliverables Section -->
+            <!-- Deliverables -->
             <section class="deliverables-section">
-                <div class="section-header">
+                <div class="section-header-row">
                     <span class="section-title">📊 Deliverables</span>
                 </div>
                 
                 <div class="metrics-grid">
-                    <div class="metric-card" onclick="showMetric('ecommerce')">
-                        <span class="metric-name">🛒 E-Commerce</span>
-                        <span class="metric-value">3</span>
+                    <div class="metric-card" onclick="showDeliverable('ecommerce')">
+                        <div class="metric-header">
+                            <span class="metric-name">🛒 E-Commerce</span>
+                            <span class="metric-count">3</span>
+                        </div>
+                        <div class="metric-items">
+                            <div class="metric-item"><span class="metric-item-dot"></span> Walmart Scraper</div>
+                            <div class="metric-item"><span class="metric-item-dot"></span> Subscription Tracker</div>
+                            <div class="metric-item"><span class="metric-item-dot"></span> Bank Statement Analyzer</div>
+                        </div>
                     </div>
                     
-                    <div class="metric-card" onclick="showMetric('nen')">
-                        <span class="metric-name">⚡ NEN Workflow</span>
-                        <span class="metric-value">2</span>
+                    <div class="metric-card" onclick="showDeliverable('nen')">
+                        <div class="metric-header">
+                            <span class="metric-name">⚡ NEN Workflow</span>
+                            <span class="metric-count">2</span>
+                        </div>
+                        <div class="metric-items">
+                            <div class="metric-item"><span class="metric-item-dot"></span> Daily Summary</div>
+                            <div class="metric-item"><span class="metric-item-dot"></span> Task Automation</div>
+                        </div>
                     </div>
                     
-                    <div class="metric-card" onclick="showMetric('upwork')">
-                        <span class="metric-name">💼 Upwork</span>
-                        <span class="metric-value">1</span>
+                    <div class="metric-card" onclick="showDeliverable('upwork')">
+                        <div class="metric-header">
+                            <span class="metric-name">💼 Upwork</span>
+                            <span class="metric-count">1</span>
+                        </div>
+                        <div class="metric-items">
+                            <div class="metric-item"><span class="metric-item-dot"></span> GMC Service Website</div>
+                        </div>
                     </div>
                     
-                    <div class="metric-card" onclick="showMetric('dashboard')">
-                        <span class="metric-name">🚀 Dashboard</span>
-                        <span class="metric-value">v2.0</span>
+                    <div class="metric-card" onclick="showDeliverable('security')">
+                        <div class="metric-header">
+                            <span class="metric-name">🔐 Security Audit</span>
+                            <span class="metric-count">0</span>
+                        </div>
+                        <div class="metric-items">
+                            <div class="metric-item"><span class="metric-item-dot"></span> Pending setup</div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card" onclick="showDeliverable('dashboard')">
+                        <div class="metric-header">
+                            <span class="metric-name">🚀 Dashboard</span>
+                            <span class="metric-count">v2.1</span>
+                        </div>
+                        <div class="metric-items">
+                            <div class="metric-item"><span class="metric-item-dot"></span> Task Management</div>
+                            <div class="metric-item"><span class="metric-item-dot"></span> Action Log</div>
+                        </div>
                     </div>
                 </div>
             </section>
             
-            <!-- Bottom Section (Notes + Action Log) -->
+            <!-- Bottom Section -->
             <section class="bottom-section">
-                <!-- Notes for Order -->
                 <div class="bottom-column">
                     <div class="column-header">
                         <span class="column-title">📝 Notes for Order</span>
@@ -639,7 +770,6 @@
                     </div>
                 </div>
                 
-                <!-- Action Log -->
                 <div class="bottom-column">
                     <div class="column-header">
                         <span class="column-title">📜 Action Log</span>
@@ -671,13 +801,16 @@
     </div>
     
     <script>
+        // State
+        let isRunning = false;
+        
         const tasks = [
             { id: 1, title: "Setup nuxec-dashboard", date: "2026-01-30", status: "done", instructions: [{step:1,text:"Done!"}], links: [{text:"Dashboard",url:"https://nuxec-dashboard.vercel.app"}] },
             { id: 2, title: "Build Dashboard UI v2", date: "2026-01-31", status: "done", instructions: [{step:1,text:"Done!"}], links: [{text:"View",url:"https://nuxec-dashboard.vercel.app"}] },
-            { id: 3, title: "Walmart Scraper Development", date: "2026-01-31", status: "inprogress", instructions: [{step:1,text:"Download from GitHub"}, {step:2,text:"Run locally (requires residential IP)"}], links: [{text:"View Script",url:"https://github.com/Hombecl/nuxec-dashboard/blob/main/walmart-scraper.js"}] },
+            { id: 3, title: "Walmart Scraper Development", date: "2026-01-31", status: "inprogress", instructions: [{step:1,text:"Download from GitHub"}, {step:2,text:"Run locally"}], links: [{text:"View Script",url:"https://github.com/Hombecl/nuxec-dashboard/blob/main/walmart-scraper.js"}] },
             { id: 4, title: "Subscription Email Scanner", date: "2026-01-31", status: "inprogress", instructions: [{step:1,text:"Go to Google Apps Script"}, {step:2,text:"Run findSubscriptions()"}], links: [{text:"Run Scanner",url:"https://script.google.com/home"}] },
-            { id: 5, title: "Private Repo Setup", date: "2026-01-31", status: "done", instructions: [{step:1,text:"Done! Repo created"}], links: [{text:"Private Repo",url:"https://github.com/Hombecl/nuxec-sensitive"}] },
-            { id: 6, title: "Bank Statement Analyzer", date: "2026-02-02", status: "todo", instructions: [{step:1,text:"Upload statements to nuxec-sensitive"}, {step:2,text:"Tell Orland 'Files uploaded'"}], links: [] },
+            { id: 5, title: "Private Repo Setup", date: "2026-01-31", status: "done", instructions: [{step:1,text:"Done!"}], links: [{text:"Private Repo",url:"https://github.com/Hombecl/nuxec-sensitive"}] },
+            { id: 6, title: "Bank Statement Analyzer", date: "2026-02-02", status: "todo", instructions: [{step:1,text:"Upload statements"}, {step:2,text:"Tell Orland"}], links: [] },
             { id: 7, title: "Daily Summary Automation", date: "2026-02-01", status: "todo", instructions: [{step:1,text:"Orland will send daily summary"}], links: [] },
             { id: 8, title: "GMC Service Website", date: "2026-02-02", status: "inprogress", instructions: [{step:1,text:"Nuxt 3 website created"}, {step:2,text:"Deploy to Vercel"}], links: [{text:"View Repo",url:"https://github.com/Hombecl/gmc-service-website"}] }
         ];
@@ -703,6 +836,48 @@
             });
         }
         
+        function setRunning(running) {
+            isRunning = running;
+            const avatar = document.getElementById('avatar');
+            const statusChip = document.getElementById('statusChip');
+            const statusText = document.getElementById('statusText');
+            
+            if (running) {
+                avatar.classList.add('running');
+                statusChip.classList.remove('idle');
+                statusChip.classList.add('running');
+                statusText.textContent = 'Running';
+            } else {
+                avatar.classList.remove('running');
+                statusChip.classList.remove('running');
+                statusChip.classList.add('idle');
+                statusText.textContent = 'Idle';
+            }
+        }
+        
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+        }
+        
+        function toggleMobileMenu() {
+            document.getElementById('sidebar').classList.toggle('mobile-open');
+        }
+        
+        function openQuickTool(tool) {
+            showModal('Quick Tool: ' + tool.toUpperCase(), '<p>Tool coming soon...</p>');
+        }
+        
+        function showDeliverable(type) {
+            const data = {
+                ecommerce: 'E-Commerce Deliverables: Walmart scraper, subscription tracker, bank statement analyzer',
+                nen: 'NEN Workflow: Daily summary automation, task management',
+                upwork: 'Upwork Services: GMC reinstatement website, job monitoring',
+                security: 'Security Audit: Coming soon...',
+                dashboard: 'Dashboard v2.1: Task board, deliverables, notes, action log'
+            };
+            showModal('Deliverable: ' + type.toUpperCase(), '<p>' + data[type] + '</p>');
+        }
+        
         function showTaskModal(id) {
             const task = tasks.find(t => t.id === id);
             if (!task) return;
@@ -715,11 +890,10 @@
             `).join('');
             
             const links = task.links.map(l => 
-                `<a href="${l.url}" target="_blank" class="action-link ${l.secondary?'secondary':''}">${l.text}</a>`
+                `<a href="${l.url}" target="_blank" class="action-link">${l.text}</a>`
             ).join('');
             
             showModal(task.title, `
-                <p style="color:#8892b0;margin-bottom:15px;">${task.desc || 'Task details'}</p>
                 ${links ? `<div style="margin-bottom:15px;">${links}</div>` : ''}
                 <div class="modal-section">
                     <h4>📋 Instructions</h4>
@@ -741,10 +915,6 @@
             }
         }
         
-        function showMetric(type) {
-            showModal('Deliverable: ' + type.toUpperCase(), '<p>Details for ' + type + ' coming soon...</p>');
-        }
-        
         function addNote() {
             const note = prompt('Enter new note:');
             if (note) {
@@ -756,9 +926,7 @@
             }
         }
         
-        function logout() {
-            alert('Logout clicked - implement your auth flow here');
-        }
+        function logout() { alert('Logout clicked'); }
         
         // Pull to refresh
         let pullStartY = 0, pullDistance = 0;
@@ -787,6 +955,9 @@
         
         // Sync time
         document.getElementById('lastSync').textContent = new Date().toLocaleString();
+        
+        // Expose setRunning for external use
+        window.setOrlandRunning = setRunning;
         
         // Init
         renderKanban();
