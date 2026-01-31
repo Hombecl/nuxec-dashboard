@@ -335,6 +335,64 @@
             <ul class="task-list" id="taskList"></ul>
         </div>
         
+        <!-- Quick Toolbox -->
+        <div class="section" style="margin-top: 50px;">
+            <h2 class="section-title">🛠️ Quick Toolbox (Copy & Paste)</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
+                
+                <div class="task-item" style="cursor: pointer;" onclick="copyPrompt('prompt-claude-create-repo')">
+                    <span class="status-badge pending">NEW</span>
+                    <div class="task-content">
+                        <div class="task-title">📋 Create Private Repo (nuxec-sensitive)</div>
+                        <div class="task-desc">Prompt for Claude to setup private GitHub repo</div>
+                        <div class="task-date">Click to copy</div>
+                    </div>
+                </div>
+                
+                <div class="task-item" style="cursor: pointer;" onclick="copyPrompt('prompt-verify-deploy')">
+                    <span class="status-badge pending">NEW</span>
+                    <div class="task-content">
+                        <div class="task-title">🔍 Verify Vercel Deploy</div>
+                        <div class="task-desc">Check if dashboard is deployed correctly</div>
+                        <div class="task-date">Click to copy</div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        
+        <!-- Hidden prompts storage -->
+        <div id="prompt-storage" style="display:none;">
+            <div id="prompt-claude-create-repo">我想要建立一個 private GitHub repository 嚟放 sensitive files (bank statements 等)。
+
+請幫我做以下嘢：
+
+1. Create Private Repository:
+   - Go to https://github.com
+   - Create new repository called "nuxec-sensitive"
+   - Select "Private" (NOT Public)
+   - DO NOT initialize with README/.gitignore (empty repo)
+   - Create repository
+
+2. Setup Collaborator Access:
+   - Go to Repository → Settings → Collaborators
+   - Click "Add people"
+   - Add the GitHub account that Orland (AI assistant) uses
+   - Send invitation
+
+3. Output:
+   - Repository URL (e.g., https://github.com/yourname/nuxec-sensitive)
+   - Confirmation that collaborator was added
+
+thank you!</div>
+            <div id="prompt-verify-deploy">Check if the Vercel deployment is working:
+
+1. Go to: https://nuxec-dashboard.vercel.app
+2. You should see "🚀 Nuxec Dashboard"
+3. If page shows errors, check GitHub repo has latest code
+4. Vercel should auto-deploy on each push to main</div>
+        </div>
+        
         <div class="footer">
             <p>Last updated by Orland • <span id="lastUpdated"></span></p>
         </div>
@@ -625,6 +683,23 @@ function findSubscriptions() {
             
             // Force reload bypassing cache
             location.reload(true);
+        }
+        
+        // Copy Prompt to Clipboard
+        function copyPrompt(promptId) {
+            const promptText = document.getElementById(promptId).textContent.trim();
+            navigator.clipboard.writeText(promptText).then(() => {
+                alert('✅ Copied to clipboard!');
+            }).catch(() => {
+                // Fallback
+                const textarea = document.createElement('textarea');
+                textarea.value = promptText;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('✅ Copied to clipboard!');
+            });
         }
         
         // Initialize
