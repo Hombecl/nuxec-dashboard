@@ -629,6 +629,11 @@
             <div class="quick-tools-section">
                 <div class="section-label">🛠️ Quick Tools</div>
                 
+                <div class="tool-btn" onclick="openQuickTool('partykit')">
+                    <span class="icon">🔄</span>
+                    <span class="label">PartyKit Setup</span>
+                </div>
+                
                 <div class="tool-btn" onclick="openQuickTool('prompt')">
                     <span class="icon">📋</span>
                     <span class="label">Copy Prompts</span>
@@ -869,7 +874,36 @@
         }
         
         function openQuickTool(tool) {
-            showModal('Quick Tool: ' + tool.toUpperCase(), '<p>Tool coming soon...</p>');
+            const tools = {
+                partykit: {
+                    title: '🔄 PartyKit Setup',
+                    content: `<div class="modal-section">
+                        <h4>📋 Claude Prompt for PartyKit Deployment</h4>
+                        <div class="code-block">Please deploy the PartyKit project to Vercel for real-time status sync:
+
+1. Go to: https://partykit.io
+2. Sign up with GitHub
+3. Create new project called "orland-dashboard-status"
+4. Connect to GitHub repo: https://github.com/Hombecl/partykit-dashboard
+5. Deploy to Vercel
+6. Copy the deployed URL (e.g., https://orland-dashboard-status.partykit.dev)
+7. Update the Dashboard code to use this URL
+
+REPLACE this in nuxec-dashboard/index.html:
+FROM: window.location.hostname === 'localhost' ? 'localhost:1999' : 'YOUR_PARTYKIT_URL.partykit.dev'
+TO:   window.location.hostname === 'localhost' ? 'localhost:1999' : 'https://YOUR_DEPLOYED_URL.partykit.dev'</div>
+                    </div>
+                    <a href="https://partykit.io" target="_blank" class="action-link">🎯 Go to PartyKit</a>
+                    <a href="https://github.com/Hombecl/partykit-dashboard" target="_blank" class="action-link secondary">📦 View Repo</a>`
+                },
+                prompt: '<p>📋 Copy Prompts - Coming soon...</p>',
+                code: '<p>💻 Code Snippets - Coming soon...</p>',
+                calc: '<p>🧮 Calculator - Coming soon...</p>',
+                notes: '<p>📝 Quick Notes - Coming soon...</p>'
+            };
+            
+            const t = tools[tool] || { title: 'Tool', content: '<p>Coming soon...</p>' };
+            showModal(t.title, t.content);
         }
         
         function showDeliverable(type) {
