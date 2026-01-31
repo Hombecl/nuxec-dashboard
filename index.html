@@ -602,93 +602,94 @@
     <div class="app-container">
         <!-- Left Sidebar -->
         <aside class="sidebar" id="sidebar" role="complementary" aria-label="Sidebar">
-            <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">◀</button>
-
-            <div class="avatar-section">
-                <div class="avatar" id="avatar" data-status="idle" role="img" aria-label="Orland avatar">
-                    <div class="avatar-photo idle"></div>
-                    <div class="avatar-photo active"></div>
-                </div>
-                <div class="avatar-name">Orland</div>
-                <div class="status-chip" id="statusChip" data-status="idle" role="status" aria-live="polite">
-                    <span class="status-dot" aria-hidden="true"></span>
-                    <span id="statusText">Idle</span>
+            <!-- Orland Status -->
+            <div class="orland-status">
+                <div class="avatar running" id="avatar" tabindex="0" aria-label="Orland status indicator"></div>
+                <div class="status-info">
+                    <div class="status-name">Orland</div>
+                    <div class="status-chip running" id="statusChip">
+                        <span class="status-dot"></span>
+                        <span class="status-text" id="statusText">Running</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Thought Log -->
-            <div class="thought-log" id="thoughtLog" role="log" aria-label="Agent thinking log">
-                <div class="thought-header">🧠 Agent Thinking</div>
-                <div id="thoughtLogContent">
-                    <div class="thought-step">Waiting for tasks...</div>
-                </div>
-            </div>
-
-            <!-- Quick Tools -->
-            <div class="quick-tools-section">
-                <div class="section-label">🛠️ Quick Tools</div>
-
+            <!-- Quick Actions -->
+            <div class="sidebar-section">
+                <div class="section-title-sm">⚡ Quick Actions</div>
                 <button class="tool-btn" onclick="openQuickTool('partykit')" tabindex="0">
-                    <span class="icon" aria-hidden="true">🖥️</span>
+                    <span class="icon">🖥️</span>
                     <span class="label">VPS WebSocket</span>
                 </button>
-
-                <button class="tool-btn" onclick="openQuickTool('prompt')" tabindex="0">
-                    <span class="icon" aria-hidden="true">📋</span>
-                    <span class="label">Copy Prompts</span>
-                </button>
-
                 <button class="tool-btn" onclick="openQuickTool('code')" tabindex="0">
-                    <span class="icon" aria-hidden="true">💻</span>
+                    <span class="icon">💻</span>
                     <span class="label">Code Snippets</span>
                 </button>
-
-                <button class="tool-btn" onclick="openQuickTool('calc')" tabindex="0">
-                    <span class="icon" aria-hidden="true">🧮</span>
-                    <span class="label">Calculator</span>
-                </button>
-
                 <button class="tool-btn" onclick="openQuickTool('notes')" tabindex="0">
-                    <span class="icon" aria-hidden="true">📝</span>
+                    <span class="icon">📝</span>
                     <span class="label">Quick Notes</span>
                 </button>
             </div>
 
-            <!-- Pending Installations -->
-            <div class="quick-tools-section">
-                <div class="section-label">📦 Pending Installations</div>
+            <!-- WebSocket Setup Guide -->
+            <div class="sidebar-section">
+                <div class="section-title-sm">📡 WebSocket Setup</div>
+                <div class="setup-card">
+                    <div class="setup-step" onclick="openQuickTool('partykit')">
+                        <span class="step-num">1</span>
+                        <span class="step-text">SSH to VPS</span>
+                        <span class="step-status pending">⏳</span>
+                    </div>
+                    <div class="setup-step" onclick="copyToClipboard('cd /root/.openclaw/workspace/partykit-dashboard && npm install ws')">
+                        <span class="step-num">2</span>
+                        <span class="step-text">Install Dependencies</span>
+                        <span class="step-status pending">⏳</span>
+                    </div>
+                    <div class="setup-step" onclick="copyToClipboard('cd /root/.openclaw/workspace/partykit-dashboard && node vps-server.js')">
+                        <span class="step-num">3</span>
+                        <span class="step-text">Start Server</span>
+                        <span class="step-status pending">⏳</span>
+                    </div>
+                    <div class="setup-step" onclick="copyToClipboard('curl http://YOUR_VPS_IP:8080')">
+                        <span class="step-num">4</span>
+                        <span class="step-text">Test Connection</span>
+                        <span class="step-status pending">⏳</span>
+                    </div>
+                </div>
+            </div>
 
-                <button class="tool-btn" onclick="openQuickTool('install-browser')" tabindex="0">
-                    <span class="icon" aria-hidden="true">🌐</span>
-                    <span class="label">Browser Setup</span>
-                    <span style="background: #ffd93d; color: #1a1a2e; padding: 3px 8px; border-radius: 10px; font-size: 0.7rem;">3</span>
+            <!-- Setup Guide -->
+            <div class="sidebar-section">
+                <div class="section-title-sm">📦 Setup Guide</div>
+                <button class="tool-btn install-btn" onclick="openQuickTool('install-browser')" tabindex="0">
+                    <span class="icon">🌐</span>
+                    <span class="label">Browser Tools</span>
+                    <span class="badge">3</span>
                 </button>
-
-                <button class="tool-btn" onclick="openQuickTool('install-search')" tabindex="0">
-                    <span class="icon" aria-hidden="true">🔍</span>
+                <button class="tool-btn install-btn" onclick="openQuickTool('install-search')" tabindex="0">
+                    <span class="icon">🔍</span>
                     <span class="label">Web Search</span>
-                    <span style="background: #ffd93d; color: #1a1a2e; padding: 3px 8px; border-radius: 10px; font-size: 0.7rem;">1</span>
+                    <span class="badge">1</span>
                 </button>
-
-                <button class="tool-btn" onclick="openQuickTool('install-screenshot')" tabindex="0">
-                    <span class="icon" aria-hidden="true">📸</span>
-                    <span class="label">Screenshot Tool</span>
-                    <span style="background: #ffd93d; color: #1a1a2e; padding: 3px 8px; border-radius: 10px; font-size: 0.7rem;">1</span>
+                <button class="tool-btn install-btn" onclick="openQuickTool('install-screenshot')" tabindex="0">
+                    <span class="icon">📸</span>
+                    <span class="label">Screenshot</span>
+                    <span class="badge">1</span>
                 </button>
             </div>
 
+            <!-- Connection Status -->
             <div class="sidebar-bottom">
                 <div class="connection-status disconnected" id="connectionStatus">
-                    ⚡ Disconnected
+                    <span class="status-icon">⚡</span>
+                    <span class="status-text">Disconnected</span>
                 </div>
                 <div class="sync-info">
                     Last Sync: <span class="sync-time" id="lastSync">--</span>
                 </div>
                 <button class="logout-btn" onclick="clearData()">🗑️ Clear Data</button>
             </div>
-        </aside>
-
-        <!-- Main Content -->
+        </aside>        <!-- Main Content -->
         <main class="main-content" id="main-content" role="main">
             <!-- Task Board -->
             <section class="kanban-section" aria-labelledby="taskBoardTitle">
@@ -1223,14 +1224,29 @@
 
         function copyCommand(cmd) {
             navigator.clipboard.writeText(cmd).then(() => {
+                showToast('Command copied!', 'success');
+            }).catch(() => {
+                const t = document.createElement('textarea');
+                t.value = cmd;
+                document.body.appendChild(t);
+                t.select();
+                document.execCommand('copy');
+                document.body.removeChild(t);
+                showToast('Command copied!', 'success');
+            });
+        }
+        
+        // Copy text helper
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
                 showToast('Copied to clipboard!', 'success');
             }).catch(() => {
-                const textarea = document.createElement('textarea');
-                textarea.value = cmd;
-                document.body.appendChild(textarea);
-                textarea.select();
+                const t = document.createElement('textarea');
+                t.value = text;
+                document.body.appendChild(t);
+                t.select();
                 document.execCommand('copy');
-                document.body.removeChild(textarea);
+                document.body.removeChild(t);
                 showToast('Copied to clipboard!', 'success');
             });
         }
