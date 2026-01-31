@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nuxec Dashboard - Orland</title>
+    <title>Nuxec Dashboard - Orland v3.0</title>
+    <meta name="description" content="AI Assistant Dashboard for task management and monitoring">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -13,13 +14,10 @@
             color: #fff;
             overflow-x: hidden;
         }
-        
+
         /* Layout */
-        .app-container {
-            display: flex;
-            min-height: 100vh;
-        }
-        
+        .app-container { display: flex; min-height: 100vh; }
+
         /* Left Sidebar */
         .sidebar {
             width: 280px;
@@ -29,23 +27,16 @@
             display: flex;
             flex-direction: column;
             position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
+            left: 0; top: 0; bottom: 0;
             z-index: 100;
             transition: width 0.3s, transform 0.3s;
         }
-        
-        .sidebar.collapsed {
-            width: 70px;
-        }
-        
+        .sidebar.collapsed { width: 70px; }
+
         .sidebar-toggle {
             position: absolute;
-            right: -12px;
-            top: 20px;
-            width: 24px;
-            height: 24px;
+            right: -12px; top: 20px;
+            width: 24px; height: 24px;
             background: #64ffda;
             border-radius: 50%;
             border: none;
@@ -57,58 +48,63 @@
             justify-content: center;
             z-index: 10;
         }
-        
+
         .avatar-section {
             text-align: center;
             padding-bottom: 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             margin-bottom: 20px;
         }
-        
+
         .avatar {
-            width: 90px;
-            height: 90px;
+            width: 90px; height: 90px;
             border-radius: 50%;
             margin: 0 auto 15px;
             border: 3px solid rgba(100, 255, 218, 0.3);
             overflow: hidden;
             position: relative;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: border-color 0.3s;
         }
-        
+
         .avatar-photo {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background-size: cover;
             background-position: center;
             transition: opacity 0.3s;
         }
-        
+
         .avatar-photo.idle {
             background-image: url('https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=200&h=200&fit=crop&crop=face');
             opacity: 1;
         }
-        
-        .avatar-photo.running {
+        .avatar-photo.active {
             background-image: url('https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=face');
             opacity: 0;
         }
-        
-        .avatar.running .avatar-photo.idle { opacity: 0; }
-        .avatar.running .avatar-photo.running { opacity: 1; }
-        
-        .avatar.running .avatar-img { display: none; }
-        .avatar.running .avatar-gif { display: block; }
-        
-        .avatar-name {
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-        
+
+        /* Enhanced Status States */
+        .avatar[data-status="running"] .avatar-photo.idle,
+        .avatar[data-status="thinking"] .avatar-photo.idle,
+        .avatar[data-status="searching"] .avatar-photo.idle,
+        .avatar[data-status="coding"] .avatar-photo.idle { opacity: 0; }
+        .avatar[data-status="running"] .avatar-photo.active,
+        .avatar[data-status="thinking"] .avatar-photo.active,
+        .avatar[data-status="searching"] .avatar-photo.active,
+        .avatar[data-status="coding"] .avatar-photo.active { opacity: 1; }
+
+        .avatar[data-status="thinking"] { border-color: #9b59b6; }
+        .avatar[data-status="searching"] { border-color: #3498db; }
+        .avatar[data-status="coding"] { border-color: #2ecc71; }
+        .avatar[data-status="running"] { border-color: #6bcb77; }
+        .avatar[data-status="error"] { border-color: #e74c3c; }
+        .avatar[data-status="waiting"] { border-color: #f39c12; }
+
+        .avatar-name { font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; }
+
+        /* Enhanced Status Chip */
         .status-chip {
             display: inline-flex;
             align-items: center;
@@ -117,38 +113,58 @@
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 500;
+            transition: all 0.3s;
         }
-        
-        .status-chip.idle {
-            background: rgba(255, 217, 61, 0.2);
-            color: #ffd93d;
-            border: 1px solid #ffd93d;
-        }
-        
-        .status-chip.running {
-            background: rgba(107, 203, 119, 0.2);
-            color: #6bcb77;
-            border: 1px solid #6bcb77;
-        }
-        
+
+        .status-chip[data-status="idle"] { background: rgba(255, 217, 61, 0.2); color: #ffd93d; border: 1px solid #ffd93d; }
+        .status-chip[data-status="running"] { background: rgba(107, 203, 119, 0.2); color: #6bcb77; border: 1px solid #6bcb77; }
+        .status-chip[data-status="thinking"] { background: rgba(155, 89, 182, 0.2); color: #9b59b6; border: 1px solid #9b59b6; }
+        .status-chip[data-status="searching"] { background: rgba(52, 152, 219, 0.2); color: #3498db; border: 1px solid #3498db; }
+        .status-chip[data-status="coding"] { background: rgba(46, 204, 113, 0.2); color: #2ecc71; border: 1px solid #2ecc71; }
+        .status-chip[data-status="error"] { background: rgba(231, 76, 60, 0.2); color: #e74c3c; border: 1px solid #e74c3c; }
+        .status-chip[data-status="waiting"] { background: rgba(243, 156, 18, 0.2); color: #f39c12; border: 1px solid #f39c12; }
+
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 8px; height: 8px;
             border-radius: 50%;
             background: currentColor;
             animation: pulse-dot 1.5s infinite;
         }
-        
+
         @keyframes pulse-dot {
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.6; transform: scale(1.2); }
         }
-        
-        /* Quick Tools Section */
-        .quick-tools-section {
-            margin-bottom: 20px;
+
+        /* Thought Log */
+        .thought-log {
+            background: rgba(155, 89, 182, 0.1);
+            border: 1px solid rgba(155, 89, 182, 0.3);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 15px;
+            max-height: 120px;
+            overflow-y: auto;
         }
-        
+        .thought-header {
+            font-size: 0.75rem;
+            color: #9b59b6;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .thought-step {
+            font-size: 0.8rem;
+            color: #ccc;
+            padding: 4px 0;
+            border-left: 2px solid #9b59b6;
+            padding-left: 10px;
+            margin-bottom: 4px;
+        }
+        .thought-step:last-child { color: #fff; }
+
+        /* Quick Tools Section */
+        .quick-tools-section { margin-bottom: 20px; }
+
         .section-label {
             font-size: 0.7rem;
             text-transform: uppercase;
@@ -156,7 +172,7 @@
             margin-bottom: 10px;
             letter-spacing: 1px;
         }
-        
+
         .tool-btn {
             width: 100%;
             background: rgba(255, 255, 255, 0.05);
@@ -173,45 +189,45 @@
             transition: all 0.3s;
             text-align: left;
         }
-        
-        .tool-btn:hover {
+        .tool-btn:hover, .tool-btn:focus {
             background: rgba(100, 255, 218, 0.1);
             border-color: rgba(100, 255, 218, 0.3);
+            outline: none;
         }
-        
         .tool-btn .icon { font-size: 1.2rem; }
         .tool-btn .label { flex: 1; }
-        
+
         .sidebar.collapsed .tool-btn .label,
         .sidebar.collapsed .section-label,
         .sidebar.collapsed .sync-info,
-        .sidebar.collapsed .logout-btn {
-            display: none;
-        }
-        
-        .sidebar.collapsed .tool-btn {
-            justify-content: center;
-            padding: 12px;
-        }
-        
+        .sidebar.collapsed .thought-log,
+        .sidebar.collapsed .logout-btn { display: none; }
+        .sidebar.collapsed .tool-btn { justify-content: center; padding: 12px; }
+
         .sidebar-bottom {
             margin-top: auto;
             padding-top: 20px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         .sync-info {
             color: #8892b0;
             font-size: 0.8rem;
             margin-bottom: 12px;
             text-align: center;
         }
-        
-        .sync-time {
-            color: #64ffda;
-            font-weight: 500;
+        .sync-time { color: #64ffda; font-weight: 500; }
+
+        .connection-status {
+            font-size: 0.75rem;
+            text-align: center;
+            margin-bottom: 10px;
+            padding: 6px;
+            border-radius: 6px;
         }
-        
+        .connection-status.connected { background: rgba(46, 204, 113, 0.2); color: #2ecc71; }
+        .connection-status.disconnected { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
+
         .logout-btn {
             width: 100%;
             background: rgba(255, 107, 107, 0.1);
@@ -223,12 +239,8 @@
             font-size: 0.85rem;
             transition: all 0.3s;
         }
-        
-        .logout-btn:hover {
-            background: #ff6b6b;
-            color: #fff;
-        }
-        
+        .logout-btn:hover { background: #ff6b6b; color: #fff; }
+
         /* Main Content */
         .main-content {
             flex: 1;
@@ -236,41 +248,61 @@
             padding: 25px;
             transition: margin-left 0.3s;
         }
-        
-        .sidebar.collapsed ~ .main-content {
-            margin-left: 70px;
+        .sidebar.collapsed ~ .main-content { margin-left: 70px; }
+
+        /* Error Toast */
+        .toast-container {
+            position: fixed;
+            top: 20px; right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
-        
+        .toast {
+            padding: 14px 20px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease;
+            max-width: 350px;
+        }
+        .toast.success { background: rgba(46, 204, 113, 0.95); color: #fff; }
+        .toast.error { background: rgba(231, 76, 60, 0.95); color: #fff; }
+        .toast.warning { background: rgba(243, 156, 18, 0.95); color: #fff; }
+        .toast.info { background: rgba(52, 152, 219, 0.95); color: #fff; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
         /* Task Board */
-        .kanban-section {
-            margin-bottom: 35px;
-        }
-        
+        .kanban-section { margin-bottom: 35px; }
+
         .section-header-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 18px;
         }
-        
-        .section-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-        }
-        
+        .section-title { font-size: 1.3rem; font-weight: 600; }
+
         .kanban-board {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 16px;
         }
-        
+
         .kanban-column {
             background: rgba(255, 255, 255, 0.03);
             border-radius: 14px;
             padding: 16px;
             min-height: 280px;
         }
-        
+
         .kanban-col-header {
             display: flex;
             justify-content: space-between;
@@ -279,7 +311,7 @@
             padding-bottom: 10px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         .kanban-col-title {
             font-size: 0.9rem;
             font-weight: 600;
@@ -287,19 +319,19 @@
             align-items: center;
             gap: 8px;
         }
-        
+
         .kanban-col-count {
             background: rgba(255, 255, 255, 0.1);
             padding: 3px 10px;
             border-radius: 12px;
             font-size: 0.75rem;
         }
-        
+
         .kanban-column.todo .kanban-col-title { color: #ffd93d; }
         .kanban-column.inprogress .kanban-col-title { color: #6bcb77; }
         .kanban-column.done .kanban-col-title { color: #4d96ff; }
         .kanban-column.archive .kanban-col-title { color: #8892b0; }
-        
+
         .kanban-card {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 10px;
@@ -309,39 +341,29 @@
             border-left: 4px solid;
             transition: all 0.3s;
         }
-        
-        .kanban-card:hover {
+        .kanban-card:hover, .kanban-card:focus {
             background: rgba(255, 255, 255, 0.1);
             transform: translateY(-2px);
+            outline: none;
         }
-        
+
         .kanban-column.todo .kanban-card { border-left-color: #ffd93d; }
         .kanban-column.inprogress .kanban-card { border-left-color: #6bcb77; }
         .kanban-column.done .kanban-card { border-left-color: #4d96ff; }
         .kanban-column.archive .kanban-card { border-left-color: #8892b0; opacity: 0.6; }
-        
-        .kanban-card-title {
-            font-size: 0.9rem;
-            margin-bottom: 6px;
-            font-weight: 500;
-        }
-        
-        .kanban-card-date {
-            font-size: 0.75rem;
-            color: #64ffda;
-        }
-        
+
+        .kanban-card-title { font-size: 0.9rem; margin-bottom: 6px; font-weight: 500; }
+        .kanban-card-date { font-size: 0.75rem; color: #64ffda; }
+
         /* Deliverables Section */
-        .deliverables-section {
-            margin-bottom: 35px;
-        }
-        
+        .deliverables-section { margin-bottom: 35px; }
+
         .metrics-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             gap: 12px;
         }
-        
+
         .metric-card {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 12px;
@@ -350,26 +372,19 @@
             transition: all 0.3s;
             border: 1px solid transparent;
         }
-        
-        .metric-card:hover {
+        .metric-card:hover, .metric-card:focus {
             background: rgba(255, 255, 255, 0.08);
             border-color: rgba(100, 255, 218, 0.3);
+            outline: none;
         }
-        
+
         .metric-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
         }
-        
-        .metric-name {
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
+        .metric-name { font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
         .metric-count {
             background: rgba(100, 255, 218, 0.1);
             color: #64ffda;
@@ -378,39 +393,19 @@
             font-size: 0.75rem;
             font-weight: 600;
         }
-        
-        .metric-items {
-            font-size: 0.75rem;
-            color: #8892b0;
-        }
-        
-        .metric-item {
-            padding: 4px 0;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .metric-item-dot {
-            width: 4px;
-            height: 4px;
-            background: #64ffda;
-            border-radius: 50%;
-        }
-        
+        .metric-items { font-size: 0.75rem; color: #8892b0; }
+        .metric-item { padding: 4px 0; display: flex; align-items: center; gap: 6px; }
+        .metric-item-dot { width: 4px; height: 4px; background: #64ffda; border-radius: 50%; }
+
         /* Bottom Section */
-        .bottom-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        
+        .bottom-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
         .bottom-column {
             background: rgba(255, 255, 255, 0.03);
             border-radius: 14px;
             padding: 18px;
         }
-        
+
         .column-header {
             display: flex;
             justify-content: space-between;
@@ -419,21 +414,13 @@
             padding-bottom: 12px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
-        .column-title {
-            font-size: 1rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
+        .column-title { font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+
         .add-btn-small {
             background: rgba(100, 255, 218, 0.1);
             border: 1px solid #64ffda;
             color: #64ffda;
-            width: 28px;
-            height: 28px;
+            width: 28px; height: 28px;
             border-radius: 50%;
             cursor: pointer;
             font-size: 1rem;
@@ -442,12 +429,8 @@
             justify-content: center;
             transition: all 0.3s;
         }
-        
-        .add-btn-small:hover {
-            background: #64ffda;
-            color: #1a1a2e;
-        }
-        
+        .add-btn-small:hover { background: #64ffda; color: #1a1a2e; }
+
         .note-item, .action-item {
             background: rgba(255, 255, 255, 0.03);
             border-radius: 8px;
@@ -456,16 +439,13 @@
             font-size: 0.85rem;
             border-left: 3px solid;
         }
-        
         .note-item { border-left-color: #4d96ff; }
         .action-item { border-left-color: #6bcb77; }
-        
-        .item-time {
-            color: #8892b0;
-            font-size: 0.75rem;
-            margin-top: 6px;
-        }
-        
+        .action-item.error { border-left-color: #e74c3c; }
+        .action-item.warning { border-left-color: #f39c12; }
+
+        .item-time { color: #8892b0; font-size: 0.75rem; margin-top: 6px; }
+
         /* Modal */
         .modal-overlay {
             display: none;
@@ -477,7 +457,7 @@
             overflow-y: auto;
         }
         .modal-overlay.active { display: flex; justify-content: center; align-items: flex-start; }
-        
+
         .modal {
             background: #1a1a2e;
             border-radius: 14px;
@@ -502,29 +482,20 @@
             cursor: pointer;
         }
         .modal-body { padding: 18px; }
-        
+
         .modal-section {
             background: rgba(100, 255, 218, 0.05);
             border-radius: 8px;
             padding: 14px;
             margin-bottom: 14px;
         }
-        .modal-section h4 {
-            color: #64ffda;
-            margin-bottom: 10px;
-            font-size: 0.85rem;
-        }
-        .instruction-step {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 8px;
-            font-size: 0.85rem;
-        }
+        .modal-section h4 { color: #64ffda; margin-bottom: 10px; font-size: 0.85rem; }
+
+        .instruction-step { display: flex; gap: 10px; margin-bottom: 8px; font-size: 0.85rem; }
         .step-num {
             background: #64ffda;
             color: #1a1a2e;
-            width: 18px;
-            height: 18px;
+            width: 18px; height: 18px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -533,7 +504,7 @@
             font-weight: bold;
             flex-shrink: 0;
         }
-        
+
         .action-link {
             display: inline-flex;
             align-items: center;
@@ -549,7 +520,7 @@
         }
         .action-link:hover { background: #2ea043; transform: translateY(-2px); }
         .action-link.secondary { background: #1f6feb; }
-        
+
         .pull-refresh-indicator {
             position: fixed;
             top: 0; left: 0; right: 0;
@@ -564,34 +535,40 @@
             transition: height 0.3s;
         }
         .pull-refresh-indicator.active { height: 50px; }
-        
+
+        /* Loading Skeleton */
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+            border-radius: 6px;
+        }
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Responsive */
         @media (max-width: 1100px) {
             .sidebar { width: 240px; }
             .main-content { margin-left: 240px; }
             .kanban-board { grid-template-columns: repeat(2, 1fr); }
         }
-        
+
         @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                width: 240px !important;
-            }
+            .sidebar { transform: translateX(-100%); width: 240px !important; }
             .sidebar.mobile-open { transform: translateX(0); }
             .main-content { margin-left: 0; }
             .kanban-board { grid-template-columns: 1fr; }
             .bottom-section { grid-template-columns: 1fr; }
             .metrics-grid { grid-template-columns: repeat(2, 1fr); }
-            
-            .mobile-menu-btn {
-                display: flex !important;
-            }
+            .mobile-menu-btn { display: flex !important; }
         }
-        
+
         .mobile-menu-btn {
             display: none;
             position: fixed;
-            top: 15px;
-            left: 15px;
+            top: 15px; left: 15px;
             z-index: 200;
             background: #64ffda;
             border: none;
@@ -600,139 +577,164 @@
             cursor: pointer;
             font-size: 1rem;
         }
+
+        /* Skip to content for accessibility */
+        .skip-link {
+            position: absolute;
+            top: -40px; left: 0;
+            background: #64ffda;
+            color: #1a1a2e;
+            padding: 8px;
+            z-index: 9999;
+        }
+        .skip-link:focus { top: 0; }
     </style>
 </head>
 <body>
-    <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰ Menu</button>
-    
-    <div class="pull-refresh-indicator" id="pullRefreshIndicator">🔄 Release to refresh...</div>
-    
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Toggle menu">☰ Menu</button>
+
+    <div class="pull-refresh-indicator" id="pullRefreshIndicator" role="status" aria-live="polite">🔄 Release to refresh...</div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer" role="alert" aria-live="assertive"></div>
+
     <div class="app-container">
         <!-- Left Sidebar -->
-        <aside class="sidebar" id="sidebar">
-            <button class="sidebar-toggle" onclick="toggleSidebar()">◀</button>
-            
+        <aside class="sidebar" id="sidebar" role="complementary" aria-label="Sidebar">
+            <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">◀</button>
+
             <div class="avatar-section">
-                <div class="avatar" id="avatar">
-                    <!-- Professional Friendly Asian Male Avatar -->
+                <div class="avatar" id="avatar" data-status="idle" role="img" aria-label="Orland avatar">
                     <div class="avatar-photo idle"></div>
-                    <div class="avatar-photo running"></div>
+                    <div class="avatar-photo active"></div>
                 </div>
                 <div class="avatar-name">Orland</div>
-                <div class="status-chip idle" id="statusChip">
-                    <span class="status-dot"></span>
+                <div class="status-chip" id="statusChip" data-status="idle" role="status" aria-live="polite">
+                    <span class="status-dot" aria-hidden="true"></span>
                     <span id="statusText">Idle</span>
                 </div>
             </div>
-            
+
+            <!-- Thought Log -->
+            <div class="thought-log" id="thoughtLog" role="log" aria-label="Agent thinking log">
+                <div class="thought-header">🧠 Agent Thinking</div>
+                <div id="thoughtLogContent">
+                    <div class="thought-step">Waiting for tasks...</div>
+                </div>
+            </div>
+
             <!-- Quick Tools -->
             <div class="quick-tools-section">
                 <div class="section-label">🛠️ Quick Tools</div>
-                
-                <div class="tool-btn" onclick="openQuickTool('partykit')">
-                    <span class="icon">🖥️</span>
+
+                <button class="tool-btn" onclick="openQuickTool('partykit')" tabindex="0">
+                    <span class="icon" aria-hidden="true">🖥️</span>
                     <span class="label">VPS WebSocket</span>
-                </div>
-                
-                <div class="tool-btn" onclick="openQuickTool('prompt')">
-                    <span class="icon">📋</span>
+                </button>
+
+                <button class="tool-btn" onclick="openQuickTool('prompt')" tabindex="0">
+                    <span class="icon" aria-hidden="true">📋</span>
                     <span class="label">Copy Prompts</span>
-                </div>
-                
-                <div class="tool-btn" onclick="openQuickTool('code')">
-                    <span class="icon">💻</span>
+                </button>
+
+                <button class="tool-btn" onclick="openQuickTool('code')" tabindex="0">
+                    <span class="icon" aria-hidden="true">💻</span>
                     <span class="label">Code Snippets</span>
-                </div>
-                
-                <div class="tool-btn" onclick="openQuickTool('calc')">
-                    <span class="icon">🧮</span>
+                </button>
+
+                <button class="tool-btn" onclick="openQuickTool('calc')" tabindex="0">
+                    <span class="icon" aria-hidden="true">🧮</span>
                     <span class="label">Calculator</span>
-                </div>
-                
-                <div class="tool-btn" onclick="openQuickTool('notes')">
-                    <span class="icon">📝</span>
+                </button>
+
+                <button class="tool-btn" onclick="openQuickTool('notes')" tabindex="0">
+                    <span class="icon" aria-hidden="true">📝</span>
                     <span class="label">Quick Notes</span>
-                </div>
+                </button>
             </div>
-            
+
             <!-- Pending Installations -->
             <div class="quick-tools-section">
                 <div class="section-label">📦 Pending Installations</div>
-                
-                <div class="tool-btn" onclick="openQuickTool('install-browser')">
-                    <span class="icon">🌐</span>
+
+                <button class="tool-btn" onclick="openQuickTool('install-browser')" tabindex="0">
+                    <span class="icon" aria-hidden="true">🌐</span>
                     <span class="label">Browser Setup</span>
-                    <span style="background: #ffd93d; color: #1a1a2e; padding: 3px 8px; border-radius: 10px; font-size: 0.7rem;">3 items</span>
-                </div>
-                
-                <div class="tool-btn" onclick="openQuickTool('install-search')">
-                    <span class="icon">🔍</span>
+                    <span style="background: #ffd93d; color: #1a1a2e; padding: 3px 8px; border-radius: 10px; font-size: 0.7rem;">3</span>
+                </button>
+
+                <button class="tool-btn" onclick="openQuickTool('install-search')" tabindex="0">
+                    <span class="icon" aria-hidden="true">🔍</span>
                     <span class="label">Web Search</span>
-                    <span style="background: #ffd93d; color: #1a1a2e; padding: 3px 8px; border-radius: 10px; font-size: 0.7rem;">1 item</span>
-                </div>
-                
-                <div class="tool-btn" onclick="openQuickTool('install-screenshot')">
-                    <span class="icon">📸</span>
+                    <span style="background: #ffd93d; color: #1a1a2e; padding: 3px 8px; border-radius: 10px; font-size: 0.7rem;">1</span>
+                </button>
+
+                <button class="tool-btn" onclick="openQuickTool('install-screenshot')" tabindex="0">
+                    <span class="icon" aria-hidden="true">📸</span>
                     <span class="label">Screenshot Tool</span>
-                    <span style="background: #ffd93d; color: #1a1a2e; padding: 3px 8px; border-radius: 10px; font-size: 0.7rem;">1 item</span>
-                </div>
+                    <span style="background: #ffd93d; color: #1a1a2e; padding: 3px 8px; border-radius: 10px; font-size: 0.7rem;">1</span>
+                </button>
             </div>
-            
+
             <div class="sidebar-bottom">
+                <div class="connection-status disconnected" id="connectionStatus">
+                    ⚡ Disconnected
+                </div>
                 <div class="sync-info">
                     Last Sync: <span class="sync-time" id="lastSync">--</span>
                 </div>
-                <button class="logout-btn" onclick="logout()">Log Out</button>
+                <button class="logout-btn" onclick="clearData()">🗑️ Clear Data</button>
             </div>
         </aside>
-        
+
         <!-- Main Content -->
-        <main class="main-content">
+        <main class="main-content" id="main-content" role="main">
             <!-- Task Board -->
-            <section class="kanban-section">
+            <section class="kanban-section" aria-labelledby="taskBoardTitle">
                 <div class="section-header-row">
-                    <span class="section-title">📋 Task Board</span>
+                    <span class="section-title" id="taskBoardTitle">📋 Task Board</span>
                 </div>
-                
-                <div class="kanban-board">
+
+                <div class="kanban-board" role="region" aria-label="Kanban board">
                     <div class="kanban-column todo">
                         <div class="kanban-col-header">
                             <span class="kanban-col-title">📌 To Do <span class="kanban-col-count" id="todoCount">0</span></span>
                         </div>
-                        <div id="todoList"></div>
+                        <div id="todoList" role="list"></div>
                     </div>
-                    
+
                     <div class="kanban-column inprogress">
                         <div class="kanban-col-header">
                             <span class="kanban-col-title">🔄 In Progress <span class="kanban-col-count" id="progressCount">0</span></span>
                         </div>
-                        <div id="progressList"></div>
+                        <div id="progressList" role="list"></div>
                     </div>
-                    
+
                     <div class="kanban-column done">
                         <div class="kanban-col-header">
                             <span class="kanban-col-title">✅ Done <span class="kanban-col-count" id="doneCount">0</span></span>
                         </div>
-                        <div id="doneList"></div>
+                        <div id="doneList" role="list"></div>
                     </div>
-                    
+
                     <div class="kanban-column archive">
                         <div class="kanban-col-header">
                             <span class="kanban-col-title">📦 Archive <span class="kanban-col-count" id="archiveCount">0</span></span>
                         </div>
-                        <div id="archiveList"></div>
+                        <div id="archiveList" role="list"></div>
                     </div>
                 </div>
             </section>
-            
+
             <!-- Deliverables -->
-            <section class="deliverables-section">
+            <section class="deliverables-section" aria-labelledby="deliverablesTitle">
                 <div class="section-header-row">
-                    <span class="section-title">📊 Deliverables</span>
+                    <span class="section-title" id="deliverablesTitle">📊 Deliverables</span>
                 </div>
-                
+
                 <div class="metrics-grid">
-                    <div class="metric-card" onclick="showDeliverable('ecommerce')">
+                    <div class="metric-card" onclick="showDeliverable('ecommerce')" tabindex="0" role="button">
                         <div class="metric-header">
                             <span class="metric-name">🛒 E-Commerce</span>
                             <span class="metric-count">3</span>
@@ -743,8 +745,8 @@
                             <div class="metric-item"><span class="metric-item-dot"></span> Bank Statement Analyzer</div>
                         </div>
                     </div>
-                    
-                    <div class="metric-card" onclick="showDeliverable('nen')">
+
+                    <div class="metric-card" onclick="showDeliverable('nen')" tabindex="0" role="button">
                         <div class="metric-header">
                             <span class="metric-name">⚡ NEN Workflow</span>
                             <span class="metric-count">2</span>
@@ -754,8 +756,8 @@
                             <div class="metric-item"><span class="metric-item-dot"></span> Task Automation</div>
                         </div>
                     </div>
-                    
-                    <div class="metric-card" onclick="showDeliverable('upwork')">
+
+                    <div class="metric-card" onclick="showDeliverable('upwork')" tabindex="0" role="button">
                         <div class="metric-header">
                             <span class="metric-name">💼 Upwork</span>
                             <span class="metric-count">1</span>
@@ -764,8 +766,8 @@
                             <div class="metric-item"><span class="metric-item-dot"></span> GMC Service Website</div>
                         </div>
                     </div>
-                    
-                    <div class="metric-card" onclick="showDeliverable('security')">
+
+                    <div class="metric-card" onclick="showDeliverable('security')" tabindex="0" role="button">
                         <div class="metric-header">
                             <span class="metric-name">🔐 Security Audit</span>
                             <span class="metric-count">0</span>
@@ -774,75 +776,72 @@
                             <div class="metric-item"><span class="metric-item-dot"></span> Pending setup</div>
                         </div>
                     </div>
-                    
-                    <div class="metric-card" onclick="showDeliverable('dashboard')">
+
+                    <div class="metric-card" onclick="showDeliverable('dashboard')" tabindex="0" role="button">
                         <div class="metric-header">
                             <span class="metric-name">🚀 Dashboard</span>
-                            <span class="metric-count">v2.1</span>
+                            <span class="metric-count">v3.0</span>
                         </div>
                         <div class="metric-items">
-                            <div class="metric-item"><span class="metric-item-dot"></span> Task Management</div>
-                            <div class="metric-item"><span class="metric-item-dot"></span> Action Log</div>
+                            <div class="metric-item"><span class="metric-item-dot"></span> Enhanced Status</div>
+                            <div class="metric-item"><span class="metric-item-dot"></span> Persistence</div>
                         </div>
                     </div>
                 </div>
             </section>
-            
+
             <!-- Bottom Section -->
             <section class="bottom-section">
                 <div class="bottom-column">
                     <div class="column-header">
-                        <span class="column-title">📝 Notes for Order</span>
-                        <button class="add-btn-small" onclick="addNote()">+</button>
+                        <span class="column-title">📝 Notes</span>
+                        <button class="add-btn-small" onclick="addNote()" aria-label="Add note">+</button>
                     </div>
-                    <div id="notesList">
-                        <div class="note-item">
-                            Complete GMC website by Feb 5
-                            <div class="item-time">Added: Jan 31</div>
-                        </div>
-                    </div>
+                    <div id="notesList" role="list"></div>
                 </div>
-                
+
                 <div class="bottom-column">
                     <div class="column-header">
-                        <span class="column-title">📜 Action Log</span>
+                        <span class="column-title">📜 Activity Log</span>
+                        <button class="add-btn-small" onclick="clearActivityLog()" aria-label="Clear log" style="background: rgba(255, 107, 107, 0.1); border-color: #ff6b6b; color: #ff6b6b;">×</button>
                     </div>
-                    <div id="actionLog">
-                        <div class="action-item">
-                            Created GMC Service Website
-                            <div class="item-time">Today 08:10 UTC</div>
-                        </div>
-                        <div class="action-item">
-                            Updated Dashboard to v2.0
-                            <div class="item-time">Today 08:30 UTC</div>
-                        </div>
-                    </div>
+                    <div id="actionLog" role="log" aria-live="polite"></div>
                 </div>
             </section>
         </main>
     </div>
-    
+
     <!-- Task Modal -->
-    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <div class="modal" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <h2 id="modalTitle">Task Details</h2>
-                <button class="modal-close" onclick="closeModal()">×</button>
+                <button class="modal-close" onclick="closeModal()" aria-label="Close modal">×</button>
             </div>
             <div class="modal-body" id="modalBody"></div>
         </div>
     </div>
-    
+
     <script>
         // ============================================
-        // State Management
+        // Enhanced Status System (7 States)
         // ============================================
-        let isRunning = true;
+        const STATUS = {
+            IDLE: { key: 'idle', label: 'Idle', icon: '😴' },
+            THINKING: { key: 'thinking', label: 'Thinking...', icon: '🤔' },
+            SEARCHING: { key: 'searching', label: 'Searching...', icon: '🔍' },
+            CODING: { key: 'coding', label: 'Coding...', icon: '💻' },
+            RUNNING: { key: 'running', label: 'Running', icon: '⚡' },
+            ERROR: { key: 'error', label: 'Error', icon: '❌' },
+            WAITING: { key: 'waiting', label: 'Waiting...', icon: '⏳' }
+        };
+
+        let currentStatus = STATUS.IDLE;
 
         // ============================================
-        // Task Data
+        // Default Data
         // ============================================
-        const tasks = [
+        const defaultTasks = [
             { id: 1, title: "Setup nuxec-dashboard", date: "2026-01-30", status: "done", instructions: [{step:1,text:"Done!"}], links: [{text:"Dashboard",url:"https://nuxec-dashboard.vercel.app"}] },
             { id: 2, title: "Build Dashboard UI v2", date: "2026-01-31", status: "done", instructions: [{step:1,text:"Done!"}], links: [{text:"View",url:"https://nuxec-dashboard.vercel.app"}] },
             { id: 3, title: "Walmart Scraper Development", date: "2026-01-31", status: "inprogress", instructions: [{step:1,text:"Download from GitHub"}, {step:2,text:"Run locally"}], links: [{text:"View Script",url:"https://github.com/Hombecl/nuxec-dashboard/blob/main/walmart-scraper.js"}] },
@@ -852,184 +851,300 @@
             { id: 7, title: "Daily Summary Automation", date: "2026-02-01", status: "todo", instructions: [{step:1,text:"Orland will send daily summary"}], links: [] },
             { id: 8, title: "GMC Service Website", date: "2026-02-02", status: "inprogress", instructions: [{step:1,text:"Nuxt 3 website created"}, {step:2,text:"Deploy to Vercel"}], links: [{text:"View Repo",url:"https://github.com/Hombecl/gmc-service-website"}] }
         ];
-        
-        function renderKanban() {
-            const columns = {
-                todo: tasks.filter(t => t.status === 'todo'),
-                inprogress: tasks.filter(t => t.status === 'inprogress'),
-                done: tasks.filter(t => t.status === 'done'),
-                archive: tasks.filter(t => t.status === 'archive')
-            };
-            
-            Object.keys(columns).forEach(status => {
-                const list = document.getElementById(status === 'inprogress' ? 'progressList' : status + 'List');
-                const count = document.getElementById(status === 'inprogress' ? 'progressCount' : status + 'Count');
-                list.innerHTML = columns[status].map(t => `
-                    <div class="kanban-card" onclick="showTaskModal(${t.id})">
-                        <div class="kanban-card-title">${t.title}</div>
-                        <div class="kanban-card-date">📅 ${t.date}</div>
-                    </div>
-                `).join('');
-                count.textContent = columns[status].length;
-            });
+
+        const defaultNotes = [
+            { id: 1, text: "Complete GMC website by Feb 5", time: "Jan 31" }
+        ];
+
+        // ============================================
+        // State (Loaded from localStorage)
+        // ============================================
+        let tasks = [];
+        let notes = [];
+        let activityLogs = [];
+        let thoughtLogs = [];
+
+        // ============================================
+        // localStorage Persistence
+        // ============================================
+        const STORAGE_KEYS = {
+            TASKS: 'nuxec-tasks',
+            NOTES: 'nuxec-notes',
+            ACTIVITY: 'nuxec-activity',
+            THOUGHTS: 'nuxec-thoughts',
+            STATUS: 'nuxec-status'
+        };
+
+        function saveToStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify(tasks));
+                localStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(notes));
+                localStorage.setItem(STORAGE_KEYS.ACTIVITY, JSON.stringify(activityLogs.slice(0, 50)));
+                localStorage.setItem(STORAGE_KEYS.THOUGHTS, JSON.stringify(thoughtLogs.slice(0, 20)));
+                localStorage.setItem(STORAGE_KEYS.STATUS, currentStatus.key);
+            } catch (e) {
+                console.error('Failed to save to localStorage:', e);
+                showToast('Failed to save data', 'error');
+            }
         }
-        
-        function setRunning(running) {
-            isRunning = running;
+
+        function loadFromStorage() {
+            try {
+                const savedTasks = localStorage.getItem(STORAGE_KEYS.TASKS);
+                const savedNotes = localStorage.getItem(STORAGE_KEYS.NOTES);
+                const savedActivity = localStorage.getItem(STORAGE_KEYS.ACTIVITY);
+                const savedThoughts = localStorage.getItem(STORAGE_KEYS.THOUGHTS);
+                const savedStatus = localStorage.getItem(STORAGE_KEYS.STATUS);
+
+                tasks = savedTasks ? JSON.parse(savedTasks) : [...defaultTasks];
+                notes = savedNotes ? JSON.parse(savedNotes) : [...defaultNotes];
+                activityLogs = savedActivity ? JSON.parse(savedActivity) : [];
+                thoughtLogs = savedThoughts ? JSON.parse(savedThoughts) : [{ text: 'Dashboard loaded', time: new Date().toISOString() }];
+
+                if (savedStatus) {
+                    const statusObj = Object.values(STATUS).find(s => s.key === savedStatus);
+                    if (statusObj) currentStatus = statusObj;
+                }
+            } catch (e) {
+                console.error('Failed to load from localStorage:', e);
+                tasks = [...defaultTasks];
+                notes = [...defaultNotes];
+                activityLogs = [];
+                thoughtLogs = [];
+            }
+        }
+
+        function clearData() {
+            if (confirm('Clear all saved data? This cannot be undone.')) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        // ============================================
+        // Toast Notifications
+        // ============================================
+        function showToast(message, type = 'info', duration = 3000) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        // ============================================
+        // Enhanced Status Management
+        // ============================================
+        function setStatus(status) {
+            currentStatus = status;
             const avatar = document.getElementById('avatar');
             const statusChip = document.getElementById('statusChip');
             const statusText = document.getElementById('statusText');
-            
-            if (running) {
-                avatar.classList.add('running');
-                statusChip.classList.remove('idle');
-                statusChip.classList.add('running');
-                statusText.textContent = 'Running';
-            } else {
-                avatar.classList.remove('running');
-                statusChip.classList.remove('running');
-                statusChip.classList.add('idle');
-                statusText.textContent = 'Idle';
+
+            avatar.setAttribute('data-status', status.key);
+            statusChip.setAttribute('data-status', status.key);
+            statusText.textContent = status.label;
+
+            saveToStorage();
+            addActivityLog(`Status changed to: ${status.label}`, status.key === 'error' ? 'error' : 'info');
+        }
+
+        // Expose for external use
+        window.setOrlandStatus = (statusKey) => {
+            const status = Object.values(STATUS).find(s => s.key === statusKey);
+            if (status) setStatus(status);
+        };
+
+        // Legacy support
+        window.setOrlandRunning = (running) => {
+            setStatus(running ? STATUS.RUNNING : STATUS.IDLE);
+        };
+
+        // ============================================
+        // Thought Log
+        // ============================================
+        function addThought(text) {
+            thoughtLogs.unshift({ text, time: new Date().toISOString() });
+            if (thoughtLogs.length > 20) thoughtLogs.pop();
+            renderThoughtLog();
+            saveToStorage();
+        }
+
+        function renderThoughtLog() {
+            const container = document.getElementById('thoughtLogContent');
+            container.innerHTML = thoughtLogs.slice(0, 5).map(t =>
+                `<div class="thought-step">${t.text}</div>`
+            ).join('') || '<div class="thought-step">Waiting for tasks...</div>';
+        }
+
+        window.addOrlandThought = addThought;
+
+        // ============================================
+        // Activity Log
+        // ============================================
+        function addActivityLog(message, type = 'info') {
+            const log = {
+                id: Date.now(),
+                message,
+                type,
+                timestamp: new Date().toISOString()
+            };
+            activityLogs.unshift(log);
+            if (activityLogs.length > 50) activityLogs.pop();
+            renderActivityLog();
+            saveToStorage();
+        }
+
+        function renderActivityLog() {
+            const container = document.getElementById('actionLog');
+            if (activityLogs.length === 0) {
+                container.innerHTML = '<div class="action-item">No activity yet</div>';
+                return;
+            }
+            container.innerHTML = activityLogs.slice(0, 10).map(log => {
+                const time = new Date(log.timestamp).toLocaleTimeString();
+                const typeClass = log.type === 'error' ? 'error' : log.type === 'warning' ? 'warning' : '';
+                return `<div class="action-item ${typeClass}">
+                    ${log.message}
+                    <div class="item-time">${time}</div>
+                </div>`;
+            }).join('');
+        }
+
+        function clearActivityLog() {
+            if (confirm('Clear activity log?')) {
+                activityLogs = [];
+                renderActivityLog();
+                saveToStorage();
+                showToast('Activity log cleared', 'success');
             }
         }
-        
+
+        window.addOrlandLog = addActivityLog;
+
+        // ============================================
+        // Notes Management
+        // ============================================
+        function addNote() {
+            const note = prompt('Enter new note:');
+            if (note && note.trim()) {
+                notes.unshift({
+                    id: Date.now(),
+                    text: note.trim(),
+                    time: new Date().toLocaleDateString()
+                });
+                renderNotes();
+                saveToStorage();
+                showToast('Note added', 'success');
+            }
+        }
+
+        function deleteNote(id) {
+            notes = notes.filter(n => n.id !== id);
+            renderNotes();
+            saveToStorage();
+        }
+
+        function renderNotes() {
+            const container = document.getElementById('notesList');
+            if (notes.length === 0) {
+                container.innerHTML = '<div class="note-item">No notes yet. Click + to add.</div>';
+                return;
+            }
+            container.innerHTML = notes.map(note => `
+                <div class="note-item" onclick="deleteNote(${note.id})" style="cursor: pointer;" title="Click to delete">
+                    ${note.text}
+                    <div class="item-time">Added: ${note.time}</div>
+                </div>
+            `).join('');
+        }
+
+        // ============================================
+        // Kanban Rendering (with debounce)
+        // ============================================
+        let renderTimeout;
+        function renderKanban() {
+            clearTimeout(renderTimeout);
+            renderTimeout = setTimeout(() => {
+                const columns = {
+                    todo: tasks.filter(t => t.status === 'todo'),
+                    inprogress: tasks.filter(t => t.status === 'inprogress'),
+                    done: tasks.filter(t => t.status === 'done'),
+                    archive: tasks.filter(t => t.status === 'archive')
+                };
+
+                Object.keys(columns).forEach(status => {
+                    const listId = status === 'inprogress' ? 'progressList' : status + 'List';
+                    const countId = status === 'inprogress' ? 'progressCount' : status + 'Count';
+                    const list = document.getElementById(listId);
+                    const count = document.getElementById(countId);
+
+                    list.innerHTML = columns[status].map(t => `
+                        <div class="kanban-card"
+                             onclick="showTaskModal(${t.id})"
+                             onkeypress="if(event.key==='Enter') showTaskModal(${t.id})"
+                             tabindex="0"
+                             role="listitem"
+                             aria-label="${t.title}">
+                            <div class="kanban-card-title">${t.title}</div>
+                            <div class="kanban-card-date">📅 ${t.date}</div>
+                        </div>
+                    `).join('');
+                    count.textContent = columns[status].length;
+                });
+            }, 50);
+        }
+
+        // ============================================
+        // UI Functions
+        // ============================================
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('collapsed');
         }
-        
+
         function toggleMobileMenu() {
             document.getElementById('sidebar').classList.toggle('mobile-open');
         }
-        
-        function openQuickTool(tool) {
-            const installGuides = {
-                'install-browser': {
-                    title: '🌐 Browser Setup (3 items)',
-                    steps: [
-                        { label: 'Install Chrome', cmd: 'wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && dpkg -i google-chrome-stable_current_amd64.deb' },
-                        { label: 'Install Playwright', cmd: 'npm install -g playwright && playwright install' },
-                        { label: 'Install Puppeteer', cmd: 'npm install puppeteer puppeteer-extra' }
-                    ],
-                    note: 'For web scraping and automation'
-                },
-                'install-search': {
-                    title: '🔍 Web Search Setup',
-                    steps: [
-                        { label: 'Get Brave API Key', cmd: 'echo "Visit https://brave.com/search-api/ to get API key"' },
-                        { label: 'Set Environment', cmd: 'export BRAVE_API_KEY="your_api_key_here"' }
-                    ],
-                    note: 'Need Brave Search API key for web_search tool'
-                },
-                'install-screenshot': {
-                    title: '📸 Screenshot Tool',
-                    steps: [
-                        { label: 'Install Screenshot lib', cmd: 'npm install -g html-screenshot-tool' },
-                        { label: 'Configure output', cmd: 'mkdir -p /root/.openclaw/screenshots' }
-                    ],
-                    note: 'For capturing webpage screenshots'
-                }
-            };
-            
-            if (installGuides[tool]) {
-                const guide = installGuides[tool];
-                const stepsHtml = guide.steps.map(s => `
-                    <div style="margin-bottom: 16px;">
-                        <div style="color: #64ffda; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;">${s.label}</div>
-                        <div style="display: flex; gap: 8px;">
-                            <code style="flex:1; background: #0d1117; padding: 10px 14px; border-radius: 6px; font-size: 0.8rem; overflow-x: auto; color: #c9d1d9;">${s.cmd}</code>
-                            <button onclick="copyCommand('${s.cmd.replace(/'/g, "\'")}')" style="background: #238636; color: white; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">📋</button>
-                        </div>
-                    </div>
-                `).join('');
-                
-                showModal(guide.title, `
-                    <div style="margin-bottom: 12px; color: #8892b0;">${guide.note}</div>
-                    ${stepsHtml}
-                `);
-            } else if (tool === 'partykit') {
-                const steps = [
-                    { label: 'STEP 1: SSH to VPS', cmd: 'ssh YOUR_VPS_USERNAME@YOUR_VPS_IP' },
-                    { label: 'STEP 2: Install WebSocket', cmd: 'cd /root/.openclaw/workspace/partykit-dashboard && npm install ws' },
-                    { label: 'STEP 3: Start Server', cmd: 'cd /root/.openclaw/workspace/partykit-dashboard && node vps-server.js' },
-                    { label: 'STEP 4: Test Server', cmd: 'curl http://YOUR_VPS_IP:8080' },
-                    { label: 'Set Running', cmd: "curl -X POST http://YOUR_VPS_IP:8080 -d '{\"type\":\"setStatus\",\"status\":\"running\"}'" },
-                    { label: 'Set Idle', cmd: "curl -X POST http://YOUR_VPS_IP:8080 -d '{\"type\":\"setStatus\",\"status\":\"idle\"}'" }
-                ];
-                const stepsHtml = steps.map(s => `
-                    <div style="margin-bottom: 16px;">
-                        <div style="color: #64ffda; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;">${s.label}</div>
-                        <div style="display: flex; gap: 8px;">
-                            <code style="flex:1; background: #0d1117; padding: 10px 14px; border-radius: 6px; font-size: 0.8rem; overflow-x: auto; color: #c9d1d9;">${s.cmd}</code>
-                            <button onclick="copyCommand('${s.cmd.replace(/'/g, "\'")}')" style="background: #238636; color: white; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">📋</button>
-                        </div>
-                    </div>
-                `).join('');
-                showModal('🖥️ VPS WebSocket Setup', `
-                    <div style="margin-bottom: 18px;">
-                        <a href="https://github.com/Hombecl/partykit-dashboard" target="_blank" class="action-link">📦 View Code</a>
-                    </div>
-                    ${stepsHtml}
-                    <div style="margin-top: 18px; padding: 12px; background: rgba(255, 217, 61, 0.1); border: 1px solid #ffd93d; border-radius: 8px; font-size: 0.85rem;">
-                        ⚠️ Replace YOUR_VPS_IP with your actual VPS IP
-                    </div>
-                `);
-            } else if (tool === 'prompt') {
-                showModal('📋 Copy Prompts', '<p>Coming soon...</p>');
-            } else if (tool === 'code') {
-                showModal('💻 Code Snippets', '<p>Coming soon...</p>');
-            } else if (tool === 'calc') {
-                showModal('🧮 Calculator', '<p>Coming soon...</p>');
-            } else if (tool === 'notes') {
-                showModal('📝 Quick Notes', '<p>Coming soon...</p>');
-            }
-        }
 
-        // ============================================
-        // Copy Command Helper
-        // ============================================
-        function copyCommand(cmd) {
-            navigator.clipboard.writeText(cmd).then(() => {
-                alert('✅ Copied to clipboard!');
-            }).catch(() => {
-                // Fallback for older browsers
-                const textarea = document.createElement('textarea');
-                textarea.value = cmd;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-                alert('✅ Copied to clipboard!');
-            });
-        }
-
-        // ============================================
-        // Modal Functions
-        // ============================================
         function showModal(title, content) {
             document.getElementById('modalTitle').textContent = title;
             document.getElementById('modalBody').innerHTML = content;
             document.getElementById('modalOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
         }
+
+        function closeModal(e) {
+            if (!e || e.target === document.getElementById('modalOverlay')) {
+                document.getElementById('modalOverlay').classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Keyboard support for modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
 
         function showTaskModal(taskId) {
             const task = tasks.find(t => t.id === taskId);
             if (!task) return;
 
-            // Fix: Use correct property names (text, url) from task data
             const links = task.links && task.links.length > 0
-                ? task.links.map(l =>
-                    `<a href="${l.url}" target="_blank" class="action-link">🔗 ${l.text}</a>`
-                ).join('')
+                ? task.links.map(l => `<a href="${l.url}" target="_blank" class="action-link">🔗 ${l.text}</a>`).join('')
                 : '';
 
-            // Fix: Handle instruction objects correctly
             const instructions = task.instructions && task.instructions.length > 0
-                ? task.instructions.map(i =>
-                    `<div class="instruction-step">
+                ? task.instructions.map(i => `
+                    <div class="instruction-step">
                         <span class="step-num">${i.step}</span>
                         <span>${i.text}</span>
-                    </div>`
-                ).join('')
+                    </div>
+                `).join('')
                 : '<p>No instructions available</p>';
 
             showModal(task.title, `
@@ -1042,34 +1157,94 @@
             `);
         }
 
-        
-        function closeModal(e) {
-            if (!e || e.target === document.getElementById('modalOverlay')) {
-                document.getElementById('modalOverlay').classList.remove('active');
+        function showDeliverable(type) {
+            showModal(`📊 Deliverable: ${type}`, '<p>Deliverable details coming soon...</p>');
+        }
+
+        // ============================================
+        // Quick Tools
+        // ============================================
+        function openQuickTool(tool) {
+            const installGuides = {
+                'install-browser': {
+                    title: '🌐 Browser Setup',
+                    steps: [
+                        { label: 'Install Chrome', cmd: 'wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && dpkg -i google-chrome-stable_current_amd64.deb' },
+                        { label: 'Install Playwright', cmd: 'npm install -g playwright && playwright install' },
+                        { label: 'Install Puppeteer', cmd: 'npm install puppeteer puppeteer-extra' }
+                    ],
+                    note: 'For web scraping and automation'
+                },
+                'install-search': {
+                    title: '🔍 Web Search Setup',
+                    steps: [
+                        { label: 'Get Brave API Key', cmd: 'echo "Visit https://brave.com/search-api/"' },
+                        { label: 'Set Environment', cmd: 'export BRAVE_API_KEY="your_key"' }
+                    ],
+                    note: 'Need Brave Search API key'
+                },
+                'install-screenshot': {
+                    title: '📸 Screenshot Tool',
+                    steps: [
+                        { label: 'Install lib', cmd: 'npm install -g html-screenshot-tool' },
+                        { label: 'Configure', cmd: 'mkdir -p ~/.openclaw/screenshots' }
+                    ],
+                    note: 'For capturing screenshots'
+                }
+            };
+
+            if (installGuides[tool]) {
+                const guide = installGuides[tool];
+                const stepsHtml = guide.steps.map(s => `
+                    <div style="margin-bottom: 16px;">
+                        <div style="color: #64ffda; font-weight: 600; margin-bottom: 6px;">${s.label}</div>
+                        <div style="display: flex; gap: 8px;">
+                            <code style="flex:1; background: #0d1117; padding: 10px; border-radius: 6px; font-size: 0.8rem; overflow-x: auto; color: #c9d1d9;">${s.cmd}</code>
+                            <button onclick="copyCommand(\`${s.cmd}\`)" style="background: #238636; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">📋</button>
+                        </div>
+                    </div>
+                `).join('');
+                showModal(guide.title, `<div style="margin-bottom: 12px; color: #8892b0;">${guide.note}</div>${stepsHtml}`);
+            } else if (tool === 'partykit') {
+                showModal('🖥️ VPS WebSocket', `
+                    <div style="margin-bottom: 12px; color: #8892b0;">Connect dashboard to your VPS</div>
+                    <div style="margin-bottom: 16px;">
+                        <div style="color: #64ffda; font-weight: 600; margin-bottom: 6px;">SSH to VPS</div>
+                        <code style="display: block; background: #0d1117; padding: 10px; border-radius: 6px; color: #c9d1d9;">ssh user@YOUR_VPS_IP</code>
+                    </div>
+                    <div style="padding: 12px; background: rgba(255, 217, 61, 0.1); border: 1px solid #ffd93d; border-radius: 8px;">
+                        ⚠️ Replace YOUR_VPS_IP with actual IP
+                    </div>
+                `);
+            } else {
+                showModal(`${tool} Tool`, '<p>Coming soon...</p>');
             }
         }
-        
-        function addNote() {
-            const note = prompt('Enter new note:');
-            if (note) {
-                const notesList = document.getElementById('notesList');
-                const noteDiv = document.createElement('div');
-                noteDiv.className = 'note-item';
-                noteDiv.innerHTML = `${note}<div class="item-time">Added: ${new Date().toLocaleDateString()}</div>`;
-                notesList.insertBefore(noteDiv, notesList.firstChild);
-            }
+
+        function copyCommand(cmd) {
+            navigator.clipboard.writeText(cmd).then(() => {
+                showToast('Copied to clipboard!', 'success');
+            }).catch(() => {
+                const textarea = document.createElement('textarea');
+                textarea.value = cmd;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast('Copied to clipboard!', 'success');
+            });
         }
-        
-        function logout() { alert('Logout clicked'); }
-        
-        // Pull to refresh
+
+        // ============================================
+        // Pull to Refresh
+        // ============================================
         let pullStartY = 0, pullDistance = 0;
         const indicator = document.getElementById('pullRefreshIndicator');
-        
+
         document.addEventListener('touchstart', e => {
             if (window.scrollY === 0) pullStartY = e.touches[0].clientY;
         }, { passive: true });
-        
+
         document.addEventListener('touchmove', e => {
             if (window.scrollY === 0 && pullStartY > 0) {
                 pullDistance = e.touches[0].clientY - pullStartY;
@@ -1079,88 +1254,114 @@
                 }
             }
         }, { passive: true });
-        
+
         document.addEventListener('touchend', () => {
             if (pullDistance > 100) location.reload(true);
             pullStartY = 0;
             pullDistance = 0;
             indicator.classList.remove('active');
         }, { passive: true });
-        
-        // Sync time
-        document.getElementById('lastSync').textContent = new Date().toLocaleString();
-        
-        // Expose setRunning for external use + automation functions
-        window.setOrlandRunning = setRunning;
-        
-        // Auto-notify on task completion (for Orland to use)
-        window.taskCompleted = function(taskTitle) {
-            const msg = `✅ Task Completed: ${taskTitle}
-⏰ ${new Date().toLocaleString()}`;
-            console.log('📤 Notification:', msg);
-            // OpenClaw will handle the actual Telegram notification
-            return msg;
-        };
-        
-        // Request notification permission
-        if ('Notification' in window && Notification.permission === 'default') {
-            Notification.requestPermission();
-        }
-        
-        // Current state: Running (actively working!)
-        setRunning(true);
-        
+
         // ============================================
-        // WebSocket Connection (Native)
+        // WebSocket Connection
         // ============================================
         class SimpleWS {
-            constructor(url, room) {
+            constructor(url) {
                 this.url = url;
-                this.room = room;
                 this.ws = null;
                 this.reconnectDelay = 3000;
+                this.maxRetries = 5;
+                this.retries = 0;
                 this.connect();
             }
-            
+
             connect() {
+                if (this.url.includes('YOUR_VPS_IP')) {
+                    this.updateConnectionStatus(false);
+                    return;
+                }
+
                 try {
                     this.ws = new WebSocket(this.url);
-                    this.ws.onopen = () => console.log('WS connected');
+                    this.ws.onopen = () => {
+                        this.retries = 0;
+                        this.updateConnectionStatus(true);
+                        addActivityLog('WebSocket connected', 'info');
+                    };
                     this.ws.onmessage = (e) => {
-                        const data = JSON.parse(e.data);
-                        if (data.type === 'status' && window.setOrlandRunning) {
-                            setOrlandRunning(data.status === 'running');
+                        try {
+                            const data = JSON.parse(e.data);
+                            if (data.type === 'status') {
+                                window.setOrlandStatus(data.status);
+                            }
+                            if (data.type === 'thought') {
+                                addThought(data.text);
+                            }
+                            if (data.type === 'log') {
+                                addActivityLog(data.message, data.logType || 'info');
+                            }
+                        } catch (err) {
+                            console.error('WS parse error:', err);
                         }
                     };
-                    this.ws.onclose = () => setTimeout(() => this.connect(), this.reconnectDelay);
+                    this.ws.onclose = () => {
+                        this.updateConnectionStatus(false);
+                        if (this.retries < this.maxRetries) {
+                            this.retries++;
+                            setTimeout(() => this.connect(), this.reconnectDelay);
+                        }
+                    };
+                    this.ws.onerror = () => {
+                        this.updateConnectionStatus(false);
+                    };
                 } catch (e) {
-                    console.error('WS error:', e);
+                    this.updateConnectionStatus(false);
                 }
             }
-            
+
+            updateConnectionStatus(connected) {
+                const el = document.getElementById('connectionStatus');
+                el.className = `connection-status ${connected ? 'connected' : 'disconnected'}`;
+                el.textContent = connected ? '🟢 Connected' : '⚫ Disconnected';
+            }
+
             send(msg) {
                 if (this.ws && this.ws.readyState === WebSocket.OPEN) {
                     this.ws.send(JSON.stringify(msg));
                 }
             }
         }
-        
-        // Initialize WebSocket (replace YOUR_VPS_IP with actual IP)
-        const wsUrl = window.location.hostname === 'localhost' 
-            ? 'ws://localhost:8080' 
-            : 'ws://YOUR_VPS_IP:8080';
-        
-        window.wsClient = new SimpleWS(wsUrl, 'dashboard-status');
-        
-        // Expose send function
-        window.setStatusViaWS = (status) => {
-            window.wsClient.send({ type: 'setStatus', status });
-        };
 
         // ============================================
-        // Initialize Dashboard
+        // Initialize
         // ============================================
+        loadFromStorage();
         renderKanban();
+        renderNotes();
+        renderActivityLog();
+        renderThoughtLog();
+        setStatus(currentStatus);
+        document.getElementById('lastSync').textContent = new Date().toLocaleString();
+
+        // WebSocket
+        const wsUrl = window.location.hostname === 'localhost'
+            ? 'ws://localhost:8080'
+            : 'ws://YOUR_VPS_IP:8080';
+        window.wsClient = new SimpleWS(wsUrl);
+
+        // Expose APIs
+        window.setStatusViaWS = (status) => window.wsClient.send({ type: 'setStatus', status });
+        window.taskCompleted = (title) => {
+            addActivityLog(`✅ Task Completed: ${title}`, 'info');
+            showToast(`Task completed: ${title}`, 'success');
+        };
+
+        // Startup log
+        addActivityLog('Dashboard v3.0 loaded', 'info');
+        addThought('Dashboard initialized');
+
+        // Auto-save every 30 seconds
+        setInterval(saveToStorage, 30000);
     </script>
 </body>
 </html>
