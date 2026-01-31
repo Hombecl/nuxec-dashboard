@@ -20,16 +20,15 @@
 
         /* Left Sidebar */
         .sidebar {
-            width: 280px;
-            background: rgba(0, 0, 0, 0.4);
+            width: 260px;
+            background: #0d1117;
             border-right: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 20px;
+            padding: 0;
             display: flex;
             flex-direction: column;
             position: fixed;
             left: 0; top: 0; bottom: 0;
             z-index: 100;
-            transition: width 0.3s, transform 0.3s;
         }
         .sidebar.collapsed { width: 70px; }
 
@@ -49,22 +48,21 @@
             z-index: 10;
         }
 
-        .avatar-section {
+        /* Profile Section */
+        .profile-section {
             text-align: center;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 20px;
+            padding: 25px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .avatar {
-            width: 90px; height: 90px;
+            width: 80px; height: 80px;
             border-radius: 50%;
-            margin: 0 auto 15px;
-            border: 3px solid rgba(100, 255, 218, 0.3);
+            margin: 0 auto 12px;
+            border: 3px solid rgba(100, 255, 218, 0.4);
             overflow: hidden;
             position: relative;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            transition: border-color 0.3s;
         }
 
         .avatar-photo {
@@ -85,7 +83,6 @@
             opacity: 0;
         }
 
-        /* Enhanced Status States */
         .avatar[data-status="running"] .avatar-photo.idle,
         .avatar[data-status="thinking"] .avatar-photo.idle,
         .avatar[data-status="searching"] .avatar-photo.idle,
@@ -102,30 +99,33 @@
         .avatar[data-status="error"] { border-color: #e74c3c; }
         .avatar[data-status="waiting"] { border-color: #f39c12; }
 
-        .avatar-name { font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; }
+        .avatar-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ccd6f6;
+            margin-bottom: 10px;
+        }
 
-        /* Enhanced Status Chip */
         .status-chip {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.8rem;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.75rem;
             font-weight: 500;
-            transition: all 0.3s;
         }
 
-        .status-chip[data-status="idle"] { background: rgba(255, 217, 61, 0.2); color: #ffd93d; border: 1px solid #ffd93d; }
-        .status-chip[data-status="running"] { background: rgba(107, 203, 119, 0.2); color: #6bcb77; border: 1px solid #6bcb77; }
-        .status-chip[data-status="thinking"] { background: rgba(155, 89, 182, 0.2); color: #9b59b6; border: 1px solid #9b59b6; }
-        .status-chip[data-status="searching"] { background: rgba(52, 152, 219, 0.2); color: #3498db; border: 1px solid #3498db; }
-        .status-chip[data-status="coding"] { background: rgba(46, 204, 113, 0.2); color: #2ecc71; border: 1px solid #2ecc71; }
-        .status-chip[data-status="error"] { background: rgba(231, 76, 60, 0.2); color: #e74c3c; border: 1px solid #e74c3c; }
-        .status-chip[data-status="waiting"] { background: rgba(243, 156, 18, 0.2); color: #f39c12; border: 1px solid #f39c12; }
+        .status-chip[data-status="idle"] { background: rgba(255, 217, 61, 0.15); color: #ffd93d; border: 1px solid #ffd93d; }
+        .status-chip[data-status="running"] { background: rgba(107, 203, 119, 0.15); color: #6bcb77; border: 1px solid #6bcb77; }
+        .status-chip[data-status="thinking"] { background: rgba(155, 89, 182, 0.15); color: #9b59b6; border: 1px solid #9b59b6; }
+        .status-chip[data-status="searching"] { background: rgba(52, 152, 219, 0.15); color: #3498db; border: 1px solid #3498db; }
+        .status-chip[data-status="coding"] { background: rgba(46, 204, 113, 0.15); color: #2ecc71; border: 1px solid #2ecc71; }
+        .status-chip[data-status="error"] { background: rgba(231, 76, 60, 0.15); color: #e74c3c; border: 1px solid #e74c3c; }
+        .status-chip[data-status="waiting"] { background: rgba(243, 156, 18, 0.15); color: #f39c12; border: 1px solid #f39c12; }
 
         .status-dot {
-            width: 8px; height: 8px;
+            width: 6px; height: 6px;
             border-radius: 50%;
             background: currentColor;
             animation: pulse-dot 1.5s infinite;
@@ -244,7 +244,7 @@
         /* Main Content */
         .main-content {
             flex: 1;
-            margin-left: 280px;
+            margin-left: 260px;
             padding: 25px;
             transition: margin-left 0.3s;
         }
@@ -602,53 +602,71 @@
     <div class="app-container">
         <!-- Left Sidebar -->
         <aside class="sidebar" id="sidebar" role="complementary" aria-label="Sidebar">
-            <!-- Orland Status -->
-            <div class="orland-status">
-                <div class="avatar running" id="avatar" tabindex="0" aria-label="Orland status"></div>
-                <div class="status-info">
-                    <div class="status-name">Orland</div>
-                    <div class="status-chip running" id="statusChip">
-                        <span class="status-dot"></span>
-                        <span class="status-text" id="statusText">Running</span>
-                    </div>
+            <!-- Profile Section -->
+            <div class="profile-section">
+                <div class="avatar" id="avatar" data-status="running">
+                    <div class="avatar-photo idle"></div>
+                    <div class="avatar-photo active"></div>
+                </div>
+                <div class="avatar-name">Orland</div>
+                <div class="status-chip running" id="statusChip" data-status="running">
+                    <span class="status-dot"></span>
+                    <span class="status-text" id="statusText">Running</span>
                 </div>
             </div>
 
-            <!-- Simple Tools List -->
-            <div class="simple-tools">
-                <button class="simple-tool-btn" onclick="openQuickTool('partykit')">
+            <!-- Quick Links -->
+            <div class="quick-links">
+                <a href="https://nuxec-dashboard.vercel.app" class="quick-link" target="_blank">
+                    <span class="icon">📊</span>
+                    <span class="label">Dashboard</span>
+                </a>
+                <a href="https://github.com/Hombecl/nuxec-dashboard" class="quick-link" target="_blank">
+                    <span class="icon">📦</span>
+                    <span class="label">GitHub</span>
+                </a>
+            </div>
+
+            <!-- Tools -->
+            <div class="tools-section">
+                <div class="section-header">Tools</div>
+                <button class="tool-btn" onclick="openQuickTool('partykit')">
                     <span class="icon">🖥️</span>
                     <span class="label">VPS WebSocket</span>
                 </button>
-                <button class="simple-tool-btn" onclick="openQuickTool('code')">
+                <button class="tool-btn" onclick="openQuickTool('code')">
                     <span class="icon">💻</span>
                     <span class="label">Code Snippets</span>
                 </button>
-                <button class="simple-tool-btn" onclick="openQuickTool('install-browser')">
-                    <span class="icon">🌐</span>
-                    <span class="label">Browser Setup</span>
-                </button>
-                <button class="simple-tool-btn" onclick="openQuickTool('install-search')">
-                    <span class="icon">🔍</span>
-                    <span class="label">Web Search</span>
-                </button>
-                <button class="simple-tool-btn" onclick="openQuickTool('install-screenshot')">
-                    <span class="icon">📸</span>
-                    <span class="label">Screenshot</span>
-                </button>
-                <button class="simple-tool-btn" onclick="openQuickTool('notes')">
+                <button class="tool-btn" onclick="openQuickTool('notes')">
                     <span class="icon">📝</span>
                     <span class="label">Quick Notes</span>
                 </button>
             </div>
 
+            <!-- Setup -->
+            <div class="tools-section">
+                <div class="section-header">Setup</div>
+                <button class="tool-btn" onclick="openQuickTool('install-browser')">
+                    <span class="icon">🌐</span>
+                    <span class="label">Browser</span>
+                </button>
+                <button class="tool-btn" onclick="openQuickTool('install-search')">
+                    <span class="icon">🔍</span>
+                    <span class="label">Web Search</span>
+                </button>
+                <button class="tool-btn" onclick="openQuickTool('install-screenshot')">
+                    <span class="icon">📸</span>
+                    <span class="label">Screenshot</span>
+                </button>
+            </div>
+
             <!-- Bottom -->
-            <div class="sidebar-bottom">
-                <div class="connection-status disconnected" id="connectionStatus">
-                    <span class="status-icon">⚡</span>
-                    <span class="status-text">Disconnected</span>
+            <div class="sidebar-footer">
+                <div class="ws-status disconnected" id="connectionStatus">
+                    <span class="status-dot"></span>
+                    <span>WebSocket: Disconnected</span>
                 </div>
-                <button class="logout-btn" onclick="clearData()">🗑️ Clear Data</button>
             </div>
         </aside>        <!-- Main Content -->
         <main class="main-content" id="main-content" role="main">
