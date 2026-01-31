@@ -874,57 +874,62 @@
         }
         
         function openQuickTool(tool) {
-            const tools = {
-                partykit: {
-                    title: '🖥️ VPS WebSocket Setup',
-                    content: `SETUP STEPS (Copy each command):
-
-━━━ STEP 1: SSH to VPS ━━━
-ssh YOUR_VPS_USERNAME@YOUR_VPS_IP
-
-━━━ STEP 2: Install WebSocket ━━━
-cd /root/.openclaw/workspace/partykit-dashboard && npm install ws
-
-━━━ STEP 3: Start Server ━━━
-cd /root/.openclaw/workspace/partykit-dashboard && node vps-server.js
-
-━━━ STEP 4: Test (Open new terminal) ━━━
-curl http://YOUR_VPS_IP:8080
-
-━━━ Control Status from Terminal ━━━
-# Set Running:
-curl -X POST http://YOUR_VPS_IP:8080 -d '{"type":"setStatus","status":"running"}'
-
-# Set Idle:
-curl -X POST http://YOUR_VPS_IP:8080 -d '{"type":"setStatus","status":"idle"}'
-
-━━━ Update Dashboard ━━━
-Replace 'YOUR_VPS_IP' with your actual VPS IP in index.html`
-                },
-                prompt: `📋 Copy Prompts - Claude Prompt:
-
-[Add your prompt here]`,
-                code: `💻 Code Snippets:
-
-// Your code here`,
-                calc: `🧮 Calculator:
-
-[Calculator tool coming soon]`,
-                notes: `📝 Quick Notes:
-
-[Your notes here]`
+            const steps = {
+                partykit: [
+                    { label: 'STEP 1: SSH to VPS', cmd: 'ssh YOUR_VPS_USERNAME@YOUR_VPS_IP' },
+                    { label: 'STEP 2: Install WebSocket', cmd: 'cd /root/.openclaw/workspace/partykit-dashboard && npm install ws' },
+                    { label: 'STEP 3: Start Server', cmd: 'cd /root/.openclaw/workspace/partykit-dashboard && node vps-server.js' },
+                    { label: 'STEP 4: Test Server', cmd: 'curl http://YOUR_VPS_IP:8080' },
+                    { label: 'Set Running', cmd: "curl -X POST http://YOUR_VPS_IP:8080 -d '{\"type\":\"setStatus\",\"status\":\"running\"}'" },
+                    { label: 'Set Idle', cmd: "curl -X POST http://YOUR_VPS_IP:8080 -d '{\"type\":\"setStatus\",\"status\":\"idle\"}'" }
+                ]
             };
             
-            const t = tools[tool] || { title: 'Tool', content: 'Coming soon...' };
-            showModal(t.title, `
-                <div class="modal-section">
-                    <h4>📋 Claude Prompt</h4>
-                    <div class="code-block" id="promptContent" style="white-space: pre-wrap; line-height: 1.8;">${t.content}</div>
-                    <button class="action-link" onclick="copyPrompt()" style="width:100%;justify-content:center;margin-top:15px;">
-                        📋 Copy to Clipboard
-                    </button>
-                </div>
-                ${tool === 'partykit' ? `
+            if (tool === 'partykit') {
+                const stepsHtml = steps.partykit.map((s, i) => `
+                    <div style="margin-bottom: 18px;">
+                        <div style="color: #64ffda; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;">${s.label}</div>
+                        <div style="display: flex; gap: 8px;">
+                            <code style="flex:1; background: #0d1117; padding: 10px 14px; border-radius: 6px; font-size: 0.8rem; overflow-x: auto; color: #c9d1d9;">${s.cmd}</code>
+                            <button onclick="copyCommand('${s.cmd.replace(/'/g, "\\'")}')" style="background: #238636; color: white; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">📋</button>
+                        </div>
+                    </div>
+                `).join('');
+                
+                showModal('🖥️ VPS WebSocket Setup', `
+                    <div style="margin-bottom: 18px;">
+                        <a href="https://github.com/Hombecl/partykit-dashboard" target="_blank" class="action-link">📦 View Code</a>
+                        <a href="https://nuxec-dashboard.vercel.app" target="_blank" class="action-link secondary">🌐 Dashboard</a>
+                    </div>
+                    <div style="margin-top: 15px;">${stepsHtml}</div>
+                    <div style="margin-top: 18px; padding: 12px; background: rgba(255, 217, 61, 0.1); border: 1px solid #ffd93d; border-radius: 8px; font-size: 0.85rem;">
+                        ⚠️ Replace YOUR_VPS_IP with your actual VPS IP
+                    </div>
+                `);
+            } else if (tool === 'prompt') {
+                showModal('📋 Copy Prompts', '<p>Coming soon...</p>');
+            } else if (tool === 'code') {
+                showModal('💻 Code Snippets', '<p>Coming soon...</p>');
+            } else if (tool === 'calc') {
+                showModal('🧮 Calculator', '<p>Coming soon...</p>');
+            } else if (tool === 'notes') {
+                showModal('📝 Quick Notes', '<p>Coming soon...</p>');
+            }
+        }
+        
+        function copyCommand(cmd) {
+            navigator.clipboard.writeText(cmd).then(() => {
+                alert('✅ Copied!');
+            }).catch(() => {
+                const t = document.createElement('textarea');
+                t.value = cmd;
+                document.body.appendChild(t);
+                t.select();
+                document.execCommand('copy');
+                document.body.removeChild(t);
+                alert('✅ Copied!');
+            });
+        }
                 <a href="https://github.com/Hombecl/partykit-dashboard" target="_blank" class="action-link">📦 View VPS Server Code</a>
                 ` : ''}
             `);
