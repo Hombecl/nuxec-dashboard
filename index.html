@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nuxec Dashboard - Daily Tasks</title>
+    <title>Nuxec Dashboard - Task Manager</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -13,55 +13,119 @@
             color: #fff;
             padding: 20px;
         }
-        .container { max-width: 1200px; margin: 0 auto; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
         header {
             text-align: center;
-            padding: 40px 0;
+            padding: 30px 0;
+            margin-bottom: 30px;
         }
-        h1 { font-size: 2.5rem; margin-bottom: 10px; }
-        .subtitle { color: #8892b0; font-size: 1.1rem; }
-        .date { color: #64ffda; margin-top: 10px; font-size: 0.9rem; }
+        h1 { font-size: 2rem; margin-bottom: 8px; }
+        .subtitle { color: #8892b0; font-size: 0.95rem; }
+        .date { color: #64ffda; margin-top: 8px; font-size: 0.85rem; }
         
+        /* View Toggle */
+        .view-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        .view-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #8892b0;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        .view-btn.active {
+            background: #64ffda;
+            color: #1a1a2e;
+            border-color: #64ffda;
+        }
+        .view-btn:hover:not(.active) {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+        }
+        
+        /* Stats Row */
         .stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
             margin-bottom: 40px;
         }
         .stat-card {
             background: rgba(255,255,255,0.05);
-            border-radius: 16px;
-            padding: 30px;
+            border-radius: 12px;
+            padding: 20px;
             text-align: center;
             border: 1px solid rgba(255,255,255,0.1);
-            transition: transform 0.3s;
         }
-        .stat-card:hover { transform: translateY(-5px); }
-        .stat-number { font-size: 3rem; font-weight: bold; }
-        .stat-label { color: #8892b0; margin-top: 5px; }
-        
+        .stat-number { font-size: 2.2rem; font-weight: bold; }
+        .stat-label { color: #8892b0; font-size: 0.8rem; margin-top: 5px; }
         .pending .stat-number { color: #ffd93d; }
         .progress .stat-number { color: #6bcb77; }
         .review .stat-number { color: #4d96ff; }
         .completed .stat-number { color: #ff6b6b; }
         
-        .section { margin-bottom: 40px; }
-        .section-title {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
+        /* Kanban View */
+        .kanban-view { display: none; }
+        .kanban-view.active { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        
+        .kanban-column {
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            padding: 15px;
+            min-height: 400px;
+        }
+        .kanban-column h3 {
+            font-size: 0.9rem;
+            margin-bottom: 15px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
-        .task-list { list-style: none; }
+        .kanban-column h3 .count {
+            background: rgba(255,255,255,0.1);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+        }
+        
+        .kanban-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            border-left: 4px solid;
+            transition: all 0.3s;
+        }
+        .kanban-card:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+        .kanban-card.pending { border-color: #ffd93d; }
+        .kanban-card.progress { border-color: #6bcb77; }
+        .kanban-card.review { border-color: #4d96ff; }
+        .kanban-card.completed { border-color: #ff6b6b; opacity: 0.7; }
+        
+        .kanban-card h4 { font-size: 0.95rem; margin-bottom: 6px; }
+        .kanban-card p { color: #8892b0; font-size: 0.8rem; }
+        .kanban-card .card-date { color: #64ffda; font-size: 0.7rem; margin-top: 8px; }
+        
+        /* List View */
+        .list-view { display: none; }
+        .list-view.active { display: block; }
+        
         .task-item {
             background: rgba(255,255,255,0.05);
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
             border-left: 4px solid;
             transition: all 0.3s;
         }
@@ -71,34 +135,113 @@
         .task-item.review { border-color: #4d96ff; }
         .task-item.completed { border-color: #ff6b6b; opacity: 0.7; }
         
-        .status-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
+        /* Modal for Task Details */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .modal-overlay.active { display: flex; justify-content: center; align-items: flex-start; }
+        
+        .modal {
+            background: #1a1a2e;
+            border-radius: 16px;
+            max-width: 700px;
+            width: 100%;
+            margin-top: 40px;
+            border: 1px solid rgba(255,255,255,0.1);
+            overflow: hidden;
+        }
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h2 { font-size: 1.2rem; }
+        .modal-close {
+            background: none;
+            border: none;
+            color: #8892b0;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        .modal-body { padding: 20px; }
+        
+        .instruction-section {
+            background: rgba(100, 255, 218, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .instruction-section h4 {
+            color: #64ffda;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+        .instruction-step {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+        .step-num {
+            background: #64ffda;
+            color: #1a1a2e;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 0.75rem;
             font-weight: bold;
-            text-transform: uppercase;
+            flex-shrink: 0;
         }
-        .status-badge.pending { background: #ffd93d; color: #1a1a2e; }
-        .status-badge.progress { background: #6bcb77; color: #1a1a2e; }
-        .status-badge.review { background: #4d96ff; color: #fff; }
-        .status-badge.completed { background: #ff6b6b; color: #fff; }
         
-        .task-content { flex: 1; }
-        .task-title { font-size: 1.1rem; margin-bottom: 5px; }
-        .task-desc { color: #8892b0; font-size: 0.9rem; }
-        .task-date { color: #64ffda; font-size: 0.8rem; }
+        .code-block {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.8rem;
+            color: #c9d1d9;
+            white-space: pre;
+        }
+        
+        .action-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #238636;
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+        .action-link:hover { background: #2ea043; transform: translateY(-2px); }
+        .action-link.secondary { background: #1f6feb; }
         
         .footer {
             text-align: center;
             padding: 30px;
             color: #8892b0;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
         }
         .footer a { color: #64ffda; text-decoration: none; }
         
-        @media (max-width: 600px) {
-            h1 { font-size: 1.8rem; }
-            .stats { grid-template-columns: repeat(2, 1fr); }
+        @media (max-width: 900px) {
+            .kanban-view.active, .stats { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
@@ -106,9 +249,14 @@
     <div class="container">
         <header>
             <h1>🚀 Nuxec Dashboard</h1>
-            <p class="subtitle">Daily Task Tracker • Built by Orland</p>
+            <p class="subtitle">Task Manager • Built by Orland</p>
             <p class="date" id="currentDate"></p>
         </header>
+        
+        <div class="view-toggle">
+            <button class="view-btn active" onclick="switchView('kanban')">📊 Kanban</button>
+            <button class="view-btn" onclick="switchView('list')">📋 List</button>
+        </div>
         
         <div class="stats">
             <div class="stat-card pending">
@@ -129,11 +277,29 @@
             </div>
         </div>
         
-        <div class="section">
-            <h2 class="section-title">📋 All Tasks</h2>
-            <ul class="task-list" id="taskList">
-                <!-- Tasks will be loaded here -->
-            </ul>
+        <!-- Kanban View -->
+        <div class="kanban-view active" id="kanbanView">
+            <div class="kanban-column">
+                <h3 style="color: #ffd93d;">⏳ Pending <span class="count" id="kanbanPending">0</span></h3>
+                <div id="kanbanPendingList"></div>
+            </div>
+            <div class="kanban-column">
+                <h3 style="color: #6bcb77;">🔄 In Progress <span class="count" id="kanbanProgress">0</span></h3>
+                <div id="kanbanProgressList"></div>
+            </div>
+            <div class="kanban-column">
+                <h3 style="color: #4d96ff;">👀 Review <span class="count" id="kanbanReview">0</span></h3>
+                <div id="kanbanReviewList"></div>
+            </div>
+            <div class="kanban-column">
+                <h3 style="color: #ff6b6b;">✅ Completed <span class="count" id="kanbanCompleted">0</span></h3>
+                <div id="kanbanCompletedList"></div>
+            </div>
+        </div>
+        
+        <!-- List View -->
+        <div class="list-view" id="listView">
+            <ul class="task-list" id="taskList"></ul>
         </div>
         
         <div class="footer">
@@ -141,71 +307,244 @@
         </div>
     </div>
     
+    <!-- Task Detail Modal -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2 id="modalTitle">Task Details</h2>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Content injected by JS -->
+            </div>
+        </div>
+    </div>
+    
     <script>
-        // Task Data - 呢度係我哋啲task
+        // Task Data
         const tasks = [
             {
                 id: 1,
                 title: "Setup nuxec-dashboard",
                 desc: "Create GitHub repo and Vercel project for Orland to auto-deploy",
                 status: "completed",
-                date: "2026-01-30"
+                date: "2026-01-30",
+                instructions: [
+                    { step: 1, text: "Go to GitHub → Create new repository 'nuxec-dashboard'" },
+                    { step: 2, text: "Go to Vercel → Import the GitHub repository" },
+                    { step: 3, text: "Deploy the project - URL will be auto-generated" }
+                ],
+                links: [
+                    { text: "GitHub Repo", url: "https://github.com/Hombecl/nuxec-dashboard" },
+                    { text: "Vercel Dashboard", url: "https://vercel.com/dashboard" }
+                ]
             },
             {
                 id: 2,
                 title: "Build Dashboard UI",
-                desc: "HTML dashboard with task tracking functionality",
+                desc: "HTML dashboard with task tracking + Kanban view",
                 status: "completed",
-                date: "2026-01-30"
+                date: "2026-01-30",
+                instructions: [
+                    { step: 1, text: "View the live dashboard at the URL below" },
+                    { step: 2, text: "Toggle between Kanban and List views" },
+                    { step: 3, text: "Click any card to see detailed instructions" }
+                ],
+                links: [
+                    { text: "View Dashboard", url: "https://nuxec-dashboard.vercel.app", secondary: true }
+                ]
             },
             {
                 id: 3,
                 title: "Walmart Scraper Development",
                 desc: "Create Puppeteer script for scraping product data + seller info",
                 status: "in-progress",
-                date: "2026-01-31"
+                date: "2026-01-31",
+                instructions: [
+                    { step: 1, text: "Download the script: /root/.openclaw/workspace/walmart-scraper.js" },
+                    { step: 2, text: "Install dependencies: npm install puppeteer-extra puppeteer-extra-plugin-stealth" },
+                    { step: 3, text: "Run locally: node walmart-scraper.js <product-url>" },
+                    { step: 4, text: "Note: Must run from a residential IP (not server)" }
+                ],
+                links: [
+                    { text: "View Script", url: "https://github.com/Hombecl/nuxec-dashboard/blob/main/walmart-scraper.js" },
+                    { text: "Puppeteer Docs", url: "https://pptr.dev" }
+                ],
+                code: `const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+
+puppeteer.use(StealthPlugin());
+
+async function scrapeWalmartProduct(url) {
+    const browser = await puppeteer.launch({ headless: 'new' });
+    const page = await browser.newPage();
+    await page.goto(url, { waitUntil: 'networkidle2' });
+    // ... rest of code
+}`
             },
             {
                 id: 4,
-                title: "Communication System Setup",
-                desc: "Define task submission format + daily summary workflow",
+                title: "Subscription Email Scanner",
+                desc: "Google Apps Script to find all subscription emails across accounts",
                 status: "in-progress",
-                date: "2026-01-31"
+                date: "2026-01-31",
+                instructions: [
+                    { step: 1, text: "Go to https://script.google.com/home" },
+                    { step: 2, text: "Click + New Project" },
+                    { step: 3, text: "Copy the script from: /root/.openclaw/workspace/subscription-scraper.gs" },
+                    { step: 4, text: "Save and click Run → Allow permissions" },
+                    { step: 5, text: "Repeat for each Gmail account" }
+                ],
+                links: [
+                    { text: "Google Apps Script", url: "https://script.google.com/home" },
+                    { text: "View Script", url: "https://github.com/Hombecl/nuxec-dashboard/blob/main/subscription-scraper.gs" }
+                ],
+                code: `function findSubscriptions() {
+  const KEYWORDS = ['subscription', 'recurring', 'monthly charge', 'billing'];
+  const threads = GmailApp.search('after:2023/01/01', 0, 500);
+  // ... scans emails and sends report
+}`
             },
             {
                 id: 5,
                 title: "Daily Summary Automation",
                 desc: "Morning summary of what Orland worked on + today's plan",
                 status: "pending",
-                date: "2026-02-01"
+                date: "2026-02-01",
+                instructions: [
+                    { step: 1, text: "Orland will send summary at 11:00 AM HK time daily" },
+                    { step: 2, text: "Summary includes: completed tasks, in-progress, today's plan" },
+                    { step: 3, text: "Check Telegram for the daily update" }
+                ],
+                links: []
             },
             {
                 id: 6,
-                title: "n8n Integration",
-                desc: "Create n8n workflow for task notifications",
+                title: "Rocket Money Setup",
+                desc: "Connect bank accounts to automatically find all subscriptions",
                 status: "pending",
-                date: "2026-02-01"
+                date: "2026-02-01",
+                instructions: [
+                    { step: 1, text: "Go to https://www.rocketmoney.com" },
+                    { step: 2, text: "Sign up and connect your bank/credit cards" },
+                    { step: 3, text: "Wait for scan (usually 2-5 minutes)" },
+                    { step: 4, text: "Go to Subscriptions tab to see all recurring payments" },
+                    { step: 5, text: "Cancel any unwanted subscriptions directly" }
+                ],
+                links: [
+                    { text: "Rocket Money", url: "https://www.rocketmoney.com" }
+                ]
             }
         ];
         
-        // Render functions
-        function renderTasks() {
+        function switchView(view) {
+            document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.view-btn[onclick="switchView('${view}')"]`).classList.add('active');
+            document.getElementById('kanbanView').classList.toggle('active', view === 'kanban');
+            document.getElementById('listView').classList.toggle('active', view === 'list');
+        }
+        
+        function renderKanban() {
+            const columns = { pending: [], progress: [], review: [], completed: [] };
+            tasks.forEach(task => {
+                const status = task.status === 'in-progress' ? 'progress' : task.status;
+                columns[status].push(task);
+            });
+            
+            Object.keys(columns).forEach(status => {
+                const list = document.getElementById(`kanban${status.charAt(0).toUpperCase() + status.slice(1)}List`);
+                const count = document.getElementById(`kanban${status.charAt(0).toUpperCase() + status.slice(1)}`);
+                list.innerHTML = '';
+                columns[status].forEach(task => {
+                    const card = document.createElement('div');
+                    card.className = `kanban-card ${status}`;
+                    card.onclick = () => showModal(task);
+                    card.innerHTML = `
+                        <h4>${task.title}</h4>
+                        <p>${task.desc}</p>
+                        <div class="card-date">📅 ${task.date}</div>
+                    `;
+                    list.appendChild(card);
+                });
+                count.textContent = columns[status].length;
+            });
+        }
+        
+        function renderList() {
             const list = document.getElementById('taskList');
             list.innerHTML = '';
-            
+            tasks.sort((a,b) => new Date(b.date) - new Date(a.date));
             tasks.forEach(task => {
                 const li = document.createElement('li');
-                li.className = `task-item ${task.status}`;
+                li.className = `task-item ${task.status === 'in-progress' ? 'progress' : task.status}`;
+                li.onclick = () => showModal(task);
                 li.innerHTML = `
-                    <span class="status-badge ${task.status}">${formatStatus(task.status)}</span>
+                    <span class="status-badge ${task.status === 'in-progress' ? 'progress' : task.status}">${formatStatus(task.status)}</span>
                     <div class="task-content">
                         <div class="task-title">${task.title}</div>
                         <div class="task-desc">${task.desc}</div>
-                        <div class="task-date">${task.date}</div>
+                        <div class="task-date">📅 ${task.date}</div>
                     </div>
                 `;
                 list.appendChild(li);
             });
+        }
+        
+        function showModal(task) {
+            const modal = document.getElementById('modalOverlay');
+            document.getElementById('modalTitle').textContent = task.title;
+            
+            let linksHtml = task.links.map(l => 
+                `<a href="${l.url}" target="_blank" class="action-link ${l.secondary ? 'secondary' : ''}">${l.text}</a>`
+            ).join('');
+            
+            let instructionsHtml = task.instructions.map(i => `
+                <div class="instruction-step">
+                    <span class="step-num">${i.step}</span>
+                    <span>${i.text}</span>
+                </div>
+            `).join('');
+            
+            let codeHtml = task.code ? `
+                <div class="instruction-section">
+                    <h4>📝 Code</h4>
+                    <div class="code-block">${escapeHtml(task.code)}</div>
+                </div>
+            ` : '';
+            
+            document.getElementById('modalBody').innerHTML = `
+                <p style="color: #8892b0; margin-bottom: 20px;">${task.desc}</p>
+                
+                ${linksHtml ? `<div style="margin-bottom: 20px;">${linksHtml}</div>` : ''}
+                
+                <div class="instruction-section">
+                    <h4>📋 Instructions</h4>
+                    ${instructionsHtml}
+                </div>
+                
+                ${codeHtml}
+                
+                <div style="color: #64ffda; font-size: 0.8rem; margin-top: 15px;">
+                    📅 Created: ${task.date}
+                </div>
+            `;
+            
+            modal.classList.add('active');
+        }
+        
+        function closeModal(e) {
+            if (!e || e.target === document.getElementById('modalOverlay')) {
+                document.getElementById('modalOverlay').classList.remove('active');
+            }
+        }
+        
+        function escapeHtml(text) {
+            return text.replace(/</g, '<').replace(/>/g, '>');
+        }
+        
+        function formatStatus(status) {
+            const map = { pending: 'Pending', progress: 'In Progress', review: 'Review', completed: 'Completed' };
+            return map[status] || status;
         }
         
         function updateStats() {
@@ -214,16 +553,10 @@
                 const status = task.status === 'in-progress' ? 'progress' : task.status;
                 counts[status]++;
             });
-            
             document.getElementById('pendingCount').textContent = counts.pending;
             document.getElementById('progressCount').textContent = counts.progress;
             document.getElementById('reviewCount').textContent = counts.review;
             document.getElementById('completedCount').textContent = counts.completed;
-        }
-        
-        function formatStatus(status) {
-            const map = { pending: 'Pending', progress: 'In Progress', review: 'Review', completed: 'Completed' };
-            return map[status] || status;
         }
         
         // Initialize
@@ -232,7 +565,8 @@
         });
         document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
         
-        renderTasks();
+        renderKanban();
+        renderList();
         updateStats();
     </script>
 </body>
