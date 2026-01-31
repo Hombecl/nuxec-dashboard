@@ -443,19 +443,53 @@ function findSubscriptions() {
             },
             {
                 id: 7,
-                title: "Bank Statement Analyzer",
-                desc: "Process PDF/CSV bank statements to find recurring charges",
+                title: "Private Repo Setup (nuxec-sensitive)",
+                desc: "Create private GitHub repo for sensitive files (bank statements, etc.)",
                 status: "pending",
                 date: "2026-02-02",
                 instructions: [
-                    { step: 1, text: "Download bank statements (PDF or CSV) from your bank" },
-                    { step: 2, text: "Upload to: /root/.openclaw/workspace/bank-statements/" },
-                    { step: 3, text: "Orland will auto-scan for recurring payments" },
-                    { step: 4, text: "Review the subscription report" }
+                    { step: 1, text: "Go to https://github.com and create new repository" },
+                    { step: 2, text: "Name: nuxec-sensitive, Select: Private, Don't initialize (empty)" },
+                    { step: 3, text: "Go to Settings → Collaborators → Add people" },
+                    { step: 4, text: "Add Orland's GitHub account as collaborator" },
+                    { step: 5, text: "Upload bank statements (PDF/CSV) to this repo" },
+                    { step: 6, text: "Tell Orland: 'Files are uploaded' → Orland will pull and process" }
                 ],
-                links: [],
-                code: null
-            }
+                links: [
+                    { text: "🔐 Create Private Repo", url: "https://github.com/new" }
+                ],
+                code: `PROMPT FOR CLAUDE (Copy & Paste):
+
+---
+我想要建立一個 private GitHub repository 嚟放 sensitive files (bank statements 等)。
+
+請幫我做以下嘢：
+
+1. Create Private Repository:
+   - Go to https://github.com
+   - Create new repository called "nuxec-sensitive"
+   - Select "Private" (NOT Public)
+   - DO NOT initialize with README/.gitignore (empty repo)
+   - Create repository
+
+2. Setup Collaborator Access:
+   - Go to Repository → Settings → Collaborators
+   - Click "Add people"
+   - Add the GitHub account that Orland (AI assistant) uses
+   - Send invitation
+
+3. Output:
+   - Repository URL (e.g., https://github.com/yourname/nuxec-sensitive)
+   - Confirmation that collaborator was added
+   - Any instructions for uploading files
+
+呢個repository將會用嚟放：
+- Bank statements (PDF/CSV)
+- 其他 sensitive files
+- Orland會用佢個GitHub PAT去clone/pull access
+
+thank you!
+---`
         ];
         
         function switchView(view) {
