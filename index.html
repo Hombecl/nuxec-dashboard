@@ -69,117 +69,36 @@
             width: 90px;
             height: 90px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
             margin: 0 auto 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             border: 3px solid rgba(100, 255, 218, 0.3);
             overflow: hidden;
             position: relative;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
         
-        .avatar-face {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        .avatar-photo {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
+            background-size: cover;
+            background-position: center;
             transition: opacity 0.3s;
         }
         
-        .avatar-idle { opacity: 1; }
-        .avatar-running { opacity: 0; }
-        .avatar.running .avatar-idle { opacity: 0; }
-        .avatar.running .avatar-running { opacity: 1; }
-        
-        .avatar-hair {
-            width: 70px;
-            height: 25px;
-            background: linear-gradient(180deg, #2d2d2d 0%, #1a1a1a 100%);
-            border-radius: 35px 35px 0 0;
-            margin-top: 5px;
+        .avatar-photo.idle {
+            background-image: url('https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=200&h=200&fit=crop&crop=face');
+            opacity: 1;
         }
         
-        .avatar-head {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(180deg, #f5d0c5 0%, #e8b9a8 100%);
-            border-radius: 50%;
-            position: relative;
-            margin-top: -5px;
+        .avatar-photo.running {
+            background-image: url('https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=face');
+            opacity: 0;
         }
         
-        .avatar-eyebrows {
-            position: absolute;
-            top: 18px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 30px;
-            height: 4px;
-            background: #4a4a4a;
-            border-radius: 2px;
-        }
-        
-        .avatar-eyes {
-            position: absolute;
-            top: 25px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 14px;
-        }
-        
-        .avatar-eye {
-            width: 8px;
-            height: 8px;
-            background: #2d2d2d;
-            border-radius: 50%;
-            animation: blink 4s infinite;
-        }
-        
-        .running-eyes .avatar-eye {
-            height: 6px;
-            width: 10px;
-            animation: none;
-            background: transparent;
-            border-top: 3px solid #2d2d2d;
-            border-radius: 50% 50% 0 0;
-        }
-        
-        @keyframes blink {
-            0%, 96%, 100% { transform: scaleY(1); }
-            98% { transform: scaleY(0.1); }
-        }
-        
-        .avatar-nose {
-            position: absolute;
-            top: 35px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 6px;
-            height: 8px;
-            background: #d4a594;
-            border-radius: 0 0 3px 3px;
-        }
-        
-        .avatar-mouth {
-            position: absolute;
-            bottom: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 14px;
-            height: 6px;
-            background: #c97878;
-            border-radius: 0 0 10px 10px;
-        }
-        
-        .running-mouth {
-            width: 18px;
-            height: 8px;
-            background: #c97878;
-            border-radius: 50%;
-        }
+        .avatar.running .avatar-photo.idle { opacity: 0; }
+        .avatar.running .avatar-photo.running { opacity: 1; }
         
         .avatar.running .avatar-img { display: none; }
         .avatar.running .avatar-gif { display: block; }
@@ -695,31 +614,9 @@
             
             <div class="avatar-section">
                 <div class="avatar" id="avatar">
-                    <!-- Animated Korean Male Avatar -->
-                    <div class="avatar-face avatar-idle">
-                        <div class="avatar-hair"></div>
-                        <div class="avatar-head">
-                            <div class="avatar-eyebrows"></div>
-                            <div class="avatar-eyes">
-                                <div class="avatar-eye"></div>
-                                <div class="avatar-eye"></div>
-                            </div>
-                            <div class="avatar-nose"></div>
-                            <div class="avatar-mouth"></div>
-                        </div>
-                    </div>
-                    <div class="avatar-face avatar-running">
-                        <div class="avatar-hair"></div>
-                        <div class="avatar-head">
-                            <div class="avatar-eyebrows"></div>
-                            <div class="avatar-eyes running-eyes">
-                                <div class="avatar-eye"></div>
-                                <div class="avatar-eye"></div>
-                            </div>
-                            <div class="avatar-nose"></div>
-                            <div class="avatar-mouth running-mouth"></div>
-                        </div>
-                    </div>
+                    <!-- Professional Friendly Asian Male Avatar -->
+                    <div class="avatar-photo idle"></div>
+                    <div class="avatar-photo running"></div>
                 </div>
                 <div class="avatar-name">Orland</div>
                 <div class="status-chip idle" id="statusChip">
@@ -909,8 +806,8 @@
     </div>
     
     <script>
-        // State - Default to Idle (conversing = idle, working = running)
-        let isRunning = false;  // Default: Idle when talking
+        // State - Running when actively working, Idle when waiting
+        let isRunning = true;  // Currently working = Running!
         
         const tasks = [
             { id: 1, title: "Setup nuxec-dashboard", date: "2026-01-30", status: "done", instructions: [{step:1,text:"Done!"}], links: [{text:"Dashboard",url:"https://nuxec-dashboard.vercel.app"}] },
@@ -1064,13 +961,11 @@
         // Sync time
         document.getElementById('lastSync').textContent = new Date().toLocaleString();
         
-        // Expose setRunning for external use + auto-set when running tasks
+        // Expose setRunning for external use
         window.setOrlandRunning = setRunning;
         
-        // Auto-show running when task is in-progress
-        const hasRunningTasks = tasks.some(t => t.status === 'inprogress');
-        if (hasRunningTasks) setRunning(true);
-        else setRunning(false);
+        // Current state: Running (actively working!)
+        setRunning(true);
         
         renderKanban();
     </script>
