@@ -994,6 +994,29 @@
             document.getElementById('modalBody').innerHTML = content;
             document.getElementById('modalOverlay').classList.add('active');
         }
+
+        function showTaskModal(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+            
+            const links = task.links ? task.links.map(l => 
+                `<a href="${l.url}" target="_blank" class="action-link">${l.icon} ${l.label}</a>`
+            ).join('') : '';
+            
+            const instructions = task.instructions ? task.instructions.map(i => 
+                `<div style="margin-bottom: 10px; padding: 10px; background: rgba(100,255,218,0.05); border-radius: 6px;">${i}</div>`
+            ).join('') : '<p>No instructions available</p>';
+            
+            showModal(task.title, `
+                ${links ? `<div style="margin-bottom:15px;">${links}</div>` : ''}
+                <div class="modal-section">
+                    <h4>Instructions</h4>
+                    ${instructions}
+                </div>
+                <div style="color:#64ffda;font-size:0.8rem;margin-top:10px;">Date: ${task.date}</div>
+            `);
+        }
+
         
         function closeModal(e) {
             if (!e || e.target === document.getElementById('modalOverlay')) {
@@ -1134,16 +1157,7 @@
         // State - Running when actively working, Idle when waiting
         let isRunning = true;  // Currently working = Running!
         
-        const tasks = [
-            { id: 1, title: "Setup nuxec-dashboard", date: "2026-01-30", status: "done", instructions: [{step:1,text:"Done!"}], links: [{text:"Dashboard",url:"https://nuxec-dashboard.vercel.app"}] },
-            { id: 2, title: "Build Dashboard UI v2", date: "2026-01-31", status: "done", instructions: [{step:1,text:"Done!"}], links: [{text:"View",url:"https://nuxec-dashboard.vercel.app"}] },
-            { id: 3, title: "Walmart Scraper Development", date: "2026-01-31", status: "inprogress", instructions: [{step:1,text:"Download from GitHub"}, {step:2,text:"Run locally"}], links: [{text:"View Script",url:"https://github.com/Hombecl/nuxec-dashboard/blob/main/walmart-scraper.js"}] },
-            { id: 4, title: "Subscription Email Scanner", date: "2026-01-31", status: "inprogress", instructions: [{step:1,text:"Go to Google Apps Script"}, {step:2,text:"Run findSubscriptions()"}], links: [{text:"Run Scanner",url:"https://script.google.com/home"}] },
-            { id: 5, title: "Private Repo Setup", date: "2026-01-31", status: "done", instructions: [{step:1,text:"Done!"}], links: [{text:"Private Repo",url:"https://github.com/Hombecl/nuxec-sensitive"}] },
-            { id: 6, title: "Bank Statement Analyzer", date: "2026-02-02", status: "todo", instructions: [{step:1,text:"Upload statements"}, {step:2,text:"Tell Orland"}], links: [] },
-            { id: 7, title: "Daily Summary Automation", date: "2026-02-01", status: "todo", instructions: [{step:1,text:"Orland will send daily summary"}], links: [] },
-            { id: 8, title: "GMC Service Website", date: "2026-02-02", status: "inprogress", instructions: [{step:1,text:"Nuxt 3 website created"}, {step:2,text:"Deploy to Vercel"}], links: [{text:"View Repo",url:"https://github.com/Hombecl/gmc-service-website"}] }
-        ];
+        
         
             const columns = {
                 todo: tasks.filter(t => t.status === 'todo'),
