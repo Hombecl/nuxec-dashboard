@@ -877,9 +877,7 @@
             const tools = {
                 partykit: {
                     title: '🔄 PartyKit Setup',
-                    content: `<div class="modal-section">
-                        <h4>📋 Claude Prompt for PartyKit Deployment</h4>
-                        <div class="code-block">Please deploy the PartyKit project to Vercel for real-time status sync:
+                    content: `Please deploy the PartyKit project to Vercel for real-time status sync:
 
 1. Go to: https://partykit.io
 2. Sign up with GitHub
@@ -891,19 +889,51 @@
 
 REPLACE this in nuxec-dashboard/index.html:
 FROM: window.location.hostname === 'localhost' ? 'localhost:1999' : 'YOUR_PARTYKIT_URL.partykit.dev'
-TO:   window.location.hostname === 'localhost' ? 'localhost:1999' : 'https://YOUR_DEPLOYED_URL.partykit.dev'</div>
-                    </div>
-                    <a href="https://partykit.io" target="_blank" class="action-link">🎯 Go to PartyKit</a>
-                    <a href="https://github.com/Hombecl/partykit-dashboard" target="_blank" class="action-link secondary">📦 View Repo</a>`
+TO:   window.location.hostname === 'localhost' ? 'localhost:1999' : 'https://YOUR_DEPLOYED_URL.partykit.dev'`
                 },
-                prompt: '<p>📋 Copy Prompts - Coming soon...</p>',
-                code: '<p>💻 Code Snippets - Coming soon...</p>',
-                calc: '<p>🧮 Calculator - Coming soon...</p>',
-                notes: '<p>📝 Quick Notes - Coming soon...</p>'
+                prompt: `📋 Copy Prompts - Claude Prompt:
+
+[Add your prompt here]`,
+                code: `💻 Code Snippets:
+
+// Your code here`,
+                calc: `🧮 Calculator:
+
+[Calculator tool coming soon]`,
+                notes: `📝 Quick Notes:
+
+[Your notes here]`
             };
             
-            const t = tools[tool] || { title: 'Tool', content: '<p>Coming soon...</p>' };
-            showModal(t.title, t.content);
+            const t = tools[tool] || { title: 'Tool', content: 'Coming soon...' };
+            showModal(t.title, `
+                <div class="modal-section">
+                    <h4>📋 Claude Prompt</h4>
+                    <div class="code-block" id="promptContent">${t.content}</div>
+                    <button class="action-link" onclick="copyPrompt()" style="width:100%;justify-content:center;margin-top:15px;">
+                        📋 Copy to Clipboard
+                    </button>
+                </div>
+                ${tool === 'partykit' ? `
+                <a href="https://partykit.io" target="_blank" class="action-link">🎯 Go to PartyKit</a>
+                <a href="https://github.com/Hombecl/partykit-dashboard" target="_blank" class="action-link secondary">📦 View Repo</a>
+                ` : ''}
+            `);
+        }
+        
+        function copyPrompt() {
+            const text = document.getElementById('promptContent').textContent.trim();
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ Copied to clipboard!');
+            }).catch(() => {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('✅ Copied to clipboard!');
+            });
         }
         
         function showDeliverable(type) {
