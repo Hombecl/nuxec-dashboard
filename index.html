@@ -630,8 +630,8 @@
                 <div class="section-label">🛠️ Quick Tools</div>
                 
                 <div class="tool-btn" onclick="openQuickTool('partykit')">
-                    <span class="icon">🔄</span>
-                    <span class="label">PartyKit Setup</span>
+                    <span class="icon">🖥️</span>
+                    <span class="label">VPS WebSocket</span>
                 </div>
                 
                 <div class="tool-btn" onclick="openQuickTool('prompt')">
@@ -876,20 +876,30 @@
         function openQuickTool(tool) {
             const tools = {
                 partykit: {
-                    title: '🔄 PartyKit Setup',
-                    content: `Please deploy the PartyKit project to Vercel for real-time status sync:
+                    title: '🔄 VPS WebSocket Setup',
+                    content: `Deploy WebSocket server to your n8n VPS for real-time status sync:
 
-1. Go to: https://partykit.io
-2. Sign up with GitHub
-3. Create new project called "orland-dashboard-status"
-4. Connect to GitHub repo: https://github.com/Hombecl/partykit-dashboard
-5. Deploy to Vercel
-6. Copy the deployed URL (e.g., https://orland-dashboard-status.partykit.dev)
-7. Update the Dashboard code to use this URL
+1. Upload these files to your VPS:
+   - /workspace/partykit-dashboard/vps-server.js
+   - package.json (add: "ws": "^8.0.0")
 
-REPLACE this in nuxec-dashboard/index.html:
-FROM: window.location.hostname === 'localhost' ? 'localhost:1999' : 'YOUR_PARTYKIT_URL.partykit.dev'
-TO:   window.location.hostname === 'localhost' ? 'localhost:1999' : 'https://YOUR_DEPLOYED_URL.partykit.dev'`
+2. SSH to VPS and run:
+   cd /path/to/partykit-dashboard
+   npm install ws
+   node vps-server.js
+
+3. Server will start on port 8080
+   - HTTP: http://YOUR_VPS_IP:8080
+   - WebSocket: ws://YOUR_VPS_IP:8080
+
+4. Update Dashboard to use your VPS IP:
+   REPLACE: 'YOUR_VPS_IP:8080'
+   WITH:   your_actual_vps_ip:8080
+
+5. Test: Open Dashboard in browser, status should sync!
+
+To change status from CLI on VPS:
+   curl -X POST http://YOUR_VPS_IP:8080 -d '{"type":"setStatus","status":"running"}'`
                 },
                 prompt: `📋 Copy Prompts - Claude Prompt:
 
@@ -915,8 +925,7 @@ TO:   window.location.hostname === 'localhost' ? 'localhost:1999' : 'https://YOU
                     </button>
                 </div>
                 ${tool === 'partykit' ? `
-                <a href="https://partykit.io" target="_blank" class="action-link">🎯 Go to PartyKit</a>
-                <a href="https://github.com/Hombecl/partykit-dashboard" target="_blank" class="action-link secondary">📦 View Repo</a>
+                <a href="https://github.com/Hombecl/partykit-dashboard" target="_blank" class="action-link">📦 View VPS Server Code</a>
                 ` : ''}
             `);
         }
@@ -1034,7 +1043,7 @@ TO:   window.location.hostname === 'localhost' ? 'localhost:1999' : 'https://YOU
         // PartyKit WebSocket for real-time status sync
         if (typeof PartySocket !== 'undefined') {
             const party = new PartySocket({
-                host: window.location.hostname === 'localhost' ? 'localhost:1999' : 'YOUR_PARTYKIT_URL.partykit.dev',
+                host: window.location.hostname === 'localhost' ? 'localhost:1999' : 'YOUR_VPS_IP:8080',
                 room: 'dashboard-status'
             });
             
@@ -1049,10 +1058,52 @@ TO:   window.location.hostname === 'localhost' ? 'localhost:1999' : 'https://YOU
         renderKanban();
     </script>
     
-    <!-- PartyKit WebSocket -->
+    <!-- Simple WebSocket for VPS -->
     <script type="module">
-        import PartySocket from "https://unpkg.com/partysocket/dist/partysocket.js";
-        window.PartySocket = PartySocket;
+        // Native WebSocket (works with any WS server)
+        class SimpleWS {
+            constructor(url, room) {
+                this.url = url;
+                this.room = room;
+                this.ws = null;
+                this.reconnectDelay = 3000;
+                this.connect();
+            }
+            
+            connect() {
+                try {
+                    this.ws = new WebSocket(this.url);
+                    this.ws.onopen = () => console.log('WS connected');
+                    this.ws.onmessage = (e) => {
+                        const data = JSON.parse(e.data);
+                        if (data.type === 'status' && window.setOrlandRunning) {
+                            setOrlandRunning(data.status === 'running');
+                        }
+                    };
+                    this.ws.onclose = () => setTimeout(() => this.connect(), this.reconnectDelay);
+                } catch (e) {
+                    console.error('WS error:', e);
+                }
+            }
+            
+            send(msg) {
+                if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                    this.ws.send(JSON.stringify(msg));
+                }
+            }
+        }
+        
+        // Initialize WebSocket (replace YOUR_VPS_IP with actual IP)
+        const wsUrl = window.location.hostname === 'localhost' 
+            ? 'ws://localhost:8080' 
+            : 'ws://YOUR_VPS_IP:8080';
+        
+        window.wsClient = new SimpleWS(wsUrl, 'dashboard-status');
+        
+        // Expose send function
+        window.setStatusViaWS = (status) => {
+            window.wsClient.send({ type: 'setStatus', status });
+        };
     </script>
 </body>
 </html>
