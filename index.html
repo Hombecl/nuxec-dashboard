@@ -834,9 +834,14 @@
     </div>
     
     <script>
-        // State - Running when actively working, Idle when waiting
-        let isRunning = true;  // Currently working = Running!
-        
+        // ============================================
+        // State Management
+        // ============================================
+        let isRunning = true;
+
+        // ============================================
+        // Task Data
+        // ============================================
         const tasks = [
             { id: 1, title: "Setup nuxec-dashboard", date: "2026-01-30", status: "done", instructions: [{step:1,text:"Done!"}], links: [{text:"Dashboard",url:"https://nuxec-dashboard.vercel.app"}] },
             { id: 2, title: "Build Dashboard UI v2", date: "2026-01-31", status: "done", instructions: [{step:1,text:"Done!"}], links: [{text:"View",url:"https://nuxec-dashboard.vercel.app"}] },
@@ -978,17 +983,28 @@
                 showModal('📝 Quick Notes', '<p>Coming soon...</p>');
             }
         }
-            
-            showModal(task.title, `
-                ${links ? `<div style="margin-bottom:15px;">${links}</div>` : ''}
-                <div class="modal-section">
-                    <h4>📋 Instructions</h4>
-                    ${instructions}
-                </div>
-                <div style="color:#64ffda;font-size:0.8rem;margin-top:10px;">📅 ${task.date}</div>
-            `);
+
+        // ============================================
+        // Copy Command Helper
+        // ============================================
+        function copyCommand(cmd) {
+            navigator.clipboard.writeText(cmd).then(() => {
+                alert('✅ Copied to clipboard!');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = cmd;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('✅ Copied to clipboard!');
+            });
         }
-        
+
+        // ============================================
+        // Modal Functions
+        // ============================================
         function showModal(title, content) {
             document.getElementById('modalTitle').textContent = title;
             document.getElementById('modalBody').innerHTML = content;
@@ -998,22 +1014,31 @@
         function showTaskModal(taskId) {
             const task = tasks.find(t => t.id === taskId);
             if (!task) return;
-            
-            const links = task.links ? task.links.map(l => 
-                `<a href="${l.url}" target="_blank" class="action-link">${l.icon} ${l.label}</a>`
-            ).join('') : '';
-            
-            const instructions = task.instructions ? task.instructions.map(i => 
-                `<div style="margin-bottom: 10px; padding: 10px; background: rgba(100,255,218,0.05); border-radius: 6px;">${i}</div>`
-            ).join('') : '<p>No instructions available</p>';
-            
+
+            // Fix: Use correct property names (text, url) from task data
+            const links = task.links && task.links.length > 0
+                ? task.links.map(l =>
+                    `<a href="${l.url}" target="_blank" class="action-link">🔗 ${l.text}</a>`
+                ).join('')
+                : '';
+
+            // Fix: Handle instruction objects correctly
+            const instructions = task.instructions && task.instructions.length > 0
+                ? task.instructions.map(i =>
+                    `<div class="instruction-step">
+                        <span class="step-num">${i.step}</span>
+                        <span>${i.text}</span>
+                    </div>`
+                ).join('')
+                : '<p>No instructions available</p>';
+
             showModal(task.title, `
                 ${links ? `<div style="margin-bottom:15px;">${links}</div>` : ''}
                 <div class="modal-section">
-                    <h4>Instructions</h4>
+                    <h4>📋 Instructions</h4>
                     ${instructions}
                 </div>
-                <div style="color:#64ffda;font-size:0.8rem;margin-top:10px;">Date: ${task.date}</div>
+                <div style="color:#64ffda;font-size:0.8rem;margin-top:10px;">📅 ${task.date}</div>
             `);
         }
 
@@ -1085,26 +1110,9 @@
         // Current state: Running (actively working!)
         setRunning(true);
         
-        // PartyKit WebSocket for real-time status sync
-        if (typeof PartySocket !== 'undefined') {
-            const party = new PartySocket({
-                host: window.location.hostname === 'localhost' ? 'localhost:1999' : 'YOUR_VPS_IP:8080',
-                room: 'dashboard-status'
-            });
-            
-            party.addEventListener('message', (e) => {
-                const data = JSON.parse(e.data);
-                if (data.type === 'status') {
-                    setRunning(data.status === 'running');
-                }
-            });
-        }
-        
-        renderKanban();
-    
-
-
-        // Native WebSocket (works with any WS server)
+        // ============================================
+        // WebSocket Connection (Native)
+        // ============================================
         class SimpleWS {
             constructor(url, room) {
                 this.url = url;
@@ -1148,17 +1156,11 @@
         window.setStatusViaWS = (status) => {
             window.wsClient.send({ type: 'setStatus', status });
         };
-    
 
-
-    
-    <!-- Simple WebSocket for VPS -->
-    
-
-
-        // State - Running when actively working, Idle when waiting
-        let isRunning = true;  // Currently working = Running!
-        
-        
-        
-            </script>
+        // ============================================
+        // Initialize Dashboard
+        // ============================================
+        renderKanban();
+    </script>
+</body>
+</html>
