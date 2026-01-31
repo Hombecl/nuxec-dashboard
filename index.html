@@ -341,11 +341,20 @@
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
                 
                 <div class="task-item" style="cursor: pointer;" onclick="showPromptModal('prompt-claude-create-repo', '📋 Create Private Repo (nuxec-sensitive)', 'Prompt for Claude to setup private GitHub repo')">
-                    <span class="status-badge pending">NEW</span>
+                    <span class="status-badge completed">DONE</span>
                     <div class="task-content">
                         <div class="task-title">📋 Create Private Repo (nuxec-sensitive)</div>
                         <div class="task-desc">Prompt for Claude to setup private GitHub repo</div>
-                        <div class="task-date">🖱️ Click to view & copy</div>
+                        <div class="task-date">✅ Repo created</div>
+                    </div>
+                </div>
+                
+                <div class="task-item" style="cursor: pointer;" onclick="showPromptModal('prompt-private-repo', '🔐 Private Repo (nuxec-sensitive)', 'Private GitHub repo for sensitive files')">
+                    <span class="status-badge progress">LINK</span>
+                    <div class="task-content">
+                        <div class="task-title">🔐 Private Repo (nuxec-sensitive)</div>
+                        <div class="task-desc">Upload bank statements here</div>
+                        <div class="task-date">github.com/Hombecl/nuxec-sensitive</div>
                     </div>
                 </div>
                 
@@ -385,6 +394,17 @@
    - Confirmation that collaborator was added
 
 thank you!</div>
+            <div id="prompt-private-repo">🔐 Private GitHub Repository for Sensitive Files
+
+URL: https://github.com/Hombecl/nuxec-sensitive
+
+用法:
+1. Go to the URL above
+2. Upload bank statements (PDF/CSV)
+3. Tell Orland "Files uploaded"
+4. Orland will pull and process automatically
+
+呢個repo係private嘅得你同Orland可以access。</div>
             <div id="prompt-verify-deploy">Check if the Vercel deployment is working:
 
 1. Go to: https://nuxec-dashboard.vercel.app
