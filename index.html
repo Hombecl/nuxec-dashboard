@@ -655,6 +655,29 @@
                 </div>
             </div>
             
+            <!-- Pending Installations -->
+            <div class="quick-tools-section">
+                <div class="section-label">📦 Pending Installations</div>
+                
+                <div class="tool-btn" onclick="openQuickTool('install-browser')">
+                    <span class="icon">🌐</span>
+                    <span class="label">Browser Setup</span>
+                    <span style="background: #ffd93d; color: #1a1a2e; padding: 3px 8px; border-radius: 10px; font-size: 0.7rem;">3 items</span>
+                </div>
+                
+                <div class="tool-btn" onclick="openQuickTool('install-search')">
+                    <span class="icon">🔍</span>
+                    <span class="label">Web Search</span>
+                    <span style="background: #ffd93d; color: #1a1a2e; padding: 3px 8px; border-radius: 10px; font-size: 0.7rem;">1 item</span>
+                </div>
+                
+                <div class="tool-btn" onclick="openQuickTool('install-screenshot')">
+                    <span class="icon">📸</span>
+                    <span class="label">Screenshot Tool</span>
+                    <span style="background: #ffd93d; color: #1a1a2e; padding: 3px 8px; border-radius: 10px; font-size: 0.7rem;">1 item</span>
+                </div>
+            </div>
+            
             <div class="sidebar-bottom">
                 <div class="sync-info">
                     Last Sync: <span class="sync-time" id="lastSync">--</span>
@@ -874,20 +897,38 @@
         }
         
         function openQuickTool(tool) {
-            const steps = {
-                partykit: [
-                    { label: 'STEP 1: SSH to VPS', cmd: 'ssh YOUR_VPS_USERNAME@YOUR_VPS_IP' },
-                    { label: 'STEP 2: Install WebSocket', cmd: 'cd /root/.openclaw/workspace/partykit-dashboard && npm install ws' },
-                    { label: 'STEP 3: Start Server', cmd: 'cd /root/.openclaw/workspace/partykit-dashboard && node vps-server.js' },
-                    { label: 'STEP 4: Test Server', cmd: 'curl http://YOUR_VPS_IP:8080' },
-                    { label: 'Set Running', cmd: "curl -X POST http://YOUR_VPS_IP:8080 -d '{\"type\":\"setStatus\",\"status\":\"running\"}'" },
-                    { label: 'Set Idle', cmd: "curl -X POST http://YOUR_VPS_IP:8080 -d '{\"type\":\"setStatus\",\"status\":\"idle\"}'" }
-                ]
+            const installGuides = {
+                'install-browser': {
+                    title: '🌐 Browser Setup (3 items)',
+                    steps: [
+                        { label: 'Install Chrome', cmd: 'wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && dpkg -i google-chrome-stable_current_amd64.deb' },
+                        { label: 'Install Playwright', cmd: 'npm install -g playwright && playwright install' },
+                        { label: 'Install Puppeteer', cmd: 'npm install puppeteer puppeteer-extra' }
+                    ],
+                    note: 'For web scraping and automation'
+                },
+                'install-search': {
+                    title: '🔍 Web Search Setup',
+                    steps: [
+                        { label: 'Get Brave API Key', cmd: 'echo "Visit https://brave.com/search-api/ to get API key"' },
+                        { label: 'Set Environment', cmd: 'export BRAVE_API_KEY="your_api_key_here"' }
+                    ],
+                    note: 'Need Brave Search API key for web_search tool'
+                },
+                'install-screenshot': {
+                    title: '📸 Screenshot Tool',
+                    steps: [
+                        { label: 'Install Screenshot lib', cmd: 'npm install -g html-screenshot-tool' },
+                        { label: 'Configure output', cmd: 'mkdir -p /root/.openclaw/screenshots' }
+                    ],
+                    note: 'For capturing webpage screenshots'
+                }
             };
             
-            if (tool === 'partykit') {
-                const stepsHtml = steps.partykit.map((s, i) => `
-                    <div style="margin-bottom: 18px;">
+            if (installGuides[tool]) {
+                const guide = installGuides[tool];
+                const stepsHtml = guide.steps.map(s => `
+                    <div style="margin-bottom: 16px;">
                         <div style="color: #64ffda; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;">${s.label}</div>
                         <div style="display: flex; gap: 8px;">
                             <code style="flex:1; background: #0d1117; padding: 10px 14px; border-radius: 6px; font-size: 0.8rem; overflow-x: auto; color: #c9d1d9;">${s.cmd}</code>
@@ -896,12 +937,33 @@
                     </div>
                 `).join('');
                 
+                showModal(guide.title, `
+                    <div style="margin-bottom: 12px; color: #8892b0;">${guide.note}</div>
+                    ${stepsHtml}
+                `);
+            } else if (tool === 'partykit') {
+                const steps = [
+                    { label: 'STEP 1: SSH to VPS', cmd: 'ssh YOUR_VPS_USERNAME@YOUR_VPS_IP' },
+                    { label: 'STEP 2: Install WebSocket', cmd: 'cd /root/.openclaw/workspace/partykit-dashboard && npm install ws' },
+                    { label: 'STEP 3: Start Server', cmd: 'cd /root/.openclaw/workspace/partykit-dashboard && node vps-server.js' },
+                    { label: 'STEP 4: Test Server', cmd: 'curl http://YOUR_VPS_IP:8080' },
+                    { label: 'Set Running', cmd: "curl -X POST http://YOUR_VPS_IP:8080 -d '{\"type\":\"setStatus\",\"status\":\"running\"}'" },
+                    { label: 'Set Idle', cmd: "curl -X POST http://YOUR_VPS_IP:8080 -d '{\"type\":\"setStatus\",\"status\":\"idle\"}'" }
+                ];
+                const stepsHtml = steps.map(s => `
+                    <div style="margin-bottom: 16px;">
+                        <div style="color: #64ffda; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;">${s.label}</div>
+                        <div style="display: flex; gap: 8px;">
+                            <code style="flex:1; background: #0d1117; padding: 10px 14px; border-radius: 6px; font-size: 0.8rem; overflow-x: auto; color: #c9d1d9;">${s.cmd}</code>
+                            <button onclick="copyCommand('${s.cmd.replace(/'/g, "\\'")}')" style="background: #238636; color: white; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">📋</button>
+                        </div>
+                    </div>
+                `).join('');
                 showModal('🖥️ VPS WebSocket Setup', `
                     <div style="margin-bottom: 18px;">
                         <a href="https://github.com/Hombecl/partykit-dashboard" target="_blank" class="action-link">📦 View Code</a>
-                        <a href="https://nuxec-dashboard.vercel.app" target="_blank" class="action-link secondary">🌐 Dashboard</a>
                     </div>
-                    <div style="margin-top: 15px;">${stepsHtml}</div>
+                    ${stepsHtml}
                     <div style="margin-top: 18px; padding: 12px; background: rgba(255, 217, 61, 0.1); border: 1px solid #ffd93d; border-radius: 8px; font-size: 0.85rem;">
                         ⚠️ Replace YOUR_VPS_IP with your actual VPS IP
                     </div>
@@ -916,65 +978,6 @@
                 showModal('📝 Quick Notes', '<p>Coming soon...</p>');
             }
         }
-        
-        function copyCommand(cmd) {
-            navigator.clipboard.writeText(cmd).then(() => {
-                alert('✅ Copied!');
-            }).catch(() => {
-                const t = document.createElement('textarea');
-                t.value = cmd;
-                document.body.appendChild(t);
-                t.select();
-                document.execCommand('copy');
-                document.body.removeChild(t);
-                alert('✅ Copied!');
-            });
-        }
-                <a href="https://github.com/Hombecl/partykit-dashboard" target="_blank" class="action-link">📦 View VPS Server Code</a>
-                ` : ''}
-            `);
-        }
-        
-        function copyPrompt() {
-            const text = document.getElementById('promptContent').textContent.trim();
-            navigator.clipboard.writeText(text).then(() => {
-                alert('✅ Copied to clipboard!');
-            }).catch(() => {
-                const textarea = document.createElement('textarea');
-                textarea.value = text;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-                alert('✅ Copied to clipboard!');
-            });
-        }
-        
-        function showDeliverable(type) {
-            const data = {
-                ecommerce: 'E-Commerce Deliverables: Walmart scraper, subscription tracker, bank statement analyzer',
-                nen: 'NEN Workflow: Daily summary automation, task management',
-                upwork: 'Upwork Services: GMC reinstatement website, job monitoring',
-                security: 'Security Audit: Coming soon...',
-                dashboard: 'Dashboard v2.1: Task board, deliverables, notes, action log'
-            };
-            showModal('Deliverable: ' + type.toUpperCase(), '<p>' + data[type] + '</p>');
-        }
-        
-        function showTaskModal(id) {
-            const task = tasks.find(t => t.id === id);
-            if (!task) return;
-            
-            const instructions = task.instructions.map(i => `
-                <div class="instruction-step">
-                    <span class="step-num">${i.step}</span>
-                    <span>${i.text}</span>
-                </div>
-            `).join('');
-            
-            const links = task.links.map(l => 
-                `<a href="${l.url}" target="_blank" class="action-link">${l.text}</a>`
-            ).join('');
             
             showModal(task.title, `
                 ${links ? `<div style="margin-bottom:15px;">${links}</div>` : ''}
