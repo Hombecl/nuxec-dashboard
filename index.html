@@ -491,38 +491,8 @@ function findSubscriptions() {
                 links: [
                     { text: "🔐 Create Private Repo", url: "https://github.com/new" }
                 ],
-                code: `PROMPT FOR CLAUDE (Copy & Paste):
-
----
-我想要建立一個 private GitHub repository 嚟放 sensitive files (bank statements 等)。
-
-請幫我做以下嘢：
-
-1. Create Private Repository:
-   - Go to https://github.com
-   - Create new repository called "nuxec-sensitive"
-   - Select "Private" (NOT Public)
-   - DO NOT initialize with README/.gitignore (empty repo)
-   - Create repository
-
-2. Setup Collaborator Access:
-   - Go to Repository → Settings → Collaborators
-   - Click "Add people"
-   - Add the GitHub account that Orland (AI assistant) uses
-   - Send invitation
-
-3. Output:
-   - Repository URL (e.g., https://github.com/yourname/nuxec-sensitive)
-   - Confirmation that collaborator was added
-   - Any instructions for uploading files
-
-呢個repository將會用嚟放：
-- Bank statements (PDF/CSV)
-- 其他 sensitive files
-- Orland會用佢個GitHub PAT去clone/pull access
-
-thank you!
----`
+                code: null
+            }
         ];
         
         function switchView(view) {
