@@ -604,7 +604,7 @@
         <aside class="sidebar" id="sidebar" role="complementary" aria-label="Sidebar">
             <!-- Orland Status -->
             <div class="orland-status">
-                <div class="avatar running" id="avatar" tabindex="0" aria-label="Orland status indicator"></div>
+                <div class="avatar running" id="avatar" tabindex="0" aria-label="Orland status"></div>
                 <div class="status-info">
                     <div class="status-name">Orland</div>
                     <div class="status-chip running" id="statusChip">
@@ -614,78 +614,39 @@
                 </div>
             </div>
 
-            <!-- Quick Actions -->
-            <div class="sidebar-section">
-                <div class="section-title-sm">⚡ Quick Actions</div>
-                <button class="tool-btn" onclick="openQuickTool('partykit')" tabindex="0">
+            <!-- Simple Tools List -->
+            <div class="simple-tools">
+                <button class="simple-tool-btn" onclick="openQuickTool('partykit')">
                     <span class="icon">🖥️</span>
                     <span class="label">VPS WebSocket</span>
                 </button>
-                <button class="tool-btn" onclick="openQuickTool('code')" tabindex="0">
+                <button class="simple-tool-btn" onclick="openQuickTool('code')">
                     <span class="icon">💻</span>
                     <span class="label">Code Snippets</span>
                 </button>
-                <button class="tool-btn" onclick="openQuickTool('notes')" tabindex="0">
+                <button class="simple-tool-btn" onclick="openQuickTool('install-browser')">
+                    <span class="icon">🌐</span>
+                    <span class="label">Browser Setup</span>
+                </button>
+                <button class="simple-tool-btn" onclick="openQuickTool('install-search')">
+                    <span class="icon">🔍</span>
+                    <span class="label">Web Search</span>
+                </button>
+                <button class="simple-tool-btn" onclick="openQuickTool('install-screenshot')">
+                    <span class="icon">📸</span>
+                    <span class="label">Screenshot</span>
+                </button>
+                <button class="simple-tool-btn" onclick="openQuickTool('notes')">
                     <span class="icon">📝</span>
                     <span class="label">Quick Notes</span>
                 </button>
             </div>
 
-            <!-- WebSocket Setup Guide -->
-            <div class="sidebar-section">
-                <div class="section-title-sm">📡 WebSocket Setup</div>
-                <div class="setup-card">
-                    <div class="setup-step" onclick="openQuickTool('partykit')">
-                        <span class="step-num">1</span>
-                        <span class="step-text">SSH to VPS</span>
-                        <span class="step-status pending">⏳</span>
-                    </div>
-                    <div class="setup-step" onclick="copyToClipboard('cd /root/.openclaw/workspace/partykit-dashboard && npm install ws')">
-                        <span class="step-num">2</span>
-                        <span class="step-text">Install Dependencies</span>
-                        <span class="step-status pending">⏳</span>
-                    </div>
-                    <div class="setup-step" onclick="copyToClipboard('cd /root/.openclaw/workspace/partykit-dashboard && node vps-server.js')">
-                        <span class="step-num">3</span>
-                        <span class="step-text">Start Server</span>
-                        <span class="step-status pending">⏳</span>
-                    </div>
-                    <div class="setup-step" onclick="copyToClipboard('curl http://YOUR_VPS_IP:8080')">
-                        <span class="step-num">4</span>
-                        <span class="step-text">Test Connection</span>
-                        <span class="step-status pending">⏳</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Setup Guide -->
-            <div class="sidebar-section">
-                <div class="section-title-sm">📦 Setup Guide</div>
-                <button class="tool-btn install-btn" onclick="openQuickTool('install-browser')" tabindex="0">
-                    <span class="icon">🌐</span>
-                    <span class="label">Browser Tools</span>
-                    <span class="badge">3</span>
-                </button>
-                <button class="tool-btn install-btn" onclick="openQuickTool('install-search')" tabindex="0">
-                    <span class="icon">🔍</span>
-                    <span class="label">Web Search</span>
-                    <span class="badge">1</span>
-                </button>
-                <button class="tool-btn install-btn" onclick="openQuickTool('install-screenshot')" tabindex="0">
-                    <span class="icon">📸</span>
-                    <span class="label">Screenshot</span>
-                    <span class="badge">1</span>
-                </button>
-            </div>
-
-            <!-- Connection Status -->
+            <!-- Bottom -->
             <div class="sidebar-bottom">
                 <div class="connection-status disconnected" id="connectionStatus">
                     <span class="status-icon">⚡</span>
                     <span class="status-text">Disconnected</span>
-                </div>
-                <div class="sync-info">
-                    Last Sync: <span class="sync-time" id="lastSync">--</span>
                 </div>
                 <button class="logout-btn" onclick="clearData()">🗑️ Clear Data</button>
             </div>
