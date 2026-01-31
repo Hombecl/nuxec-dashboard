@@ -1039,8 +1039,21 @@
         // Sync time
         document.getElementById('lastSync').textContent = new Date().toLocaleString();
         
-        // Expose setRunning for external use
+        // Expose setRunning for external use + automation functions
         window.setOrlandRunning = setRunning;
+        
+        // Auto-notify on task completion (for Orland to use)
+        window.taskCompleted = function(taskTitle) {
+            const msg = `✅ Task Completed: ${taskTitle}\n⏰ ${new Date().toLocaleString()}`;
+            console.log('📤 Notification:', msg);
+            // OpenClaw will handle the actual Telegram notification
+            return msg;
+        };
+        
+        // Request notification permission
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
         
         // Current state: Running (actively working!)
         setRunning(true);
