@@ -623,8 +623,8 @@ function findSubscriptions() {
             btn.classList.add('loading');
             btn.innerHTML = '⏳';
             
-            // Reload page to get latest from GitHub/Vercel
-            location.reload();
+            // Force reload bypassing cache
+            location.reload(true);
         }
         
         // Initialize
