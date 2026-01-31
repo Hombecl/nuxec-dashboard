@@ -22,7 +22,7 @@
         
         /* Left Sidebar */
         .sidebar {
-            width: 280px;
+            width: 260px;
             background: rgba(0, 0, 0, 0.3);
             border-right: 1px solid rgba(255, 255, 255, 0.1);
             padding: 25px;
@@ -37,26 +37,54 @@
         
         .avatar-section {
             text-align: center;
-            padding-bottom: 25px;
+            padding-bottom: 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
         
         .avatar {
-            width: 80px;
-            height: 80px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #64ffda 0%, #4d96ff 100%);
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
             margin: 0 auto 15px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 2.5rem;
             border: 3px solid rgba(100, 255, 218, 0.3);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .avatar-face {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .avatar-eyes {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .avatar-eye {
+            width: 10px;
+            height: 10px;
+            background: #64ffda;
+            border-radius: 50%;
+        }
+        
+        .avatar-mouth {
+            width: 24px;
+            height: 12px;
+            border-bottom: 3px solid #64ffda;
+            border-radius: 0 0 24px 24px;
         }
         
         .avatar-name {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: bold;
             margin-bottom: 8px;
         }
@@ -96,149 +124,15 @@
             50% { opacity: 0.5; }
         }
         
-        /* Metrics Section */
-        .metrics-section {
-            margin-bottom: 25px;
-        }
-        
-        .metrics-title {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            color: #8892b0;
-            margin-bottom: 12px;
-            letter-spacing: 1px;
-        }
-        
-        .metric-card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            padding: 12px 15px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: 1px solid transparent;
-        }
-        
-        .metric-card:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(100, 255, 218, 0.3);
-        }
-        
-        .metric-card.active {
-            border-color: #64ffda;
-            background: rgba(100, 255, 218, 0.05);
-        }
-        
-        .metric-name {
-            font-size: 0.9rem;
-        }
-        
-        .metric-value {
-            font-weight: bold;
-            color: #64ffda;
-        }
-        
-        /* Notes & Action Log */
-        .notes-section {
+        .sidebar-bottom {
             margin-top: auto;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding-top: 20px;
-        }
-        
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-        
-        .section-title {
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-        
-        .add-btn {
-            background: rgba(100, 255, 218, 0.1);
-            border: 1px solid #64ffda;
-            color: #64ffda;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-        }
-        
-        .add-btn:hover {
-            background: #64ffda;
-            color: #1a1a2e;
-        }
-        
-        .note-item, .action-item {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 8px;
-            font-size: 0.8rem;
-            border-left: 3px solid;
-        }
-        
-        .note-item {
-            border-left-color: #4d96ff;
-        }
-        
-        .action-item {
-            border-left-color: #6bcb77;
-        }
-        
-        .action-time {
-            color: #8892b0;
-            font-size: 0.7rem;
-            margin-top: 5px;
-        }
-        
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            margin-left: 280px;
-            padding: 25px;
-        }
-        
-        /* Top Bar */
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .top-bar-left h1 {
-            font-size: 1.5rem;
-            margin-bottom: 5px;
-        }
-        
-        .top-bar-left .subtitle {
-            color: #8892b0;
-            font-size: 0.85rem;
-        }
-        
-        .top-bar-right {
-            display: flex;
-            align-items: center;
-            gap: 20px;
         }
         
         .sync-info {
             color: #8892b0;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
+            margin-bottom: 15px;
+            text-align: center;
         }
         
         .sync-time {
@@ -247,10 +141,11 @@
         }
         
         .logout-btn {
+            width: 100%;
             background: rgba(255, 107, 107, 0.1);
             border: 1px solid #ff6b6b;
             color: #ff6b6b;
-            padding: 8px 16px;
+            padding: 10px 16px;
             border-radius: 8px;
             cursor: pointer;
             font-size: 0.85rem;
@@ -262,48 +157,73 @@
             color: #fff;
         }
         
-        /* Kanban Board */
-        .kanban-board {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 25px;
         }
         
-        .kanban-column {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 14px;
-            padding: 18px;
-            min-height: 400px;
+        /* Kanban Section */
+        .kanban-section {
+            margin-bottom: 40px;
         }
         
         .kanban-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .kanban-title {
-            font-size: 0.95rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .kanban-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+        }
+        
+        .kanban-column {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 14px;
+            padding: 16px;
+            min-height: 300px;
+        }
+        
+        .kanban-col-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .kanban-col-title {
+            font-size: 0.9rem;
             font-weight: 600;
             display: flex;
             align-items: center;
             gap: 8px;
         }
         
-        .kanban-count {
+        .kanban-col-count {
             background: rgba(255, 255, 255, 0.1);
             padding: 3px 10px;
             border-radius: 12px;
             font-size: 0.75rem;
         }
         
-        .kanban-column.todo .kanban-title { color: #ffd93d; }
-        .kanban-column.inprogress .kanban-title { color: #6bcb77; }
-        .kanban-column.done .kanban-title { color: #4d96ff; }
-        .kanban-column.archive .kanban-title { color: #8892b0; }
+        .kanban-column.todo .kanban-col-title { color: #ffd93d; }
+        .kanban-column.inprogress .kanban-col-title { color: #6bcb77; }
+        .kanban-column.done .kanban-col-title { color: #4d96ff; }
+        .kanban-column.archive .kanban-col-title { color: #8892b0; }
         
         .kanban-card {
             background: rgba(255, 255, 255, 0.05);
@@ -327,13 +247,147 @@
         
         .kanban-card-title {
             font-size: 0.9rem;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-weight: 500;
         }
         
         .kanban-card-date {
             font-size: 0.75rem;
             color: #64ffda;
+        }
+        
+        /* Deliverables Section */
+        .deliverables-section {
+            margin-bottom: 40px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        
+        .metric-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+        
+        .metric-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(100, 255, 218, 0.3);
+        }
+        
+        .metric-card.active {
+            border-color: #64ffda;
+            background: rgba(100, 255, 218, 0.05);
+        }
+        
+        .metric-name {
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .metric-value {
+            font-weight: bold;
+            color: #64ffda;
+            font-size: 0.85rem;
+        }
+        
+        /* Bottom Section (Notes + Action Log) */
+        .bottom-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .bottom-column {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 14px;
+            padding: 18px;
+        }
+        
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .column-title {
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .add-btn-small {
+            background: rgba(100, 255, 218, 0.1);
+            border: 1px solid #64ffda;
+            color: #64ffda;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        
+        .add-btn-small:hover {
+            background: #64ffda;
+            color: #1a1a2e;
+        }
+        
+        .note-item, .action-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+            border-left: 3px solid;
+        }
+        
+        .note-item {
+            border-left-color: #4d96ff;
+        }
+        
+        .action-item {
+            border-left-color: #6bcb77;
+        }
+        
+        .item-time {
+            color: #8892b0;
+            font-size: 0.75rem;
+            margin-top: 6px;
         }
         
         /* Modal */
@@ -438,8 +492,8 @@
         
         /* Responsive */
         @media (max-width: 1100px) {
-            .sidebar { width: 240px; }
-            .main-content { margin-left: 240px; }
+            .sidebar { width: 220px; }
+            .main-content { margin-left: 220px; }
             .kanban-board { grid-template-columns: repeat(2, 1fr); }
         }
         
@@ -449,21 +503,20 @@
                 position: relative; 
                 flex-direction: row;
                 flex-wrap: wrap;
-                padding: 15px;
+                justify-content: center;
+                gap: 15px;
+                padding: 20px;
             }
             .avatar-section { 
                 width: 100%; 
                 border-bottom: none;
-                border-right: 1px solid rgba(255,255,255,0.1);
-                padding-right: 15px;
                 margin-bottom: 0;
-                margin-right: 15px;
             }
-            .metrics-section { width: 100%; order: 3; }
-            .notes-section { width: 100%; order: 4; }
+            .sidebar-bottom { width: 100%; margin-top: 15px; }
             .main-content { margin-left: 0; }
             .kanban-board { grid-template-columns: 1fr; }
-            .top-bar { flex-direction: column; gap: 15px; align-items: flex-start; }
+            .bottom-section { grid-template-columns: 1fr; }
+            .metrics-grid { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
@@ -474,7 +527,15 @@
         <!-- Left Sidebar -->
         <aside class="sidebar">
             <div class="avatar-section">
-                <div class="avatar">🤖</div>
+                <div class="avatar">
+                    <div class="avatar-face">
+                        <div class="avatar-eyes">
+                            <div class="avatar-eye"></div>
+                            <div class="avatar-eye"></div>
+                        </div>
+                        <div class="avatar-mouth"></div>
+                    </div>
+                </div>
                 <div class="avatar-name">Orland</div>
                 <div class="status-chip idle">
                     <span class="status-dot"></span>
@@ -482,113 +543,119 @@
                 </div>
             </div>
             
-            <!-- Metrics Section -->
-            <div class="metrics-section">
-                <div class="metrics-title">📊 Deliverables</div>
-                
-                <div class="metric-card" onclick="showMetric('ecommerce')">
-                    <span class="metric-name">🛒 E-Commerce</span>
-                    <span class="metric-value">3 active</span>
+            <div class="sidebar-bottom">
+                <div class="sync-info">
+                    Last Sync: <span class="sync-time" id="lastSync">--</span>
                 </div>
-                
-                <div class="metric-card" onclick="showMetric('nen')">
-                    <span class="metric-name">⚡ NEN Workflow</span>
-                    <span class="metric-value">2 tasks</span>
-                </div>
-                
-                <div class="metric-card" onclick="showMetric('upwork')">
-                    <span class="metric-name">💼 Upwork</span>
-                    <span class="metric-value">1 job</span>
-                </div>
-                
-                <div class="metric-card" onclick="showMetric('dashboard')">
-                    <span class="metric-name">🚀 Dashboard</span>
-                    <span class="metric-value" style="color: #4d96ff;">v2.0</span>
-                </div>
-            </div>
-            
-            <!-- Notes Section -->
-            <div class="notes-section">
-                <div class="section-header">
-                    <span class="section-title">📝 Notes for Order</span>
-                    <button class="add-btn" onclick="addNote()">+</button>
-                </div>
-                <div id="notesList">
-                    <div class="note-item">
-                        Complete GMC website by Feb 5
-                        <div style="color:#8892b0;font-size:0.7rem;margin-top:5px;">Added: Jan 31</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Action Log Section -->
-            <div class="notes-section">
-                <div class="section-header">
-                    <span class="section-title">📜 Action Log</span>
-                </div>
-                <div id="actionLog">
-                    <div class="action-item">
-                        Created GMC Service Website
-                        <div class="action-time">Today 08:10 UTC</div>
-                    </div>
-                    <div class="action-item">
-                        Updated Dashboard to v2.0
-                        <div class="action-time">Today 08:30 UTC</div>
-                    </div>
-                </div>
+                <button class="logout-btn" onclick="logout()">Log Out</button>
             </div>
         </aside>
         
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Top Bar -->
-            <div class="top-bar">
-                <div class="top-bar-left">
-                    <h1>📋 Task Board</h1>
-                    <p class="subtitle">Manage your projects and tasks</p>
+            <!-- Kanban Section -->
+            <section class="kanban-section">
+                <div class="kanban-header">
+                    <span class="kanban-title">📋 Task Board</span>
                 </div>
-                <div class="top-bar-right">
-                    <div class="sync-info">
-                        Last Sync: <span class="sync-time" id="lastSync">Loading...</span>
+                
+                <div class="kanban-board">
+                    <!-- To Do -->
+                    <div class="kanban-column todo">
+                        <div class="kanban-col-header">
+                            <span class="kanban-col-title">📌 To Do <span class="kanban-col-count" id="todoCount">0</span></span>
+                        </div>
+                        <div id="todoList"></div>
                     </div>
-                    <button class="logout-btn" onclick="logout()">Log Out</button>
+                    
+                    <!-- In Progress -->
+                    <div class="kanban-column inprogress">
+                        <div class="kanban-col-header">
+                            <span class="kanban-col-title">🔄 In Progress <span class="kanban-col-count" id="progressCount">0</span></span>
+                        </div>
+                        <div id="progressList"></div>
+                    </div>
+                    
+                    <!-- Done -->
+                    <div class="kanban-column done">
+                        <div class="kanban-col-header">
+                            <span class="kanban-col-title">✅ Done <span class="kanban-col-count" id="doneCount">0</span></span>
+                        </div>
+                        <div id="doneList"></div>
+                    </div>
+                    
+                    <!-- Archive -->
+                    <div class="kanban-column archive">
+                        <div class="kanban-col-header">
+                            <span class="kanban-col-title">📦 Archive <span class="kanban-col-count" id="archiveCount">0</span></span>
+                        </div>
+                        <div id="archiveList"></div>
+                    </div>
                 </div>
-            </div>
+            </section>
             
-            <!-- Kanban Board -->
-            <div class="kanban-board">
-                <!-- To Do -->
-                <div class="kanban-column todo">
-                    <div class="kanban-header">
-                        <span class="kanban-title">📌 To Do <span class="kanban-count" id="todoCount">0</span></span>
-                    </div>
-                    <div id="todoList"></div>
+            <!-- Deliverables Section -->
+            <section class="deliverables-section">
+                <div class="section-header">
+                    <span class="section-title">📊 Deliverables</span>
                 </div>
                 
-                <!-- In Progress -->
-                <div class="kanban-column inprogress">
-                    <div class="kanban-header">
-                        <span class="kanban-title">🔄 In Progress <span class="kanban-count" id="progressCount">0</span></span>
+                <div class="metrics-grid">
+                    <div class="metric-card" onclick="showMetric('ecommerce')">
+                        <span class="metric-name">🛒 E-Commerce</span>
+                        <span class="metric-value">3</span>
                     </div>
-                    <div id="progressList"></div>
+                    
+                    <div class="metric-card" onclick="showMetric('nen')">
+                        <span class="metric-name">⚡ NEN Workflow</span>
+                        <span class="metric-value">2</span>
+                    </div>
+                    
+                    <div class="metric-card" onclick="showMetric('upwork')">
+                        <span class="metric-name">💼 Upwork</span>
+                        <span class="metric-value">1</span>
+                    </div>
+                    
+                    <div class="metric-card" onclick="showMetric('dashboard')">
+                        <span class="metric-name">🚀 Dashboard</span>
+                        <span class="metric-value">v2.0</span>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Bottom Section (Notes + Action Log) -->
+            <section class="bottom-section">
+                <!-- Notes for Order -->
+                <div class="bottom-column">
+                    <div class="column-header">
+                        <span class="column-title">📝 Notes for Order</span>
+                        <button class="add-btn-small" onclick="addNote()">+</button>
+                    </div>
+                    <div id="notesList">
+                        <div class="note-item">
+                            Complete GMC website by Feb 5
+                            <div class="item-time">Added: Jan 31</div>
+                        </div>
+                    </div>
                 </div>
                 
-                <!-- Done -->
-                <div class="kanban-column done">
-                    <div class="kanban-header">
-                        <span class="kanban-title">✅ Done <span class="kanban-count" id="doneCount">0</span></span>
+                <!-- Action Log -->
+                <div class="bottom-column">
+                    <div class="column-header">
+                        <span class="column-title">📜 Action Log</span>
                     </div>
-                    <div id="doneList"></div>
-                </div>
-                
-                <!-- Archive -->
-                <div class="kanban-column archive">
-                    <div class="kanban-header">
-                        <span class="kanban-title">📦 Archive <span class="kanban-count" id="archiveCount">0</span></span>
+                    <div id="actionLog">
+                        <div class="action-item">
+                            Created GMC Service Website
+                            <div class="item-time">Today 08:10 UTC</div>
+                        </div>
+                        <div class="action-item">
+                            Updated Dashboard to v2.0
+                            <div class="item-time">Today 08:30 UTC</div>
+                        </div>
                     </div>
-                    <div id="archiveList"></div>
                 </div>
-            </div>
+            </section>
         </main>
     </div>
     
@@ -604,7 +671,6 @@
     </div>
     
     <script>
-        // Task Data
         const tasks = [
             { id: 1, title: "Setup nuxec-dashboard", date: "2026-01-30", status: "done", instructions: [{step:1,text:"Done!"}], links: [{text:"Dashboard",url:"https://nuxec-dashboard.vercel.app"}] },
             { id: 2, title: "Build Dashboard UI v2", date: "2026-01-31", status: "done", instructions: [{step:1,text:"Done!"}], links: [{text:"View",url:"https://nuxec-dashboard.vercel.app"}] },
@@ -616,7 +682,6 @@
             { id: 8, title: "GMC Service Website", date: "2026-02-02", status: "inprogress", instructions: [{step:1,text:"Nuxt 3 website created"}, {step:2,text:"Deploy to Vercel"}], links: [{text:"View Repo",url:"https://github.com/Hombecl/gmc-service-website"}] }
         ];
         
-        // Render Kanban
         function renderKanban() {
             const columns = {
                 todo: tasks.filter(t => t.status === 'todo'),
@@ -676,6 +741,25 @@
             }
         }
         
+        function showMetric(type) {
+            showModal('Deliverable: ' + type.toUpperCase(), '<p>Details for ' + type + ' coming soon...</p>');
+        }
+        
+        function addNote() {
+            const note = prompt('Enter new note:');
+            if (note) {
+                const notesList = document.getElementById('notesList');
+                const noteDiv = document.createElement('div');
+                noteDiv.className = 'note-item';
+                noteDiv.innerHTML = `${note}<div class="item-time">Added: ${new Date().toLocaleDateString()}</div>`;
+                notesList.insertBefore(noteDiv, notesList.firstChild);
+            }
+        }
+        
+        function logout() {
+            alert('Logout clicked - implement your auth flow here');
+        }
+        
         // Pull to refresh
         let pullStartY = 0, pullDistance = 0;
         const indicator = document.getElementById('pullRefreshIndicator');
@@ -701,7 +785,7 @@
             indicator.classList.remove('active');
         }, { passive: true });
         
-        // Last Sync
+        // Sync time
         document.getElementById('lastSync').textContent = new Date().toLocaleString();
         
         // Init
