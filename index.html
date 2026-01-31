@@ -340,21 +340,21 @@
             <h2 class="section-title">🛠️ Quick Toolbox</h2>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
                 
-                <div class="task-item" style="cursor: pointer;" onclick="showPromptModal('prompt-claude-create-repo', '📋 Create Private Repo (nuxec-sensitive)', 'Prompt for Claude to setup private GitHub repo')">
-                    <span class="status-badge completed">DONE</span>
+                <div class="task-item" style="cursor: pointer;" onclick="showPromptModal('prompt-private-repo', '🔐 Private Repo (nuxec-sensitive)', 'Main repo for all sensitive documents')">
+                    <span class="status-badge progress">MAIN</span>
                     <div class="task-content">
-                        <div class="task-title">📋 Create Private Repo (nuxec-sensitive)</div>
-                        <div class="task-desc">Prompt for Claude to setup private GitHub repo</div>
-                        <div class="task-date">✅ Repo created</div>
+                        <div class="task-title">🔐 Private Repo (nuxec-sensitive)</div>
+                        <div class="task-desc">Upload all documents here</div>
+                        <div class="task-date">github.com/Hombecl/nuxec-sensitive</div>
                     </div>
                 </div>
                 
-                <div class="task-item" style="cursor: pointer;" onclick="showPromptModal('prompt-private-repo', '🔐 Private Repo (nuxec-sensitive)', 'Private GitHub repo for sensitive files')">
-                    <span class="status-badge progress">LINK</span>
+                <div class="task-item" style="cursor: pointer;" onclick="showPromptModal('prompt-doc-org', '📁 Document Organization', 'How I organize uploaded files')">
+                    <span class="status-badge pending">INFO</span>
                     <div class="task-content">
-                        <div class="task-title">🔐 Private Repo (nuxec-sensitive)</div>
-                        <div class="task-desc">Upload bank statements here</div>
-                        <div class="task-date">github.com/Hombecl/nuxec-sensitive</div>
+                        <div class="task-title">📁 Document Organization</div>
+                        <div class="task-desc">How files are organized & processed</div>
+                        <div class="task-date">🖱️ Click to learn more</div>
                     </div>
                 </div>
                 
@@ -372,39 +372,51 @@
         
         <!-- Hidden prompts storage -->
         <div id="prompt-storage" style="display:none;">
-            <div id="prompt-claude-create-repo">我想要建立一個 private GitHub repository 嚟放 sensitive files (bank statements 等)。
-
-請幫我做以下嘢：
-
-1. Create Private Repository:
-   - Go to https://github.com
-   - Create new repository called "nuxec-sensitive"
-   - Select "Private" (NOT Public)
-   - DO NOT initialize with README/.gitignore (empty repo)
-   - Create repository
-
-2. Setup Collaborator Access:
-   - Go to Repository → Settings → Collaborators
-   - Click "Add people"
-   - Add the GitHub account that Orland (AI assistant) uses
-   - Send invitation
-
-3. Output:
-   - Repository URL (e.g., https://github.com/yourname/nuxec-sensitive)
-   - Confirmation that collaborator was added
-
-thank you!</div>
             <div id="prompt-private-repo">🔐 Private GitHub Repository for Sensitive Files
 
 URL: https://github.com/Hombecl/nuxec-sensitive
 
 用法:
 1. Go to the URL above
-2. Upload bank statements (PDF/CSV)
+2. Upload any document (PDF/CSV/images)
 3. Tell Orland "Files uploaded"
-4. Orland will pull and process automatically
+4. Orland will:
+   - Detect file type
+   - Organize to correct folder
+   - Process and report
 
-呢個repo係private嘅得你同Orland可以access。</div>
+呢個repo係private嘅，得你同Orland可以access。</div>
+            <div id="prompt-doc-org">📁 How I Organize Documents
+
+When you upload files to nuxec-sensitive, I automatically organize them:
+
+📂 /bank-statements/
+   └── Bank statements (PDF/CSV)
+   └── I scan for recurring charges
+
+📂 /receipts/
+   └── Receipts & invoices
+   └── Track expenses
+
+📂 /subscriptions/
+   └── Subscription confirmations
+   └── Monitor recurring payments
+
+📂 /orders/
+   └── E-commerce orders
+   └── Track inventory/sales
+
+📂 /misc/
+   └── Other documents
+   └── I'll ask for instructions
+
+我會:
+1. Detect你upload咗咩file (by extension/name)
+2. Move去啱嘅subfolder
+3. Process佢
+4. Report你結果
+
+Just upload to the root and tell me what it is!</div>
             <div id="prompt-verify-deploy">Check if the Vercel deployment is working:
 
 1. Go to: https://nuxec-dashboard.vercel.app
