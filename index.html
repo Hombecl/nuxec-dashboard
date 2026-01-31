@@ -876,30 +876,30 @@
         function openQuickTool(tool) {
             const tools = {
                 partykit: {
-                    title: '🔄 VPS WebSocket Setup',
-                    content: `Deploy WebSocket server to your n8n VPS for real-time status sync:
+                    title: '🖥️ VPS WebSocket Setup',
+                    content: `SETUP STEPS (Copy each command):
 
-1. Upload these files to your VPS:
-   - /workspace/partykit-dashboard/vps-server.js
-   - package.json (add: "ws": "^8.0.0")
+━━━ STEP 1: SSH to VPS ━━━
+ssh YOUR_VPS_USERNAME@YOUR_VPS_IP
 
-2. SSH to VPS and run:
-   cd /path/to/partykit-dashboard
-   npm install ws
-   node vps-server.js
+━━━ STEP 2: Install WebSocket ━━━
+cd /root/.openclaw/workspace/partykit-dashboard && npm install ws
 
-3. Server will start on port 8080
-   - HTTP: http://YOUR_VPS_IP:8080
-   - WebSocket: ws://YOUR_VPS_IP:8080
+━━━ STEP 3: Start Server ━━━
+cd /root/.openclaw/workspace/partykit-dashboard && node vps-server.js
 
-4. Update Dashboard to use your VPS IP:
-   REPLACE: 'YOUR_VPS_IP:8080'
-   WITH:   your_actual_vps_ip:8080
+━━━ STEP 4: Test (Open new terminal) ━━━
+curl http://YOUR_VPS_IP:8080
 
-5. Test: Open Dashboard in browser, status should sync!
+━━━ Control Status from Terminal ━━━
+# Set Running:
+curl -X POST http://YOUR_VPS_IP:8080 -d '{"type":"setStatus","status":"running"}'
 
-To change status from CLI on VPS:
-   curl -X POST http://YOUR_VPS_IP:8080 -d '{"type":"setStatus","status":"running"}'`
+# Set Idle:
+curl -X POST http://YOUR_VPS_IP:8080 -d '{"type":"setStatus","status":"idle"}'
+
+━━━ Update Dashboard ━━━
+Replace 'YOUR_VPS_IP' with your actual VPS IP in index.html`
                 },
                 prompt: `📋 Copy Prompts - Claude Prompt:
 
@@ -919,7 +919,7 @@ To change status from CLI on VPS:
             showModal(t.title, `
                 <div class="modal-section">
                     <h4>📋 Claude Prompt</h4>
-                    <div class="code-block" id="promptContent">${t.content}</div>
+                    <div class="code-block" id="promptContent" style="white-space: pre-wrap; line-height: 1.8;">${t.content}</div>
                     <button class="action-link" onclick="copyPrompt()" style="width:100%;justify-content:center;margin-top:15px;">
                         📋 Copy to Clipboard
                     </button>
