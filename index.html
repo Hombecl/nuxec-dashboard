@@ -19,10 +19,42 @@
             text-align: center;
             padding: 30px 0;
             margin-bottom: 30px;
+            position: relative;
         }
         h1 { font-size: 2rem; margin-bottom: 8px; }
         .subtitle { color: #8892b0; font-size: 0.95rem; }
         .date { color: #64ffda; margin-top: 8px; font-size: 0.85rem; }
+        
+        /* Refresh Button */
+        .refresh-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(100, 255, 218, 0.2);
+            border: 1px solid #64ffda;
+            color: #64ffda;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            z-index: 100;
+        }
+        .refresh-btn:hover {
+            background: #64ffda;
+            color: #1a1a2e;
+        }
+        .refresh-btn.loading {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
         
         /* View Toggle */
         .view-toggle {
@@ -248,6 +280,7 @@
 <body>
     <div class="container">
         <header>
+            <button class="refresh-btn" onclick="refreshDashboard()" title="Refresh">🔄</button>
             <h1>🚀 Nuxec Dashboard</h1>
             <p class="subtitle">Task Manager • Built by Orland</p>
             <p class="date" id="currentDate"></p>
@@ -612,6 +645,16 @@ thank you!
             document.getElementById('progressCount').textContent = counts.progress;
             document.getElementById('reviewCount').textContent = counts.review;
             document.getElementById('completedCount').textContent = counts.completed;
+        }
+        
+        // Refresh Dashboard
+        function refreshDashboard() {
+            const btn = document.querySelector('.refresh-btn');
+            btn.classList.add('loading');
+            btn.innerHTML = '⏳';
+            
+            // Reload page to get latest from GitHub/Vercel
+            location.reload();
         }
         
         // Initialize
