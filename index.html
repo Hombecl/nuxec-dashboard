@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nuxec Dashboard - Task Manager</title>
+    <title>Nuxec Dashboard - Orland</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -11,256 +11,329 @@
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             min-height: 100vh;
             color: #fff;
-            padding: 15px;
+            overflow-x: hidden;
         }
-        .container { max-width: 1400px; margin: 0 auto; }
         
-        /* Header */
-        header {
+        /* Layout */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Left Sidebar */
+        .sidebar {
+            width: 280px;
+            background: rgba(0, 0, 0, 0.3);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 100;
+        }
+        
+        .avatar-section {
+            text-align: center;
+            padding-bottom: 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 25px;
+        }
+        
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #64ffda 0%, #4d96ff 100%);
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            border: 3px solid rgba(100, 255, 218, 0.3);
+        }
+        
+        .avatar-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .status-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-chip.idle {
+            background: rgba(255, 217, 61, 0.2);
+            color: #ffd93d;
+            border: 1px solid #ffd93d;
+        }
+        
+        .status-chip.running {
+            background: rgba(107, 203, 119, 0.2);
+            color: #6bcb77;
+            border: 1px solid #6bcb77;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse-dot 1.5s infinite;
+        }
+        
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Metrics Section */
+        .metrics-section {
+            margin-bottom: 25px;
+        }
+        
+        .metrics-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #8892b0;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+        
+        .metric-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 0;
-            margin-bottom: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid transparent;
         }
-        .header-left h1 { font-size: 1.8rem; margin-bottom: 5px; }
-        .header-left .subtitle { color: #8892b0; font-size: 0.9rem; }
-        .header-right { display: flex; align-items: center; gap: 15px; }
-        .date { color: #64ffda; font-size: 0.85rem; }
         
-        /* Pull to refresh indicator */
-        .pull-refresh-indicator {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 0;
-            background: linear-gradient(135deg, #64ffda 0%, #4d96ff 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .metric-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(100, 255, 218, 0.3);
+        }
+        
+        .metric-card.active {
+            border-color: #64ffda;
+            background: rgba(100, 255, 218, 0.05);
+        }
+        
+        .metric-name {
+            font-size: 0.9rem;
+        }
+        
+        .metric-value {
             font-weight: bold;
-            color: #1a1a2e;
-            overflow: hidden;
-            transition: height 0.3s;
-            z-index: 1000;
-        }
-        .pull-refresh-indicator.active {
-            height: 50px;
-        }
-        .pull-refresh-indicator.loading {
-            animation: pulse 0.5s infinite;
+            color: #64ffda;
         }
         
-        .refresh-btn {
-            background: rgba(100, 255, 218, 0.2);
+        /* Notes & Action Log */
+        .notes-section {
+            margin-top: auto;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 20px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .section-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .add-btn {
+            background: rgba(100, 255, 218, 0.1);
             border: 1px solid #64ffda;
             color: #64ffda;
-            width: 40px;
-            height: 40px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
             cursor: pointer;
-            font-size: 1.1rem;
+            font-size: 1rem;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.3s;
         }
-        .refresh-btn:hover {
+        
+        .add-btn:hover {
             background: #64ffda;
             color: #1a1a2e;
         }
         
-        /* Quick Links Bar */
-        .quick-links {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
+        .note-item, .action-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+            font-size: 0.8rem;
+            border-left: 3px solid;
         }
-        .quick-link {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 10px;
-            padding: 12px 18px;
-            text-decoration: none;
-            color: #fff;
+        
+        .note-item {
+            border-left-color: #4d96ff;
+        }
+        
+        .action-item {
+            border-left-color: #6bcb77;
+        }
+        
+        .action-time {
+            color: #8892b0;
+            font-size: 0.7rem;
+            margin-top: 5px;
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 25px;
+        }
+        
+        /* Top Bar */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .top-bar-left h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .top-bar-left .subtitle {
+            color: #8892b0;
             font-size: 0.85rem;
+        }
+        
+        .top-bar-right {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 20px;
+        }
+        
+        .sync-info {
+            color: #8892b0;
+            font-size: 0.85rem;
+        }
+        
+        .sync-time {
+            color: #64ffda;
+            font-weight: 500;
+        }
+        
+        .logout-btn {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid #ff6b6b;
+            color: #ff6b6b;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
             transition: all 0.3s;
         }
-        .quick-link:hover {
-            background: rgba(255,255,255,0.1);
-            border-color: #64ffda;
-            transform: translateY(-2px);
-        }
-        .quick-link .icon { font-size: 1.1rem; }
         
-        /* Stats Row */
-        .stats {
+        .logout-btn:hover {
+            background: #ff6b6b;
+            color: #fff;
+        }
+        
+        /* Kanban Board */
+        .kanban-board {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            margin-bottom: 25px;
+            gap: 20px;
         }
-        .stat-card {
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
-            padding: 18px;
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .stat-number { font-size: 2rem; font-weight: bold; }
-        .stat-label { color: #8892b0; font-size: 0.75rem; margin-top: 5px; }
-        .pending .stat-number { color: #ffd93d; }
-        .progress .stat-number { color: #6bcb77; }
-        .review .stat-number { color: #4d96ff; }
-        .completed .stat-number { color: #ff6b6b; }
-        
-        /* View Toggle */
-        .view-toggle {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-        .view-btn {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: #8892b0;
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.85rem;
-        }
-        .view-btn.active {
-            background: #64ffda;
-            color: #1a1a2e;
-            border-color: #64ffda;
-        }
-        
-        /* Kanban */
-        .kanban-view { display: none; }
-        .kanban-view.active { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
         
         .kanban-column {
-            background: rgba(255,255,255,0.03);
-            border-radius: 12px;
-            padding: 12px;
-            min-height: 350px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 14px;
+            padding: 18px;
+            min-height: 400px;
         }
-        .kanban-column h3 {
-            font-size: 0.85rem;
-            margin-bottom: 12px;
+        
+        .kanban-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .kanban-title {
+            font-size: 0.95rem;
+            font-weight: 600;
             display: flex;
             align-items: center;
             gap: 8px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
-        .kanban-column h3 .count {
-            background: rgba(255,255,255,0.1);
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.7rem;
+        
+        .kanban-count {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
         }
+        
+        .kanban-column.todo .kanban-title { color: #ffd93d; }
+        .kanban-column.inprogress .kanban-title { color: #6bcb77; }
+        .kanban-column.done .kanban-title { color: #4d96ff; }
+        .kanban-column.archive .kanban-title { color: #8892b0; }
         
         .kanban-card {
-            background: rgba(255,255,255,0.05);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            border-left: 4px solid;
-            transition: all 0.2s;
-        }
-        .kanban-card:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
-        .kanban-card.pending { border-color: #ffd93d; }
-        .kanban-card.progress { border-color: #6bcb77; }
-        .kanban-card.review { border-color: #4d96ff; }
-        .kanban-card.completed { border-color: #ff6b6b; opacity: 0.7; }
-        
-        .kanban-card h4 { font-size: 0.9rem; margin-bottom: 5px; }
-        .kanban-card p { color: #8892b0; font-size: 0.75rem; }
-        .kanban-card .card-date { color: #64ffda; font-size: 0.7rem; margin-top: 8px; }
-        
-        /* List View */
-        .list-view { display: none; }
-        .list-view.active { display: block; }
-        
-        .task-item {
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 10px;
-            padding: 15px;
+            padding: 14px;
             margin-bottom: 10px;
+            cursor: pointer;
             border-left: 4px solid;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .task-item:hover { background: rgba(255,255,255,0.08); }
-        .task-item.pending { border-color: #ffd93d; }
-        .task-item.progress { border-color: #6bcb77; }
-        .task-item.review { border-color: #4d96ff; }
-        .task-item.completed { border-color: #ff6b6b; opacity: 0.7; }
-        
-        .status-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 15px;
-            font-size: 0.7rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-        }
-        .status-badge.pending { background: #ffd93d; color: #1a1a2e; }
-        .status-badge.progress { background: #6bcb77; color: #1a1a2e; }
-        .status-badge.review { background: #4d96ff; color: #fff; }
-        .status-badge.completed { background: #ff6b6b; color: #fff; }
-        
-        /* Quick Toolbox Section */
-        .section { margin-top: 35px; }
-        .section-title {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .toolbox-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 12px;
-        }
-        
-        .toolbox-card {
-            background: rgba(255,255,255,0.05);
-            border-radius: 10px;
-            padding: 15px;
-            cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.1);
             transition: all 0.3s;
         }
-        .toolbox-card:hover {
-            background: rgba(255,255,255,0.1);
-            border-color: #64ffda;
+        
+        .kanban-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
         }
-        .toolbox-card .tool-title {
-            font-size: 0.95rem;
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        
+        .kanban-column.todo .kanban-card { border-left-color: #ffd93d; }
+        .kanban-column.inprogress .kanban-card { border-left-color: #6bcb77; }
+        .kanban-column.done .kanban-card { border-left-color: #4d96ff; }
+        .kanban-column.archive .kanban-card { border-left-color: #8892b0; opacity: 0.6; }
+        
+        .kanban-card-title {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            font-weight: 500;
         }
-        .toolbox-card .tool-desc {
-            color: #8892b0;
-            font-size: 0.8rem;
-        }
-        .toolbox-card .tool-status {
-            font-size: 0.7rem;
-            margin-top: 8px;
+        
+        .kanban-card-date {
+            font-size: 0.75rem;
+            color: #64ffda;
         }
         
         /* Modal */
@@ -268,7 +341,7 @@
             display: none;
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.85);
+            background: rgba(0, 0, 0, 0.85);
             z-index: 1000;
             padding: 20px;
             overflow-y: auto;
@@ -278,14 +351,14 @@
         .modal {
             background: #1a1a2e;
             border-radius: 14px;
-            max-width: 650px;
+            max-width: 550px;
             width: 100%;
-            margin-top: 30px;
-            border: 1px solid rgba(255,255,255,0.1);
+            margin-top: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         .modal-header {
             padding: 18px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -300,13 +373,13 @@
         }
         .modal-body { padding: 18px; }
         
-        .instruction-section {
+        .modal-section {
             background: rgba(100, 255, 218, 0.05);
             border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 12px;
+            padding: 14px;
+            margin-bottom: 14px;
         }
-        .instruction-section h4 {
+        .modal-section h4 {
             color: #64ffda;
             margin-bottom: 10px;
             font-size: 0.85rem;
@@ -337,169 +410,189 @@
             gap: 8px;
             background: #238636;
             color: #fff;
-            padding: 10px 16px;
+            padding: 8px 14px;
             border-radius: 8px;
             text-decoration: none;
-            font-size: 0.85rem;
-            margin: 5px;
+            font-size: 0.8rem;
+            margin: 4px;
             transition: all 0.3s;
         }
         .action-link:hover { background: #2ea043; transform: translateY(-2px); }
         .action-link.secondary { background: #1f6feb; }
         
-        .code-block {
-            background: #0d1117;
-            border-radius: 8px;
-            padding: 12px;
-            margin: 10px 0;
-            overflow-x: auto;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 0.75rem;
-            color: #c9d1d9;
-            white-space: pre;
+        /* Pull to refresh indicator */
+        .pull-refresh-indicator {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 0;
+            background: linear-gradient(135deg, #64ffda 0%, #4d96ff 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #1a1a2e;
+            z-index: 1000;
+            transition: height 0.3s;
+        }
+        .pull-refresh-indicator.active { height: 50px; }
+        
+        /* Responsive */
+        @media (max-width: 1100px) {
+            .sidebar { width: 240px; }
+            .main-content { margin-left: 240px; }
+            .kanban-board { grid-template-columns: repeat(2, 1fr); }
         }
         
-        /* Footer */
-        .footer {
-            text-align: center;
-            padding: 25px;
-            color: #8892b0;
-            font-size: 0.8rem;
-            margin-top: 30px;
-        }
-        
-        @media (max-width: 800px) {
-            .stats, .kanban-view.active { grid-template-columns: repeat(2, 1fr); }
-            header { flex-direction: column; gap: 15px; text-align: center; }
+        @media (max-width: 768px) {
+            .sidebar { 
+                width: 100%; 
+                position: relative; 
+                flex-direction: row;
+                flex-wrap: wrap;
+                padding: 15px;
+            }
+            .avatar-section { 
+                width: 100%; 
+                border-bottom: none;
+                border-right: 1px solid rgba(255,255,255,0.1);
+                padding-right: 15px;
+                margin-bottom: 0;
+                margin-right: 15px;
+            }
+            .metrics-section { width: 100%; order: 3; }
+            .notes-section { width: 100%; order: 4; }
+            .main-content { margin-left: 0; }
+            .kanban-board { grid-template-columns: 1fr; }
+            .top-bar { flex-direction: column; gap: 15px; align-items: flex-start; }
         }
     </style>
 </head>
 <body>
-    <div class="pull-refresh-indicator" id="pullRefreshIndicator">
-        🔄 Pull to refresh...
-    </div>
-    <div class="container">
-        <header>
-            <div class="header-left">
-                <h1>🚀 Nuxec Dashboard</h1>
-                <p class="subtitle">Task Manager • Built by Orland</p>
-            </div>
-            <div class="header-right">
-                <span class="date" id="currentDate"></span>
-                <button class="refresh-btn" onclick="refreshDashboard()" title="Refresh">🔄</button>
-            </div>
-        </header>
-        
-        <!-- Quick Links -->
-        <div class="quick-links">
-            <a href="https://github.com/Hombecl/nuxec-sensitive" target="_blank" class="quick-link">
-                <span class="icon">🔐</span> Private Repo
-            </a>
-            <a href="https://nuxec-dashboard.vercel.app" target="_blank" class="quick-link">
-                <span class="icon">📊</span> Dashboard
-            </a>
-            <a href="https://script.google.com/home" target="_blank" class="quick-link">
-                <span class="icon">📝</span> Google Apps Script
-            </a>
-            <a href="https://vercel.com/dashboard" target="_blank" class="quick-link">
-                <span class="icon">⚡</span> Vercel
-            </a>
-        </div>
-        
-        <!-- Stats -->
-        <div class="stats">
-            <div class="stat-card pending">
-                <div class="stat-number" id="pendingCount">0</div>
-                <div class="stat-label">Pending</div>
-            </div>
-            <div class="stat-card progress">
-                <div class="stat-number" id="progressCount">0</div>
-                <div class="stat-label">In Progress</div>
-            </div>
-            <div class="stat-card review">
-                <div class="stat-number" id="reviewCount">0</div>
-                <div class="stat-label">Review</div>
-            </div>
-            <div class="stat-card completed">
-                <div class="stat-number" id="completedCount">0</div>
-                <div class="stat-label">Completed</div>
-            </div>
-        </div>
-        
-        <!-- View Toggle -->
-        <div class="view-toggle">
-            <button class="view-btn active" onclick="switchView('kanban')">📊 Kanban</button>
-            <button class="view-btn" onclick="switchView('list')">📋 List</button>
-        </div>
-        
-        <!-- Kanban View -->
-        <div class="kanban-view active" id="kanbanView">
-            <div class="kanban-column">
-                <h3 style="color: #ffd93d;">⏳ Pending <span class="count" id="kanbanPending">0</span></h3>
-                <div id="kanbanPendingList"></div>
-            </div>
-            <div class="kanban-column">
-                <h3 style="color: #6bcb77;">🔄 In Progress <span class="count" id="kanbanProgress">0</span></h3>
-                <div id="kanbanProgressList"></div>
-            </div>
-            <div class="kanban-column">
-                <h3 style="color: #4d96ff;">👀 Review <span class="count" id="kanbanReview">0</span></h3>
-                <div id="kanbanReviewList"></div>
-            </div>
-            <div class="kanban-column">
-                <h3 style="color: #ff6b6b;">✅ Completed <span class="count" id="kanbanCompleted">0</span></h3>
-                <div id="kanbanCompletedList"></div>
-            </div>
-        </div>
-        
-        <!-- List View -->
-        <div class="list-view" id="listView">
-            <ul class="task-list" id="taskList"></ul>
-        </div>
-        
-        <!-- Quick Toolbox -->
-        <div class="section">
-            <h2 class="section-title">🛠️ Quick Toolbox</h2>
-            <div class="toolbox-grid">
-                <div class="toolbox-card" onclick="showPromptModal('prompt-private-repo', '🔐 Private Repo (nuxec-sensitive)', 'Upload all documents here')">
-                    <div class="tool-title">🔐 Private Repo (nuxec-sensitive)</div>
-                    <div class="tool-desc">Upload bank statements, receipts, orders</div>
-                    <div class="tool-status" style="color: #6bcb77;">✅ Ready to use</div>
-                </div>
-                <div class="toolbox-card" onclick="showPromptModal('prompt-doc-org', '📁 Document Organization', 'How I organize uploaded files')">
-                    <div class="tool-title">📁 Document Organization</div>
-                    <div class="tool-desc">How I organize files by type</div>
-                    <div class="tool-status" style="color: #4d96ff;">ℹ️ Learn more</div>
-                </div>
-                <div class="toolbox-card" onclick="showPromptModal('prompt-verify-deploy', '🔍 Verify Vercel Deploy', 'Check if dashboard is deployed correctly')">
-                    <div class="tool-title">🔍 Verify Vercel Deploy</div>
-                    <div class="tool-desc">Check deployment status</div>
-                    <div class="tool-status" style="color: #ffd93d;">🆕 New</div>
-                </div>
-                <div class="toolbox-card" onclick="showPromptModal('prompt-email-scan', '📧 Run Email Scanner', 'Find subscriptions in Gmail')">
-                    <div class="tool-title">📧 Run Email Scanner</div>
-                    <div class="tool-desc">Find subscription emails</div>
-                    <div class="tool-status" style="color: #6bcb77;">✅ Setup done</div>
-                </div>
-                <div class="toolbox-card" onclick="showPromptModal('prompt-upwork', '💼 Upwork + Loom Strategy', 'GMC service, free checker, Loom videos')">
-                    <div class="tool-title">💼 GMC Service Website</div>
-                    <div class="tool-desc">Nuxt site with 20-point free scanner</div>
-                    <div class="tool-status" style="color: #6bcb77;">✅ Nuxt Created!</div>
-                </div>
-                <div class="toolbox-card" onclick="window.open('https://github.com/Hombecl/gmc-service-website', '_blank')">
-                    <div class="tool-title">📦 GMC Website Repo</div>
-                    <div class="tool-desc">GitHub repo for GMC service site</div>
-                    <div class="tool-status" style="color: #4d96ff;">🔗 View on GitHub</div>
+    <div class="pull-refresh-indicator" id="pullRefreshIndicator">🔄 Release to refresh...</div>
+    
+    <div class="app-container">
+        <!-- Left Sidebar -->
+        <aside class="sidebar">
+            <div class="avatar-section">
+                <div class="avatar">🤖</div>
+                <div class="avatar-name">Orland</div>
+                <div class="status-chip idle">
+                    <span class="status-dot"></span>
+                    <span id="statusText">Idle</span>
                 </div>
             </div>
-        </div>
+            
+            <!-- Metrics Section -->
+            <div class="metrics-section">
+                <div class="metrics-title">📊 Deliverables</div>
+                
+                <div class="metric-card" onclick="showMetric('ecommerce')">
+                    <span class="metric-name">🛒 E-Commerce</span>
+                    <span class="metric-value">3 active</span>
+                </div>
+                
+                <div class="metric-card" onclick="showMetric('nen')">
+                    <span class="metric-name">⚡ NEN Workflow</span>
+                    <span class="metric-value">2 tasks</span>
+                </div>
+                
+                <div class="metric-card" onclick="showMetric('upwork')">
+                    <span class="metric-name">💼 Upwork</span>
+                    <span class="metric-value">1 job</span>
+                </div>
+                
+                <div class="metric-card" onclick="showMetric('dashboard')">
+                    <span class="metric-name">🚀 Dashboard</span>
+                    <span class="metric-value" style="color: #4d96ff;">v2.0</span>
+                </div>
+            </div>
+            
+            <!-- Notes Section -->
+            <div class="notes-section">
+                <div class="section-header">
+                    <span class="section-title">📝 Notes for Order</span>
+                    <button class="add-btn" onclick="addNote()">+</button>
+                </div>
+                <div id="notesList">
+                    <div class="note-item">
+                        Complete GMC website by Feb 5
+                        <div style="color:#8892b0;font-size:0.7rem;margin-top:5px;">Added: Jan 31</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Log Section -->
+            <div class="notes-section">
+                <div class="section-header">
+                    <span class="section-title">📜 Action Log</span>
+                </div>
+                <div id="actionLog">
+                    <div class="action-item">
+                        Created GMC Service Website
+                        <div class="action-time">Today 08:10 UTC</div>
+                    </div>
+                    <div class="action-item">
+                        Updated Dashboard to v2.0
+                        <div class="action-time">Today 08:30 UTC</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
         
-        <div class="footer">
-            <p>Last updated by Orland • <span id="lastUpdated"></span></p>
-        </div>
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <div class="top-bar-left">
+                    <h1>📋 Task Board</h1>
+                    <p class="subtitle">Manage your projects and tasks</p>
+                </div>
+                <div class="top-bar-right">
+                    <div class="sync-info">
+                        Last Sync: <span class="sync-time" id="lastSync">Loading...</span>
+                    </div>
+                    <button class="logout-btn" onclick="logout()">Log Out</button>
+                </div>
+            </div>
+            
+            <!-- Kanban Board -->
+            <div class="kanban-board">
+                <!-- To Do -->
+                <div class="kanban-column todo">
+                    <div class="kanban-header">
+                        <span class="kanban-title">📌 To Do <span class="kanban-count" id="todoCount">0</span></span>
+                    </div>
+                    <div id="todoList"></div>
+                </div>
+                
+                <!-- In Progress -->
+                <div class="kanban-column inprogress">
+                    <div class="kanban-header">
+                        <span class="kanban-title">🔄 In Progress <span class="kanban-count" id="progressCount">0</span></span>
+                    </div>
+                    <div id="progressList"></div>
+                </div>
+                
+                <!-- Done -->
+                <div class="kanban-column done">
+                    <div class="kanban-header">
+                        <span class="kanban-title">✅ Done <span class="kanban-count" id="doneCount">0</span></span>
+                    </div>
+                    <div id="doneList"></div>
+                </div>
+                
+                <!-- Archive -->
+                <div class="kanban-column archive">
+                    <div class="kanban-header">
+                        <span class="kanban-title">📦 Archive <span class="kanban-count" id="archiveCount">0</span></span>
+                    </div>
+                    <div id="archiveList"></div>
+                </div>
+            </div>
+        </main>
     </div>
     
-    <!-- Modal -->
+    <!-- Task Modal -->
     <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
         <div class="modal" onclick="event.stopPropagation()">
             <div class="modal-header">
@@ -510,145 +603,39 @@
         </div>
     </div>
     
-    <!-- Hidden Prompts -->
-    <div id="prompt-storage" style="display:none;">
-        <div id="prompt-private-repo">🔐 Private GitHub Repository for Sensitive Files
-
-URL: https://github.com/Hombecl/nuxec-sensitive
-
-用法:
-1. Go to the URL above
-2. Upload any document (PDF/CSV/images)
-3. Tell Orland "Files uploaded"
-4. Orland will organize and process automatically
-
-呢個repo係private嘅，得你同Orland可以access。</div>
-        <div id="prompt-doc-org">📁 How I Organize Documents
-
-When you upload files to nuxec-sensitive, I organize them:
-
-📂 /bank-statements/
-   └── Bank statements → Scan recurring charges
-
-📂 /receipts/
-   └── Receipts & invoices → Track expenses
-
-📂 /subscriptions/
-   └── Subscription confirmations → Monitor
-
-📂 /orders/
-   └── E-commerce orders → Track sales
-
-📂 /misc/
-   └── Other documents → Wait for instructions
-
-Just upload to root and tell me what it is!</div>
-        <div id="prompt-verify-deploy">🔍 Verify Vercel Deployment
-
-1. Go to: https://nuxec-dashboard.vercel.app
-2. You should see "🚀 Nuxec Dashboard"
-3. If page shows old data:
-   - Click the 🔄 refresh button (top-right)
-   - Or Ctrl+Shift+R to force refresh
-4. Vercel auto-deploys on each GitHub push</div>
-        <div id="prompt-email-scan">📧 Run Email Subscription Scanner
-
-1. Go to: https://script.google.com/home
-2. Open your "Subscription Scanner" script
-3. Click findSubscriptions() → ▶️ Run
-4. Check View → Logs for progress
-5. Email report will be sent to your Gmail
-
-Done! Check your inbox for results.</div>
-        <div id="prompt-upwork">💼 Upwork + Loom Video Strategy
-
-GMC Misrepresentation Service - Focused & Professional
-
-**Upwork Profile:**
-- Specialize ONLY in GMC suspension/reinstatement
-- Use Loom video intro (30-60 sec)
-- Show methodology, not "guarantee results"
-- Link to free checker tool on website
-
-**Loom Video Ideas:**
-1. "How to check if your site has GMC policy violations"
-2. "Common misrepresentation errors we find"
-3. "Before/After case study (anonymized)"
-
-**Service Website Flow:**
-1. Visitor enters website URL
-2. Free 20-point automated scan
-3. Show "Hook" - 3-5 critical issues found
-4. CTA: "Want full report? Contact us"
-5. Paid service: Deep manual audit + reinstatement
-
-**Credibility Building:**
-- Free tool = trust
-- Focused niche = authority
-- Loom videos = human connection
-
-Start with Nuxt, deploy to Vercel!</div>
-    </div>
-    
     <script>
+        // Task Data
         const tasks = [
-            { id: 1, title: "Setup nuxec-dashboard", desc: "Create GitHub repo and Vercel project", status: "completed", date: "2026-01-30", instructions: [{step:1,text:"Done!"}], links: [{text:"Dashboard",url:"https://nuxec-dashboard.vercel.app"}] },
-            { id: 2, title: "Build Dashboard UI", desc: "HTML dashboard with Kanban + List view", status: "completed", date: "2026-01-30", instructions: [{step:1,text:"Done!"}], links: [{text:"View",url:"https://nuxec-dashboard.vercel.app"}] },
-            { id: 3, title: "Walmart Scraper Development", desc: "Create Puppeteer script for scraping", status: "in-progress", date: "2026-01-31", instructions: [{step:1,text:"Download from GitHub"}, {step:2,text:"Run locally (requires residential IP)"}], links: [{text:"View Script",url:"https://github.com/Hombecl/nuxec-dashboard/blob/main/walmart-scraper.js"}] },
-            { id: 4, title: "Subscription Email Scanner v2", desc: "Google Apps Script to find subscriptions", status: "in-progress", date: "2026-01-31", instructions: [{step:1,text:"Go to Google Apps Script"}, {step:2,text:"Run findSubscriptions()"}], links: [{text:"Run Scanner",url:"https://script.google.com/home"}] },
-            { id: 5, title: "Private Repo Setup", desc: "Create nuxec-sensitive for sensitive files", status: "completed", date: "2026-01-31", instructions: [{step:1,text:"Done! Repo created"}], links: [{text:"Private Repo",url:"https://github.com/Hombecl/nuxec-sensitive"}] },
-            { id: 6, title: "Bank Statement Analyzer", desc: "Process PDF/CSV bank statements", status: "pending", date: "2026-02-02", instructions: [{step:1,text:"Upload statements to nuxec-sensitive"}, {step:2,text:"Tell Orland 'Files uploaded'"}], links: [] },
-            { id: 7, title: "Daily Summary Automation", desc: "Morning summary at 11:00 AM HK time", status: "pending", date: "2026-02-01", instructions: [{step:1,text:"Orland will send daily summary"}], links: [] },
-            { id: 8, title: "GMC Misrepresentation Service Website", desc: "Nuxt website with free checker tool + paid reinstatement service", status: "pending", date: "2026-02-02", instructions: [
-{step:1,text:"Build Nuxt 3 website structure (1-page service site)"},
-{step:2,text:"Create FREE 20-point Misrepresentation Checklist Scanner"},
-{step:3,text:"Build Checkpoint Detection Tool (auto-find inconsistencies)"},
-{step:4,text:"Design Service Tiers: Free Hook → Paid Deep Dive"},
-{step:5,text:"Add Loom video integration for credibility"},
-{step:6,text:"Create Upwork profile + Loom video pitch"}
-], links: [
-{text:"Nuxt.js",url:"https://nuxt.com"},
-{text:"Keyup",url:"https://keyup.tools"},
-{text:"Upwork",url:"https://www.upwork.com"},
-{text:"Loom",url:"https://www.loom.com"}
-] }
+            { id: 1, title: "Setup nuxec-dashboard", date: "2026-01-30", status: "done", instructions: [{step:1,text:"Done!"}], links: [{text:"Dashboard",url:"https://nuxec-dashboard.vercel.app"}] },
+            { id: 2, title: "Build Dashboard UI v2", date: "2026-01-31", status: "done", instructions: [{step:1,text:"Done!"}], links: [{text:"View",url:"https://nuxec-dashboard.vercel.app"}] },
+            { id: 3, title: "Walmart Scraper Development", date: "2026-01-31", status: "inprogress", instructions: [{step:1,text:"Download from GitHub"}, {step:2,text:"Run locally (requires residential IP)"}], links: [{text:"View Script",url:"https://github.com/Hombecl/nuxec-dashboard/blob/main/walmart-scraper.js"}] },
+            { id: 4, title: "Subscription Email Scanner", date: "2026-01-31", status: "inprogress", instructions: [{step:1,text:"Go to Google Apps Script"}, {step:2,text:"Run findSubscriptions()"}], links: [{text:"Run Scanner",url:"https://script.google.com/home"}] },
+            { id: 5, title: "Private Repo Setup", date: "2026-01-31", status: "done", instructions: [{step:1,text:"Done! Repo created"}], links: [{text:"Private Repo",url:"https://github.com/Hombecl/nuxec-sensitive"}] },
+            { id: 6, title: "Bank Statement Analyzer", date: "2026-02-02", status: "todo", instructions: [{step:1,text:"Upload statements to nuxec-sensitive"}, {step:2,text:"Tell Orland 'Files uploaded'"}], links: [] },
+            { id: 7, title: "Daily Summary Automation", date: "2026-02-01", status: "todo", instructions: [{step:1,text:"Orland will send daily summary"}], links: [] },
+            { id: 8, title: "GMC Service Website", date: "2026-02-02", status: "inprogress", instructions: [{step:1,text:"Nuxt 3 website created"}, {step:2,text:"Deploy to Vercel"}], links: [{text:"View Repo",url:"https://github.com/Hombecl/gmc-service-website"}] }
         ];
         
-        function switchView(view) {
-            document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector(`.view-btn[onclick="switchView('${view}')"]`).classList.add('active');
-            document.getElementById('kanbanView').classList.toggle('active', view === 'kanban');
-            document.getElementById('listView').classList.toggle('active', view === 'list');
-        }
-        
+        // Render Kanban
         function renderKanban() {
-            const columns = { pending: [], progress: [], review: [], completed: [] };
-            tasks.forEach(task => {
-                const status = task.status === 'in-progress' ? 'progress' : task.status;
-                columns[status].push(task);
-            });
+            const columns = {
+                todo: tasks.filter(t => t.status === 'todo'),
+                inprogress: tasks.filter(t => t.status === 'inprogress'),
+                done: tasks.filter(t => t.status === 'done'),
+                archive: tasks.filter(t => t.status === 'archive')
+            };
             
             Object.keys(columns).forEach(status => {
-                document.getElementById(`kanban${status.charAt(0).toUpperCase() + status.slice(1)}List`).innerHTML = 
-                    columns[status].map(t => `
-                        <div class="kanban-card ${status}" onclick="showTaskModal(${t.id})">
-                            <h4>${t.title}</h4>
-                            <p>${t.desc}</p>
-                            <div class="card-date">📅 ${t.date}</div>
-                        </div>
-                    `).join('');
-                document.getElementById(`kanban${status.charAt(0).toUpperCase() + status.slice(1)}`).textContent = columns[status].length;
+                const list = document.getElementById(status === 'inprogress' ? 'progressList' : status + 'List');
+                const count = document.getElementById(status === 'inprogress' ? 'progressCount' : status + 'Count');
+                list.innerHTML = columns[status].map(t => `
+                    <div class="kanban-card" onclick="showTaskModal(${t.id})">
+                        <div class="kanban-card-title">${t.title}</div>
+                        <div class="kanban-card-date">📅 ${t.date}</div>
+                    </div>
+                `).join('');
+                count.textContent = columns[status].length;
             });
-        }
-        
-        function renderList() {
-            document.getElementById('taskList').innerHTML = tasks.map(t => `
-                <li class="task-item ${t.status === 'in-progress' ? 'progress' : t.status}" onclick="showTaskModal(${t.id})">
-                    <span class="status-badge ${t.status === 'in-progress' ? 'progress' : t.status}">${t.status.replace('in-progress','In Progress')}</span>
-                    <div style="margin-top:8px;font-weight:500;">${t.title}</div>
-                    <div style="color:#8892b0;font-size:0.85rem;margin-top:5px;">${t.desc}</div>
-                </li>
-            `).join('');
         }
         
         function showTaskModal(id) {
@@ -667,27 +654,13 @@ Start with Nuxt, deploy to Vercel!</div>
             ).join('');
             
             showModal(task.title, `
-                <p style="color:#8892b0;margin-bottom:15px;">${task.desc}</p>
+                <p style="color:#8892b0;margin-bottom:15px;">${task.desc || 'Task details'}</p>
                 ${links ? `<div style="margin-bottom:15px;">${links}</div>` : ''}
-                <div class="instruction-section">
+                <div class="modal-section">
                     <h4>📋 Instructions</h4>
                     ${instructions}
                 </div>
                 <div style="color:#64ffda;font-size:0.8rem;margin-top:10px;">📅 ${task.date}</div>
-            `);
-        }
-        
-        function showPromptModal(promptId, title, desc) {
-            const promptText = document.getElementById(promptId).textContent.trim();
-            showModal(title, `
-                <p style="color:#8892b0;margin-bottom:15px;">${desc}</p>
-                <div class="instruction-section">
-                    <h4>📋 Details</h4>
-                    <div class="code-block">${promptText.replace(/</g,'<').replace(/>/g,'>')}</div>
-                </div>
-                <button class="action-link" onclick="copyText(\`${promptText}\`)" style="width:100%;justify-content:center;margin-top:15px;">
-                    📋 Copy to Clipboard
-                </button>
             `);
         }
         
@@ -703,70 +676,36 @@ Start with Nuxt, deploy to Vercel!</div>
             }
         }
         
-        function copyText(text) {
-            navigator.clipboard.writeText(text).then(() => alert('✅ Copied!')).catch(() => {
-                const t = document.createElement('textarea'); t.value = text;
-                document.body.appendChild(t); t.select(); document.execCommand('copy');
-                document.body.removeChild(t); alert('✅ Copied!');
-            });
-        }
-        
-        function refreshDashboard() {
-            location.reload(true);
-        }
-        
-        // Pull-to-refresh for mobile
-        let pullStartY = 0;
-        let pullDistance = 0;
+        // Pull to refresh
+        let pullStartY = 0, pullDistance = 0;
         const indicator = document.getElementById('pullRefreshIndicator');
         
-        document.addEventListener('touchstart', function(e) {
-            if (window.scrollY === 0) {
-                pullStartY = e.touches[0].clientY;
-            }
+        document.addEventListener('touchstart', e => {
+            if (window.scrollY === 0) pullStartY = e.touches[0].clientY;
         }, { passive: true });
         
-        document.addEventListener('touchmove', function(e) {
+        document.addEventListener('touchmove', e => {
             if (window.scrollY === 0 && pullStartY > 0) {
                 pullDistance = e.touches[0].clientY - pullStartY;
-                if (pullDistance > 50 && pullDistance < 200) {
+                if (pullDistance > 50) {
                     indicator.classList.add('active');
-                    indicator.textContent = '🔄 Release to refresh...';
-                } else if (pullDistance >= 200) {
-                    indicator.textContent = '🔄 Refreshing...';
-                    indicator.classList.add('loading');
+                    indicator.textContent = pullDistance > 150 ? '🔄 Release to refresh...' : '🔄 Pull...';
                 }
             }
         }, { passive: true });
         
-        document.addEventListener('touchend', function(e) {
-            if (pullDistance > 100) {
-                indicator.textContent = '🔄 Refreshing...';
-                location.reload(true);
-            }
+        document.addEventListener('touchend', () => {
+            if (pullDistance > 100) location.reload(true);
             pullStartY = 0;
             pullDistance = 0;
-            indicator.classList.remove('active', 'loading');
-            indicator.textContent = '🔄 Pull to refresh...';
+            indicator.classList.remove('active');
         }, { passive: true });
         
-        function updateStats() {
-            const counts = { pending: 0, progress: 0, review: 0, completed: 0 };
-            tasks.forEach(t => {
-                const s = t.status === 'in-progress' ? 'progress' : t.status;
-                counts[s]++;
-            });
-            ['pending','progress','review','completed'].forEach(s => 
-                document.getElementById(s+'Count').textContent = counts[s]
-            );
-        }
+        // Last Sync
+        document.getElementById('lastSync').textContent = new Date().toLocaleString();
         
         // Init
-        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', {
-            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-        });
-        document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
-        renderKanban(); renderList(); updateStats();
+        renderKanban();
     </script>
 </body>
 </html>
