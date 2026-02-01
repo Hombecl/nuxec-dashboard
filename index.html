@@ -1217,6 +1217,7 @@
 
         function renderThoughtLog() {
             const container = document.getElementById('thoughtLogContent');
+            if (!container) return; // Element doesn't exist in current layout
             container.innerHTML = thoughtLogs.slice(0, 5).map(t =>
                 `<div class="thought-step">${t.text}</div>`
             ).join('') || '<div class="thought-step">Waiting for tasks...</div>';
