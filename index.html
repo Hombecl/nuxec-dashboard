@@ -829,6 +829,11 @@
                         <button class="add-btn-small" onclick="clearActivityLog()" aria-label="Clear log" style="background: rgba(255, 107, 107, 0.1); border-color: #ff6b6b; color: #ff6b6b;">×</button>
                     </div>
                     <div id="actionLog" role="log" aria-live="polite"></div>
+                    <div class="add-action-form">
+                        <input type="text" id="newActionInput" placeholder="Add action or command..." 
+                               onkeypress="if(event.key==='Enter')addManualAction()">
+                        <button onclick="addManualAction()">+</button>
+                    </div>
                 </div>
             </section>
         </main>
