@@ -1040,24 +1040,19 @@
                                 <span style="color: #3fb950;">92%</span>
                             </div>
                         </div>
-                    </div>
-                </section>
-
-                <!-- Daily Check-up Section -->
-                <section style="margin-top: 24px;">
-                    <div class="section-header">
-                        <span class="section-title">🎯 Daily Check-up</span>
-                        <button class="btn-secondary" onclick="loadDailyCheckup()" style="font-size: 0.75rem; padding: 6px 12px; background: #21262d; border: 1px solid #30363d; color: #8b949e; border-radius: 6px; cursor: pointer;">
-                            🔄 Refresh
-                        </button>
-                    </div>
-                    <div id="dailyCheckupContent" style="background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px;">
-                        <div style="text-align: center; color: #8b949e; padding: 20px;">
-                            <span style="font-size: 2rem;">📋</span>
-                            <p style="margin-top: 8px;">Click refresh to load Daily Check-up data</p>
+                        <div class="deliverable-card" onclick="showDailyCheckup()" id="dailyCheckupCard">
+                            <div class="deliverable-header">
+                                <div class="deliverable-icon">🎯</div>
+                                <div class="deliverable-title">Daily Check-up</div>
+                            </div>
+                            <div class="deliverable-desc">Top 10 product competitor analysis, pricing & seller tracking</div>
+                            <div class="deliverable-status" id="dailyCheckupStatus">
+                                <div style="font-size: 0.75rem; color: #8b949e;">Click to view</div>
+                            </div>
                         </div>
                     </div>
                 </section>
+
             </div>
         </main>
     </div>
@@ -1113,7 +1108,6 @@
             renderKanban();
             renderNotes();
             await loadAllData();
-            loadDailyCheckup(); // Load daily check-up data
             setInterval(loadAllData, 60000); // Refresh every minute
         }
 
@@ -1615,15 +1609,16 @@
         // ===== DAILY CHECK-UP =====
         let dailyCheckupData = null;
 
-        async function loadDailyCheckup() {
-            const container = document.getElementById('dailyCheckupContent');
-            container.innerHTML = `
-                <div style="text-align: center; color: #8b949e; padding: 20px;">
-                    <span style="font-size: 2rem;">⏳</span>
-                    <p style="margin-top: 8px;">Loading Daily Check-up data...</p>
-                </div>
-            `;
+        async function showDailyCheckup() {
             setOrlandStatus('working', 'Loading check-up data...');
+
+            // Show loading state in modal
+            showModal('🎯 Daily Check-up', `
+                <div style="text-align: center; padding: 40px;">
+                    <div style="font-size: 2rem; margin-bottom: 12px;">⏳</div>
+                    <p style="color: #8b949e;">Loading Daily Check-up data...</p>
+                </div>
+            `);
 
             try {
                 const response = await fetch('/api/daily-checkup?limit=10');
@@ -1633,14 +1628,15 @@
                 if (!data.success) throw new Error(data.error || 'Unknown error');
 
                 dailyCheckupData = data;
-                renderDailyCheckup(data);
+                renderDailyCheckupModal(data);
+                updateDailyCheckupCard(data);
                 setOrlandStatus('success', 'Check-up loaded');
             } catch (error) {
-                container.innerHTML = `
-                    <div style="text-align: center; color: #f85149; padding: 20px;">
-                        <span style="font-size: 2rem;">❌</span>
-                        <p style="margin-top: 8px;">${error.message}</p>
-                        <button onclick="loadDailyCheckup()" style="margin-top: 12px; padding: 8px 16px; background: #21262d; border: 1px solid #30363d; color: #8b949e; border-radius: 6px; cursor: pointer;">
+                document.getElementById('modalBody').innerHTML = `
+                    <div style="text-align: center; padding: 40px;">
+                        <div style="font-size: 2rem; margin-bottom: 12px;">❌</div>
+                        <p style="color: #f85149;">${error.message}</p>
+                        <button onclick="showDailyCheckup()" style="margin-top: 16px; padding: 8px 16px; background: #21262d; border: 1px solid #30363d; color: #8b949e; border-radius: 6px; cursor: pointer;">
                             Retry
                         </button>
                     </div>
@@ -1649,8 +1645,26 @@
             }
         }
 
-        function renderDailyCheckup(data) {
-            const container = document.getElementById('dailyCheckupContent');
+        function updateDailyCheckupCard(data) {
+            const statusEl = document.getElementById('dailyCheckupStatus');
+            if (!statusEl) return;
+
+            const { summary } = data;
+            const winRate = summary.totalProducts > 0
+                ? Math.round((summary.winning / summary.totalProducts) * 100)
+                : 0;
+            const winColor = winRate >= 70 ? '#3fb950' : winRate >= 40 ? '#d29922' : '#f85149';
+
+            statusEl.innerHTML = `
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <span style="color: #3fb950; font-weight: 600;">${summary.winning}W</span>
+                    <span style="color: #f85149; font-weight: 600;">${summary.losing}L</span>
+                    <span style="color: ${winColor}; font-weight: 600;">${winRate}%</span>
+                </div>
+            `;
+        }
+
+        function renderDailyCheckupModal(data) {
             const { summary, products } = data;
 
             const lastCheckTime = summary.lastCheck
@@ -1663,7 +1677,7 @@
 
             const winColor = winRate >= 70 ? '#3fb950' : winRate >= 40 ? '#d29922' : '#f85149';
 
-            container.innerHTML = `
+            const html = `
                 <!-- Summary Stats -->
                 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px;">
                     <div style="background: #21262d; padding: 12px; border-radius: 8px; text-align: center;">
@@ -1693,7 +1707,7 @@
                 <div style="max-height: 400px; overflow-y: auto;">
                     ${products.map((p, idx) => {
                         const statusColor = p.isWinning ? '#3fb950' : (p.ourRank ? '#f85149' : '#8b949e');
-                        const statusLabel = p.isWinning ? '🏆 Winning' : (p.ourRank ? '📉 Losing' : '❓ Not Found');
+                        const statusLabel = p.isWinning ? '🏆 Winning' : (p.ourRank ? '📉 Losing' : '❓ Pending');
                         const priceDiffText = p.priceDiff !== null
                             ? (p.priceDiff > 0 ? `+$${p.priceDiff.toFixed(2)}` : (p.priceDiff < 0 ? `-$${Math.abs(p.priceDiff).toFixed(2)}` : '$0.00'))
                             : '-';
@@ -1727,6 +1741,8 @@
                     }).join('')}
                 </div>
             `;
+
+            document.getElementById('modalBody').innerHTML = html;
         }
 
         function showProductDetail(idx) {
