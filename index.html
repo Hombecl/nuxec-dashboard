@@ -1042,6 +1042,22 @@
                         </div>
                     </div>
                 </section>
+
+                <!-- Daily Check-up Section -->
+                <section style="margin-top: 24px;">
+                    <div class="section-header">
+                        <span class="section-title">🎯 Daily Check-up</span>
+                        <button class="btn-secondary" onclick="loadDailyCheckup()" style="font-size: 0.75rem; padding: 6px 12px; background: #21262d; border: 1px solid #30363d; color: #8b949e; border-radius: 6px; cursor: pointer;">
+                            🔄 Refresh
+                        </button>
+                    </div>
+                    <div id="dailyCheckupContent" style="background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px;">
+                        <div style="text-align: center; color: #8b949e; padding: 20px;">
+                            <span style="font-size: 2rem;">📋</span>
+                            <p style="margin-top: 8px;">Click refresh to load Daily Check-up data</p>
+                        </div>
+                    </div>
+                </section>
             </div>
         </main>
     </div>
@@ -1097,6 +1113,7 @@
             renderKanban();
             renderNotes();
             await loadAllData();
+            loadDailyCheckup(); // Load daily check-up data
             setInterval(loadAllData, 60000); // Refresh every minute
         }
 
@@ -1593,6 +1610,185 @@
 
         function filterExecutions(status) {
             showAllExecutions(status);
+        }
+
+        // ===== DAILY CHECK-UP =====
+        let dailyCheckupData = null;
+
+        async function loadDailyCheckup() {
+            const container = document.getElementById('dailyCheckupContent');
+            container.innerHTML = `
+                <div style="text-align: center; color: #8b949e; padding: 20px;">
+                    <span style="font-size: 2rem;">⏳</span>
+                    <p style="margin-top: 8px;">Loading Daily Check-up data...</p>
+                </div>
+            `;
+            setOrlandStatus('working', 'Loading check-up data...');
+
+            try {
+                const response = await fetch('/api/daily-checkup?limit=10');
+                if (!response.ok) throw new Error('Failed to fetch data');
+
+                const data = await response.json();
+                if (!data.success) throw new Error(data.error || 'Unknown error');
+
+                dailyCheckupData = data;
+                renderDailyCheckup(data);
+                setOrlandStatus('success', 'Check-up loaded');
+            } catch (error) {
+                container.innerHTML = `
+                    <div style="text-align: center; color: #f85149; padding: 20px;">
+                        <span style="font-size: 2rem;">❌</span>
+                        <p style="margin-top: 8px;">${error.message}</p>
+                        <button onclick="loadDailyCheckup()" style="margin-top: 12px; padding: 8px 16px; background: #21262d; border: 1px solid #30363d; color: #8b949e; border-radius: 6px; cursor: pointer;">
+                            Retry
+                        </button>
+                    </div>
+                `;
+                setOrlandStatus('error', 'Failed to load');
+            }
+        }
+
+        function renderDailyCheckup(data) {
+            const container = document.getElementById('dailyCheckupContent');
+            const { summary, products } = data;
+
+            const lastCheckTime = summary.lastCheck
+                ? new Date(summary.lastCheck).toLocaleString()
+                : 'Never';
+
+            const winRate = summary.totalProducts > 0
+                ? Math.round((summary.winning / summary.totalProducts) * 100)
+                : 0;
+
+            const winColor = winRate >= 70 ? '#3fb950' : winRate >= 40 ? '#d29922' : '#f85149';
+
+            container.innerHTML = `
+                <!-- Summary Stats -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px;">
+                    <div style="background: #21262d; padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #e6edf3;">${summary.totalProducts}</div>
+                        <div style="font-size: 0.7rem; color: #8b949e;">Products</div>
+                    </div>
+                    <div style="background: rgba(63,185,80,0.1); padding: 12px; border-radius: 8px; text-align: center; border: 1px solid rgba(63,185,80,0.3);">
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #3fb950;">${summary.winning}</div>
+                        <div style="font-size: 0.7rem; color: #3fb950;">Winning</div>
+                    </div>
+                    <div style="background: rgba(248,81,73,0.1); padding: 12px; border-radius: 8px; text-align: center; border: 1px solid rgba(248,81,73,0.3);">
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #f85149;">${summary.losing}</div>
+                        <div style="font-size: 0.7rem; color: #f85149;">Losing</div>
+                    </div>
+                    <div style="background: #21262d; padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: 700; color: ${winColor};">${winRate}%</div>
+                        <div style="font-size: 0.7rem; color: #8b949e;">Win Rate</div>
+                    </div>
+                </div>
+
+                <!-- Last Check Time -->
+                <div style="font-size: 0.75rem; color: #8b949e; margin-bottom: 12px;">
+                    Last checked: ${lastCheckTime}
+                </div>
+
+                <!-- Product List -->
+                <div style="max-height: 400px; overflow-y: auto;">
+                    ${products.map((p, idx) => {
+                        const statusColor = p.isWinning ? '#3fb950' : (p.ourRank ? '#f85149' : '#8b949e');
+                        const statusLabel = p.isWinning ? '🏆 Winning' : (p.ourRank ? '📉 Losing' : '❓ Not Found');
+                        const priceDiffText = p.priceDiff !== null
+                            ? (p.priceDiff > 0 ? `+$${p.priceDiff.toFixed(2)}` : (p.priceDiff < 0 ? `-$${Math.abs(p.priceDiff).toFixed(2)}` : '$0.00'))
+                            : '-';
+                        const priceDiffColor = p.priceDiff === null ? '#8b949e' : (p.priceDiff <= 0 ? '#3fb950' : '#f85149');
+
+                        return `
+                            <div style="background: #21262d; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid ${statusColor}; cursor: pointer;" onclick="showProductDetail(${idx})">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div style="flex: 1;">
+                                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                            <span style="font-weight: 600; font-size: 0.85rem;">${p.sku}</span>
+                                            <span style="font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; background: ${p.store === 'WM19' ? 'rgba(255,127,80,0.2)' : 'rgba(88,166,255,0.2)'}; color: ${p.store === 'WM19' ? '#ff7f50' : '#58a6ff'};">${p.store}</span>
+                                            <span style="font-size: 0.7rem; color: ${statusColor};">${statusLabel}</span>
+                                        </div>
+                                        <div style="font-size: 0.75rem; color: #8b949e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px;">${p.title}</div>
+                                    </div>
+                                    <div style="text-align: right; min-width: 120px;">
+                                        <div style="font-size: 0.85rem;">
+                                            <span style="color: #8b949e;">Rank:</span>
+                                            <span style="font-weight: 600; color: ${statusColor};">${p.ourRank ? `#${p.ourRank}` : '-'}</span>
+                                            <span style="color: #8b949e; font-size: 0.7rem;">/ ${p.totalSellers || '-'}</span>
+                                        </div>
+                                        <div style="font-size: 0.75rem;">
+                                            <span style="color: #8b949e;">vs Lowest:</span>
+                                            <span style="font-weight: 600; color: ${priceDiffColor};">${priceDiffText}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function showProductDetail(idx) {
+            if (!dailyCheckupData || !dailyCheckupData.products[idx]) return;
+
+            const p = dailyCheckupData.products[idx];
+            const sellers = p.sellers || [];
+
+            const html = `
+                <div style="margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+                        <div>
+                            <div style="font-size: 1.1rem; font-weight: 600;">${p.sku}</div>
+                            <div style="font-size: 0.85rem; color: #8b949e; margin-top: 4px;">${p.title}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.8rem; color: #8b949e;">7-Day Sales</div>
+                            <div style="font-size: 1.2rem; font-weight: 600; color: #58a6ff;">${p.sales7Day}</div>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
+                        <div style="background: #21262d; padding: 12px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 0.7rem; color: #8b949e;">Our Price</div>
+                            <div style="font-size: 1rem; font-weight: 600;">${p.ourTotal ? `$${p.ourTotal.toFixed(2)}` : '-'}</div>
+                        </div>
+                        <div style="background: #21262d; padding: 12px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 0.7rem; color: #8b949e;">Our Rank</div>
+                            <div style="font-size: 1rem; font-weight: 600; color: ${p.isWinning ? '#3fb950' : '#f85149'};">${p.ourRank ? `#${p.ourRank}` : '-'}</div>
+                        </div>
+                        <div style="background: #21262d; padding: 12px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 0.7rem; color: #8b949e;">Lowest 3P</div>
+                            <div style="font-size: 1rem; font-weight: 600;">${p.lowest3PPrice ? `$${p.lowest3PPrice.toFixed(2)}` : '-'}</div>
+                        </div>
+                    </div>
+
+                    <div style="font-weight: 600; margin-bottom: 8px;">All Sellers (${sellers.length})</div>
+                    ${sellers.length > 0 ? sellers.map((s, i) => `
+                        <div style="background: ${s.isOurs ? 'rgba(88,166,255,0.15)' : '#21262d'}; padding: 10px; border-radius: 6px; margin-bottom: 6px; border: ${s.isOurs ? '1px solid #58a6ff' : '1px solid #30363d'};">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="width: 22px; height: 22px; border-radius: 50%; background: ${s.rank === 1 ? '#d29922' : '#30363d'}; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600;">${s.rank}</span>
+                                    <span style="font-weight: 500; ${s.isOurs ? 'color: #58a6ff;' : ''}">${s.name}</span>
+                                    ${s.isOurs ? '<span style="font-size: 0.65rem; background: #58a6ff; color: #fff; padding: 2px 6px; border-radius: 4px;">YOUR STORE</span>' : ''}
+                                </div>
+                                <div style="text-align: right;">
+                                    <span style="font-weight: 600;">$${s.total.toFixed(2)}</span>
+                                    <span style="font-size: 0.7rem; color: ${s.freeShipping ? '#3fb950' : '#8b949e'}; margin-left: 4px;">${s.freeShipping ? 'Free Ship' : `+$${s.shipping.toFixed(2)}`}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('') : '<p style="color: #8b949e; font-size: 0.85rem;">No seller data available</p>'}
+
+                    <div style="margin-top: 16px; text-align: center;">
+                        <a href="${p.walmartUrl}" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: #0071dc; color: #fff; border-radius: 6px; text-decoration: none; font-size: 0.85rem;">
+                            🔗 View on Walmart
+                        </a>
+                    </div>
+                </div>
+            `;
+
+            showModal(`🎯 ${p.sku} Details`, html);
         }
 
         // ===== UTILITIES =====

@@ -13,6 +13,10 @@
     {
       "source": "/api/n8n-webhook",
       "destination": "/api/n8n-webhook.js"
+    },
+    {
+      "source": "/api/daily-checkup",
+      "destination": "/api/daily-checkup.js"
     }
   ]
 }
