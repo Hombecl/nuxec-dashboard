@@ -1230,12 +1230,12 @@
                 showModal(guide.title, `<div style="margin-bottom: 12px; color: #8892b0;">${guide.note}</div>${stepsHtml}`);
             } else if (tool === 'partykit') {
                 const steps = [
-                    { num: 1, title: 'SSH to VPS', cmd: 'ssh root@72.62.253.231', desc: 'Connect to your Hostinger VPS' },
-                    { num: 2, title: 'Navigate folder', cmd: 'cd /root/.openclaw/workspace/partykit-dashboard', desc: 'Go to the project folder' },
-                    { num: 3, title: 'Install WebSocket', cmd: 'npm install ws', desc: 'Install WebSocket library' },
-                    { num: 4, title: 'Edit IP (nano)', cmd: 'nano vps-server.js', desc: 'Edit file, change HOST to 72.62.253.231' },
-                    { num: 5, title: 'Start Server', cmd: 'node vps-server.js', desc: 'Start the WebSocket server' },
-                    { num: 6, title: 'Test Connection', cmd: 'curl http://72.62.253.231:8080', desc: 'Test if server is running' }
+                    { num: 1, title: 'SSH to VPS (VPS Terminal)', cmd: 'ssh root@72.62.253.231', desc: 'Connect to Hostinger VPS (password: your VPS password)', terminal: 'VPS' },
+                    { num: 2, title: 'Navigate folder (VPS Terminal)', cmd: 'cd /root/.openclaw/workspace/partykit-dashboard', desc: 'Go to project folder', terminal: 'VPS' },
+                    { num: 3, title: 'Stop Server (VPS Terminal)', cmd: 'pkill -f vps-server.js', desc: 'Stop current server before restarting', terminal: 'VPS' },
+                    { num: 4, title: 'Start Server (VPS Terminal)', cmd: 'node vps-server.js', desc: 'Start/Restart WebSocket server', terminal: 'VPS' },
+                    { num: 5, title: 'Test Connection (Your PC Terminal)', cmd: 'curl http://72.62.253.231:8080', desc: 'Test if server responds', terminal: 'PC' },
+                    { num: 6, title: 'Refresh Dashboard', cmd: 'https://nuxec-dashboard.vercel.app', desc: 'Refresh page to see Connected status', terminal: 'Browser' }
                 ];
                 
                 const stepsHtml = steps.map(s => `
