@@ -241,6 +241,39 @@
         }
         .logout-btn:hover { background: #ff6b6b; color: #fff; }
 
+
+        /* Daily Quote */
+        .daily-quote-section {
+            margin-bottom: 25px;
+        }
+        .quote-container {
+            background: linear-gradient(135deg, rgba(100, 255, 218, 0.08) 0%, rgba(102, 126, 234, 0.08) 100%);
+            border: 1px solid rgba(100, 255, 218, 0.15);
+            border-radius: 16px;
+            padding: 25px 30px;
+            text-align: center;
+        }
+        .quote-icon {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+        .quote-text {
+            font-size: 1.1rem;
+            color: #ccd6f6;
+            line-height: 1.6;
+            font-style: italic;
+            margin-bottom: 12px;
+        }
+        .quote-author {
+            font-size: 0.85rem;
+            color: #64ffda;
+            font-weight: 500;
+        }
+        .quote-date {
+            font-size: 0.75rem;
+            color: #5a6a8a;
+            margin-top: 15px;
+        }
         /* Main Content */
         .main-content {
             flex: 1;
@@ -668,7 +701,17 @@
                     <span>WebSocket: Disconnected</span>
                 </div>
             </div>
-        </aside>        <!-- Main Content -->
+        </aside>        
+            <!-- Daily Motivation -->
+            <section class="daily-quote-section">
+                <div class="quote-container">
+                    <div class="quote-icon">💡</div>
+                    <div class="quote-text">"Stay hungry, stay foolish."</div>
+                    <div class="quote-author">— Steve Jobs</div>
+                    <div class="quote-date">Daily Motivation · February 01, 2026</div>
+                </div>
+            </section>
+<!-- Main Content -->
         <main class="main-content" id="main-content" role="main">
             <!-- Task Board -->
             <section class="kanban-section" aria-labelledby="taskBoardTitle">
