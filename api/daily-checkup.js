@@ -72,6 +72,9 @@ export default async function handler(req, res) {
         'Product Cost',
         'Approved Base Price',
         'Margin%',
+        'Declared Price',
+        // Additional pricing fields
+        'Primary Supplier Link',
     ];
 
     const url = new URL(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}`);
@@ -112,12 +115,26 @@ export default async function handler(req, res) {
                 sellers = [];
             }
 
-            // Use Daily Check data if available, fall back to Scrape data
-            const ourPrice = f['Daily Check Our Price'] || f['Scrape Price'] || null;
-            const ourShipping = f['Daily Check Our Shipping'] || f['Scrape Shipping Fee'] || 0;
-            const ourTotal = ourPrice ? ourPrice + ourShipping : null;
+            // Pricing data
+            const productCost = f['Product Cost'] || null; // Cost to buy from store
+            const walmartComPrice = f['Scrape Current Price'] || f['Scrape Price'] || null; // Walmart.com current price
+            const ourSellingPrice = f['Approved Base Price'] || null; // Our selling price on Walmart
+            const declaredPrice = f['Declared Price'] || null; // Declared shipping value
+
             const totalSellers = f['Scrape Total Sellers'] || sellers.length || 1;
             const thirdPartySellers = f['Scrape 3P Seller Count'] || 0;
+            const lowest3P = f['Daily Check Lowest 3P Price'] || f['Scrape Price 3P'] || null;
+
+            // Calculate Margin using correct formula:
+            // Margin = Our Selling Price - Product Cost - $4.5 shipping - (Our Selling Price * 10.5% platform fee)
+            let marginDollar = null;
+            let marginPercent = null;
+            if (ourSellingPrice && productCost) {
+                const platformFee = ourSellingPrice * 0.105; // 10.5% platform fee
+                const shippingCost = 4.5; // Fixed shipping cost
+                marginDollar = ourSellingPrice - productCost - shippingCost - platformFee;
+                marginPercent = marginDollar / ourSellingPrice;
+            }
 
             // Determine publish/availability status
             let publishStatus = f['Daily Check Publish Status'] || 'Unknown';
@@ -130,11 +147,14 @@ export default async function handler(req, res) {
                 publishStatus = 'Out of Stock';
             }
 
+            // Inventory check - flag if 0
+            const inventory = f['WM Inventory'] || 0;
+            const inventoryWarning = inventory === 0;
+
             // Determine if we're competitive (winning)
-            const lowest3P = f['Daily Check Lowest 3P Price'] || f['Scrape Price 3P'] || null;
             let isWinning = f['Daily Check Is Winning'] || false;
-            if (!isWinning && ourPrice && lowest3P) {
-                isWinning = ourPrice <= lowest3P;
+            if (!isWinning && ourSellingPrice && lowest3P) {
+                isWinning = ourSellingPrice <= lowest3P;
             }
 
             return {
@@ -145,28 +165,28 @@ export default async function handler(req, res) {
                 store: f.Store || 'Unknown',
                 sales7Day: f['7-Day Sales'] || 0,
                 sales3Day: f['3-Day Sales'] || 0,
-                // Pricing
-                ourPrice,
-                ourShipping,
-                ourTotal,
-                productCost: f['Product Cost'] || null,
-                approvedPrice: f['Approved Base Price'] || null,
-                marginPercent: f['Margin%'] || null,
+                // Pricing - clear naming for comparison
+                productCost, // What we pay at Walmart store
+                walmartComPrice, // Walmart.com's current price
+                ourSellingPrice, // Our listing price
+                declaredPrice, // Declared shipping value
+                // Margin with correct calculation
+                marginDollar,
+                marginPercent,
                 // Competition
                 ourRank: f['Daily Check Our Rank'] || null,
                 isWinning,
                 lowest3PPrice: lowest3P,
-                priceDiff: f['Daily Check Price Diff'] || (ourPrice && lowest3P ? ourPrice - lowest3P : null),
+                priceDiff: ourSellingPrice && lowest3P ? ourSellingPrice - lowest3P : null,
                 totalSellers,
                 thirdPartySellers,
-                // Scrape data
-                scrapeSellerName: f['Scrape Seller Name'] || 'Unknown',
-                scrapePrice: f['Scrape Current Price'] || f['Scrape Price'] || null,
-                scrapeShipping: f['Scrape Shipping Fee'] || 0,
-                scrapeTotal: f['Scrape Total Price'] || null,
+                // Buy box winner info
+                buyBoxSeller: f['Scrape Seller Name'] || 'Unknown',
+                buyBoxPrice: walmartComPrice,
                 // Status
                 publishStatus,
-                inventory: f['WM Inventory'] || 0,
+                inventory,
+                inventoryWarning,
                 availability: f['Scrape Availability Status'] || 'Unknown',
                 lowStockWarning: f['Scrape Low Stock Message'] || null,
                 // Product info
@@ -174,6 +194,8 @@ export default async function handler(req, res) {
                 reviewCount: f['Scrape Review Count'] || 0,
                 brand: f['Scrape Brand'] || null,
                 hasDelivery: f['Scrape Delivery'] || false,
+                // Links
+                supplierLink: f['Primary Supplier Link'] || null,
                 // Timestamps
                 lastCheck: f['Daily Check Last Run'] || f['Scrape Last Date'] || null,
                 sellers,
@@ -186,11 +208,13 @@ export default async function handler(req, res) {
         const outOfStock = products.filter(p => p.publishStatus === 'Out of Stock' || p.availability === 'OUT_OF_STOCK');
         const withCompetitors = products.filter(p => p.thirdPartySellers > 0);
         const winning = products.filter(p => p.isWinning);
+        const zeroInventory = products.filter(p => p.inventoryWarning);
 
         const summary = {
             totalProducts: products.length,
             published: published.length,
             outOfStock: outOfStock.length,
+            zeroInventory: zeroInventory.length,
             withCompetitors: withCompetitors.length,
             winning: winning.length,
             losing: products.filter(p => !p.isWinning && p.lowest3PPrice !== null).length,
