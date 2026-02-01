@@ -1629,19 +1629,21 @@
         let dailyCheckupData = null;
 
         async function showDailyCheckup() {
-            setOrlandStatus('working', 'Loading check-up data...');
+            setOrlandStatus('working', 'Fetching REAL-TIME data from Walmart...');
 
             // Show loading state in modal
-            showModal('🎯 Daily Check-up', `
+            showModal('🎯 Daily Check-up (REAL-TIME)', `
                 <div style="text-align: center; padding: 40px;">
                     <div style="font-size: 2rem; margin-bottom: 12px;">⏳</div>
-                    <p style="color: #8b949e;">Loading Daily Check-up data...</p>
+                    <p style="color: #8b949e;">Fetching REAL-TIME data from Walmart API...</p>
+                    <p style="color: #58a6ff; font-size: 0.75rem; margin-top: 8px;">This may take a few seconds</p>
                 </div>
             `);
 
             try {
-                const response = await fetch('/api/daily-checkup?limit=10');
-                if (!response.ok) throw new Error('Failed to fetch data');
+                // Use the real-time API endpoint
+                const response = await fetch('/api/daily-checkup-realtime?limit=10');
+                if (!response.ok) throw new Error('Failed to fetch real-time data');
 
                 const data = await response.json();
                 if (!data.success) throw new Error(data.error || 'Unknown error');
@@ -1649,7 +1651,7 @@
                 dailyCheckupData = data;
                 renderDailyCheckupModal(data);
                 updateDailyCheckupCard(data);
-                setOrlandStatus('success', 'Check-up loaded');
+                setOrlandStatus('success', data.summary.isRealTime ? 'Real-time data loaded' : 'Data loaded (cached)');
             } catch (error) {
                 document.getElementById('modalBody').innerHTML = `
                     <div style="text-align: center; padding: 40px;">
@@ -1685,71 +1687,94 @@
                 ? new Date(summary.lastCheck).toLocaleString()
                 : 'Never';
 
+            const isRealTime = summary.isRealTime;
+
             const html = `
+                <!-- Real-time indicator -->
+                <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; padding: 8px; background: ${isRealTime ? 'rgba(63,185,80,0.15)' : 'rgba(210,153,34,0.15)'}; border-radius: 6px; border: 1px solid ${isRealTime ? 'rgba(63,185,80,0.3)' : 'rgba(210,153,34,0.3)'};">
+                    <span style="width: 8px; height: 8px; background: ${isRealTime ? '#3fb950' : '#d29922'}; border-radius: 50%; ${isRealTime ? 'animation: pulse 2s infinite;' : ''}"></span>
+                    <span style="font-size: 0.7rem; color: ${isRealTime ? '#3fb950' : '#d29922'}; font-weight: 600;">
+                        ${isRealTime ? '🔴 LIVE - Real-time data from Walmart API' : '⚠️ Using cached Airtable data'}
+                    </span>
+                </div>
+
                 <!-- Summary Stats - Top Row (mobile responsive) -->
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px;">
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px;">
                     <div style="background: #21262d; padding: 8px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 1.2rem; font-weight: 700; color: #58a6ff;">${summary.totalProducts}</div>
-                        <div style="font-size: 0.6rem; color: #8b949e;">Products</div>
+                        <div style="font-size: 1rem; font-weight: 700; color: #58a6ff;">${summary.totalProducts}</div>
+                        <div style="font-size: 0.55rem; color: #8b949e;">Products</div>
                     </div>
                     <div style="background: rgba(63,185,80,0.1); padding: 8px; border-radius: 8px; text-align: center; border: 1px solid rgba(63,185,80,0.3);">
-                        <div style="font-size: 1.2rem; font-weight: 700; color: #3fb950;">${summary.totalSales7Day}</div>
-                        <div style="font-size: 0.6rem; color: #3fb950;">7D Sales</div>
+                        <div style="font-size: 1rem; font-weight: 700; color: #3fb950;">${summary.published || 0}</div>
+                        <div style="font-size: 0.55rem; color: #3fb950;">Published</div>
+                    </div>
+                    <div style="background: ${summary.unpublished > 0 ? 'rgba(248,81,73,0.15)' : '#21262d'}; padding: 8px; border-radius: 8px; text-align: center; border: ${summary.unpublished > 0 ? '1px solid rgba(248,81,73,0.4)' : '1px solid transparent'};">
+                        <div style="font-size: 1rem; font-weight: 700; color: ${summary.unpublished > 0 ? '#f85149' : '#8b949e'};">${summary.unpublished || 0}</div>
+                        <div style="font-size: 0.55rem; color: ${summary.unpublished > 0 ? '#f85149' : '#8b949e'};">Unpublished</div>
                     </div>
                     <div style="background: ${summary.zeroInventory > 0 ? 'rgba(248,81,73,0.15)' : '#21262d'}; padding: 8px; border-radius: 8px; text-align: center; border: ${summary.zeroInventory > 0 ? '1px solid rgba(248,81,73,0.4)' : '1px solid transparent'};">
-                        <div style="font-size: 1.2rem; font-weight: 700; color: ${summary.zeroInventory > 0 ? '#f85149' : '#8b949e'};">${summary.zeroInventory || 0}</div>
-                        <div style="font-size: 0.6rem; color: ${summary.zeroInventory > 0 ? '#f85149' : '#8b949e'};">0 Inventory</div>
+                        <div style="font-size: 1rem; font-weight: 700; color: ${summary.zeroInventory > 0 ? '#f85149' : '#8b949e'};">${summary.zeroInventory || 0}</div>
+                        <div style="font-size: 0.55rem; color: ${summary.zeroInventory > 0 ? '#f85149' : '#8b949e'};">0 Inventory</div>
                     </div>
                 </div>
 
                 ${summary.zeroInventory > 0 ? `<div style="background: rgba(248,81,73,0.15); border: 1px solid rgba(248,81,73,0.3); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 0.75rem; color: #f85149;">⚠️ ${summary.zeroInventory} product(s) have 0 inventory - may lose sales!</div>` : ''}
+                ${summary.unpublished > 0 ? `<div style="background: rgba(210,153,34,0.15); border: 1px solid rgba(210,153,34,0.3); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 0.75rem; color: #d29922;">⚠️ ${summary.unpublished} product(s) are UNPUBLISHED!</div>` : ''}
 
                 <!-- Product List with scroll -->
-                <div style="overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; max-height: calc(70vh - 150px);">
+                <div style="overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; max-height: calc(70vh - 180px);">
                     ${products.map((p, idx) => {
-                        // Determine status color based on inventory and publish status
+                        // Determine status color based on REAL-TIME publish status
                         let statusColor = '#8b949e';
                         let statusLabel = '❓';
                         let inventoryBadge = '';
 
-                        if (p.inventoryWarning) {
+                        // Use real-time publishedStatus if available
+                        const pubStatus = p.publishedStatus || p.publishStatus;
+
+                        if (p.inventoryWarning || p.totalInventory === 0) {
                             statusColor = '#f85149';
                             statusLabel = '⚠️ 0 INV';
                             inventoryBadge = '<span style="font-size: 0.55rem; padding: 1px 4px; background: rgba(248,81,73,0.3); color: #f85149; border-radius: 3px; margin-left: 4px;">RESTOCK</span>';
-                        } else if (p.publishStatus === 'Out of Stock' || p.availability === 'OUT_OF_STOCK') {
+                        } else if (pubStatus === 'UNPUBLISHED') {
                             statusColor = '#f85149';
-                            statusLabel = '📦 OOS';
-                        } else if (p.publishStatus === 'Published' || p.publishStatus?.includes('ACTIVE')) {
+                            statusLabel = '🚫 UNPUB';
+                        } else if (pubStatus === 'PUBLISHED' || pubStatus === 'Published' || pubStatus?.includes('ACTIVE')) {
                             statusColor = '#3fb950';
-                            statusLabel = '✅';
-                        } else if (p.publishStatus?.includes('PROBLEM')) {
-                            statusColor = '#f85149';
-                            statusLabel = '⚠️';
+                            statusLabel = '✅ PUB';
+                        } else if (pubStatus?.includes('PROBLEM') || pubStatus?.includes('SYSTEM')) {
+                            statusColor = '#d29922';
+                            statusLabel = '⚠️ ISSUE';
                         }
 
-                        // Price comparison
-                        const walmartPrice = p.walmartComPrice ? `$${p.walmartComPrice.toFixed(2)}` : '-';
+                        // Price comparison - use real-time walmartPrice if available
+                        const walmartPrice = p.walmartPrice ? `$${p.walmartPrice.toFixed(2)}` : (p.walmartComPrice ? `$${p.walmartComPrice.toFixed(2)}` : '-');
                         const ourPrice = p.ourSellingPrice ? `$${p.ourSellingPrice.toFixed(2)}` : '-';
                         const marginDisplay = p.marginDollar !== null ? `$${p.marginDollar.toFixed(2)}` : '-';
                         const marginColor = p.marginDollar && p.marginDollar > 3 ? '#3fb950' : (p.marginDollar && p.marginDollar > 0 ? '#d29922' : '#f85149');
 
+                        // Real-time inventory display
+                        const totalInv = p.totalInventory || 0;
+                        const invColor = totalInv === 0 ? '#f85149' : (totalInv < 5 ? '#d29922' : '#3fb950');
+
                         return `
                             <div style="background: #21262d; padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid ${statusColor};" onclick="showProductDetail(${idx})">
-                                <!-- Row 1: SKU (copyable) + Store + Status -->
+                                <!-- Row 1: SKU (copyable) + Store + Status + Real-time indicator -->
                                 <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; flex-wrap: wrap;">
                                     <span onclick="event.stopPropagation(); copySKU('${p.sku}')" style="font-weight: 600; font-size: 0.8rem; cursor: copy; padding: 2px 6px; background: #161b22; border-radius: 4px; border: 1px solid #30363d;" title="Click to copy">${p.sku}</span>
                                     <span style="font-size: 0.55rem; padding: 2px 4px; border-radius: 3px; background: ${p.store === 'WM19' ? 'rgba(255,127,80,0.2)' : 'rgba(88,166,255,0.2)'}; color: ${p.store === 'WM19' ? '#ff7f50' : '#58a6ff'};">${p.store}</span>
                                     <span style="font-size: 0.6rem; color: ${statusColor};">${statusLabel}</span>
                                     ${inventoryBadge}
+                                    ${p.isRealTime ? '<span style="font-size: 0.5rem; padding: 1px 3px; background: rgba(63,185,80,0.3); color: #3fb950; border-radius: 3px;">LIVE</span>' : ''}
                                 </div>
 
                                 <!-- Row 2: Title -->
                                 <div style="font-size: 0.65rem; color: #8b949e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 6px;">${p.title}</div>
 
-                                <!-- Row 3: Price comparison table -->
-                                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; font-size: 0.65rem;">
+                                <!-- Row 3: Real-time data grid -->
+                                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; font-size: 0.6rem;">
                                     <div style="text-align: center;">
-                                        <div style="color: #8b949e;">WM.com</div>
+                                        <div style="color: #8b949e;">WM Price</div>
                                         <div style="font-weight: 600;">${walmartPrice}</div>
                                     </div>
                                     <div style="text-align: center;">
@@ -1759,6 +1784,10 @@
                                     <div style="text-align: center;">
                                         <div style="color: #8b949e;">Margin</div>
                                         <div style="font-weight: 600; color: ${marginColor};">${marginDisplay}</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="color: #8b949e;">Inventory</div>
+                                        <div style="font-weight: 700; color: ${invColor};">${totalInv}</div>
                                     </div>
                                     <div style="text-align: center;">
                                         <div style="color: #8b949e;">7D Sales</div>
@@ -1771,7 +1800,7 @@
                 </div>
 
                 <div style="font-size: 0.65rem; color: #8b949e; margin-top: 8px; text-align: center;">
-                    Last checked: ${lastCheckTime} | Tap product for details
+                    ${isRealTime ? '🔴 Real-time data from Walmart API' : '📦 Cached Airtable data'} | ${lastCheckTime}
                 </div>
             `;
 
@@ -1799,30 +1828,38 @@
             const p = dailyCheckupData.products[idx];
             const sellers = p.sellers || [];
 
-            // Status determination
+            // Use real-time publish status
+            const pubStatus = p.publishedStatus || p.publishStatus;
+
+            // Status determination based on REAL-TIME data
             let statusColor = '#8b949e';
             let statusText = 'Unknown';
-            if (p.inventoryWarning) {
+            if (p.inventoryWarning || p.totalInventory === 0) {
                 statusColor = '#f85149';
                 statusText = '⚠️ 0 Inventory - RESTOCK';
-            } else if (p.publishStatus === 'Out of Stock' || p.availability === 'OUT_OF_STOCK') {
+            } else if (pubStatus === 'UNPUBLISHED') {
                 statusColor = '#f85149';
-                statusText = '📦 Out of Stock';
-            } else if (p.publishStatus === 'Published' || p.publishStatus?.includes('ACTIVE')) {
+                statusText = '🚫 UNPUBLISHED';
+            } else if (pubStatus === 'PUBLISHED' || pubStatus === 'Published' || pubStatus?.includes('ACTIVE')) {
                 statusColor = '#3fb950';
                 statusText = '✅ Published';
-            } else if (p.publishStatus?.includes('PROBLEM')) {
-                statusColor = '#f85149';
-                statusText = '⚠️ ' + p.publishStatus;
+            } else if (pubStatus?.includes('PROBLEM') || pubStatus?.includes('SYSTEM')) {
+                statusColor = '#d29922';
+                statusText = '⚠️ ' + pubStatus;
             } else {
-                statusText = p.publishStatus || 'Unknown';
+                statusText = pubStatus || 'Unknown';
             }
 
-            // Price displays
-            const walmartComPrice = p.walmartComPrice ? `$${p.walmartComPrice.toFixed(2)}` : '-';
+            // Price displays - use real-time walmartPrice if available
+            const walmartComPrice = p.walmartPrice ? `$${p.walmartPrice.toFixed(2)}` : (p.walmartComPrice ? `$${p.walmartComPrice.toFixed(2)}` : '-');
             const ourPrice = p.ourSellingPrice ? `$${p.ourSellingPrice.toFixed(2)}` : '-';
             const productCost = p.productCost ? `$${p.productCost.toFixed(2)}` : '-';
             const lowest3P = p.lowest3PPrice ? `$${p.lowest3PPrice.toFixed(2)}` : '-';
+
+            // Real-time inventory
+            const totalInventory = p.totalInventory || 0;
+            const defaultInventory = p.defaultInventory || 0;
+            const fcInventory = p.fcInventory || 0;
 
             // Margin calculation display
             const marginDollar = p.marginDollar !== null ? `$${p.marginDollar.toFixed(2)}` : '-';
@@ -1847,15 +1884,22 @@
                     ${p.inventoryWarning ? `<div style="background: rgba(248,81,73,0.2); border: 1px solid rgba(248,81,73,0.4); padding: 10px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 0.8rem; color: #f85149; font-weight: 500;">🚨 URGENT: Inventory is 0 - You may be losing sales! Restock immediately.</div>` : ''}
                     ${p.lowStockWarning ? `<div style="background: rgba(210,153,34,0.15); border: 1px solid rgba(210,153,34,0.3); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 0.75rem; color: #d29922;">⚠️ ${p.lowStockWarning}</div>` : ''}
 
-                    <!-- Key Metrics Grid -->
+                    <!-- Real-time indicator for product -->
+                    ${p.isRealTime ? `<div style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px; padding: 6px 10px; background: rgba(63,185,80,0.1); border-radius: 6px; border: 1px solid rgba(63,185,80,0.2);">
+                        <span style="width: 6px; height: 6px; background: #3fb950; border-radius: 50%; animation: pulse 2s infinite;"></span>
+                        <span style="font-size: 0.65rem; color: #3fb950;">Real-time data from Walmart API</span>
+                    </div>` : ''}
+
+                    <!-- Key Metrics Grid - Enhanced with real-time inventory breakdown -->
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px;">
                         <div style="background: #21262d; padding: 10px; border-radius: 8px; text-align: center;">
                             <div style="font-size: 0.6rem; color: #8b949e;">7-Day Sales</div>
                             <div style="font-size: 1.2rem; font-weight: 700; color: #58a6ff;">${p.sales7Day}</div>
                         </div>
-                        <div style="background: ${p.inventoryWarning ? 'rgba(248,81,73,0.15)' : '#21262d'}; padding: 10px; border-radius: 8px; text-align: center; border: ${p.inventoryWarning ? '1px solid rgba(248,81,73,0.4)' : 'none'};">
-                            <div style="font-size: 0.6rem; color: ${p.inventoryWarning ? '#f85149' : '#8b949e'};">Inventory</div>
-                            <div style="font-size: 1.2rem; font-weight: 700; color: ${p.inventory > 0 ? '#3fb950' : '#f85149'};">${p.inventory || 0}</div>
+                        <div style="background: ${totalInventory === 0 ? 'rgba(248,81,73,0.15)' : '#21262d'}; padding: 10px; border-radius: 8px; text-align: center; border: ${totalInventory === 0 ? '1px solid rgba(248,81,73,0.4)' : 'none'};">
+                            <div style="font-size: 0.6rem; color: ${totalInventory === 0 ? '#f85149' : '#8b949e'};">Total Inventory</div>
+                            <div style="font-size: 1.2rem; font-weight: 700; color: ${totalInventory > 0 ? '#3fb950' : '#f85149'};">${totalInventory}</div>
+                            ${p.store === 'WM19' ? `<div style="font-size: 0.55rem; color: #8b949e; margin-top: 4px;">Default: ${defaultInventory} | FC: ${fcInventory}</div>` : ''}
                         </div>
                     </div>
 

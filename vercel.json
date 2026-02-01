@@ -17,6 +17,10 @@
     {
       "source": "/api/daily-checkup",
       "destination": "/api/daily-checkup.js"
+    },
+    {
+      "source": "/api/daily-checkup-realtime",
+      "destination": "/api/daily-checkup-realtime.js"
     }
   ]
 }
