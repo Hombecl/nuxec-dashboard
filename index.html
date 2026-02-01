@@ -1773,9 +1773,11 @@
                         const invColor = totalInv === 0 ? '#f85149' : (totalInv < 5 ? '#d29922' : '#3fb950');
 
                         return `
-                            <div style="background: #21262d; padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid ${statusColor};" onclick="showProductDetail(${idx})">
+                            <div style="background: #21262d; padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid ${statusColor}; position: relative;" onclick="showProductDetail(${idx})">
+                                <!-- Product index badge -->
+                                <div style="position: absolute; top: -6px; left: -6px; width: 22px; height: 22px; background: #58a6ff; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${idx + 1}</div>
                                 <!-- Row 1: SKU (copyable) + Store + Status -->
-                                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; flex-wrap: wrap;">
+                                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; padding-left: 12px;">
                                     <span onclick="event.stopPropagation(); copySKU('${p.sku}')" style="font-weight: 600; font-size: 0.8rem; cursor: copy; padding: 2px 6px; background: #161b22; border-radius: 4px; border: 1px solid #30363d;" title="Click to copy">${p.sku}</span>
                                     <span style="font-size: 0.55rem; padding: 2px 4px; border-radius: 3px; background: ${p.store === 'WM19' ? 'rgba(255,127,80,0.2)' : 'rgba(88,166,255,0.2)'}; color: ${p.store === 'WM19' ? '#ff7f50' : '#58a6ff'};">${p.store}</span>
                                     <span style="font-size: 0.6rem; color: ${statusColor};">${statusLabel}</span>
@@ -1847,10 +1849,15 @@
             });
         }
 
+        // Track current product index for navigation
+        let currentProductIdx = 0;
+
         function showProductDetail(idx) {
             if (!dailyCheckupData || !dailyCheckupData.products[idx]) return;
 
+            currentProductIdx = idx;
             const p = dailyCheckupData.products[idx];
+            const totalProducts = dailyCheckupData.products.length;
             const sellers = p.sellers || [];
 
             // Use real-time publish status
@@ -1893,6 +1900,20 @@
 
             const html = `
                 <div style="margin-bottom: 16px; -webkit-overflow-scrolling: touch;">
+                    <!-- Navigation header -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid #30363d;">
+                        <button onclick="showProductDetail(${idx - 1})" ${idx === 0 ? 'disabled' : ''} style="padding: 6px 12px; background: ${idx === 0 ? '#161b22' : '#21262d'}; color: ${idx === 0 ? '#484f58' : '#e6edf3'}; border: 1px solid #30363d; border-radius: 6px; cursor: ${idx === 0 ? 'not-allowed' : 'pointer'}; font-size: 0.75rem;">
+                            ← Prev
+                        </button>
+                        <div style="text-align: center;">
+                            <span style="font-size: 0.9rem; font-weight: 600; color: #58a6ff;">${idx + 1}</span>
+                            <span style="font-size: 0.75rem; color: #8b949e;"> / ${totalProducts}</span>
+                        </div>
+                        <button onclick="showProductDetail(${idx + 1})" ${idx >= totalProducts - 1 ? 'disabled' : ''} style="padding: 6px 12px; background: ${idx >= totalProducts - 1 ? '#161b22' : '#21262d'}; color: ${idx >= totalProducts - 1 ? '#484f58' : '#e6edf3'}; border: 1px solid #30363d; border-radius: 6px; cursor: ${idx >= totalProducts - 1 ? 'not-allowed' : 'pointer'}; font-size: 0.75rem;">
+                            Next →
+                        </button>
+                    </div>
+
                     <!-- Header with copyable SKU -->
                     <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
                         <div style="flex: 1; min-width: 200px;">
@@ -2002,7 +2023,12 @@
                 </div>
             `;
 
-            showModal(`🎯 ${p.sku}`, html);
+            showModal(`🎯 Product ${idx + 1}/${totalProducts}: ${p.sku}`, html);
+
+            // Override close button to return to product list instead of closing modal
+            document.querySelector('.modal-close').onclick = function() {
+                renderDailyCheckupModal(dailyCheckupData);
+            };
         }
 
         // ===== UTILITIES =====
@@ -2066,6 +2092,30 @@
 
         // Keyboard shortcuts
         document.addEventListener('keydown', e => {
+            const modalActive = document.getElementById('modalOverlay').classList.contains('active');
+            if (!modalActive) return;
+
+            // Product detail navigation shortcuts
+            if (dailyCheckupData && typeof currentProductIdx === 'number') {
+                const title = document.getElementById('modalTitle').textContent;
+                const isProductDetail = title.includes('Product ') && title.includes('/');
+
+                if (isProductDetail) {
+                    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        if (currentProductIdx > 0) showProductDetail(currentProductIdx - 1);
+                    } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        if (currentProductIdx < dailyCheckupData.products.length - 1) showProductDetail(currentProductIdx + 1);
+                    } else if (e.key === 'Escape' || e.key === 'Backspace') {
+                        e.preventDefault();
+                        renderDailyCheckupModal(dailyCheckupData);
+                    }
+                    return;
+                }
+            }
+
+            // Default: Escape closes modal
             if (e.key === 'Escape') closeModal();
         });
 
