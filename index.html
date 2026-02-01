@@ -497,6 +497,7 @@
         .execution-card.error { border-left-color: #e74c3c; }
         .execution-card.running { border-left-color: #f39c12; animation: pulse-border 2s infinite; }
         .execution-card.waiting { border-left-color: #3498db; }
+        .execution-card.canceled { border-left-color: #95a5a6; }
 
         @keyframes pulse-border {
             0%, 100% { border-left-color: #f39c12; }
@@ -535,6 +536,7 @@
         .execution-status.error { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
         .execution-status.running { background: rgba(243, 156, 18, 0.2); color: #f39c12; }
         .execution-status.waiting { background: rgba(52, 152, 219, 0.2); color: #3498db; }
+        .execution-status.canceled { background: rgba(149, 165, 166, 0.2); color: #95a5a6; }
 
         .execution-actions {
             display: flex;
@@ -1622,7 +1624,8 @@
         renderActivityLog();
         renderThoughtLog();
         setStatus(currentStatus);
-        document.getElementById('lastSync').textContent = new Date().toLocaleString();
+        const lastSyncEl = document.getElementById('lastSync');
+        if (lastSyncEl) lastSyncEl.textContent = new Date().toLocaleString();
 
         // HTTP Polling (every 5 seconds)
         const STATUS_URL = 'http://72.62.253.231:8080';
@@ -1787,7 +1790,8 @@
                     success: '✅ Success',
                     error: '❌ Error',
                     running: '🟡 Running',
-                    waiting: '⏳ Waiting'
+                    waiting: '⏳ Waiting',
+                    canceled: '⏹️ Canceled'
                 }[status] || status;
 
                 const startTime = exec.startedAt ? formatTimeAgo(exec.startedAt) : '-';
