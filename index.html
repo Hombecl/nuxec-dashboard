@@ -1414,14 +1414,36 @@
         setStatus(currentStatus);
         document.getElementById('lastSync').textContent = new Date().toLocaleString();
 
-        // WebSocket
-        const wsUrl = window.location.hostname === 'localhost'
-            ? 'ws://localhost:8080'
-            : 'ws://72.62.253.231:8080';
-        window.wsClient = new SimpleWS(wsUrl);
-
+        // HTTP Polling (every 5 seconds)
+        const STATUS_URL = 'http://72.62.253.231:8080';
+        
+        async function checkServerStatus() {
+            try {
+                const response = await fetch(STATUS_URL, { method: 'GET', cache: 'no-cache' });
+                const statusEl = document.getElementById('connectionStatus');
+                if (statusEl) {
+                    if (response.ok) {
+                        statusEl.classList.add('connected');
+                        statusEl.innerHTML = '<span class="status-dot"></span><span>Connected</span>';
+                    } else {
+                        statusEl.classList.remove('connected');
+                        statusEl.innerHTML = '<span class="status-dot"></span><span>Disconnected</span>';
+                    }
+                }
+            } catch (e) {
+                const statusEl = document.getElementById('connectionStatus');
+                if (statusEl) {
+                    statusEl.classList.remove('connected');
+                    statusEl.innerHTML = '<span class="status-dot"></span><span>Disconnected</span>';
+                }
+            }
+        }
+        
+        // Poll every 5 seconds
+        setInterval(checkServerStatus, 5000);
+        
         // Expose APIs
-        window.setStatusViaWS = (status) => window.wsClient.send({ type: 'setStatus', status });
+        window.setStatusViaWS = (status) => { console.log('Status:', status); };
         window.taskCompleted = (title) => {
             addActivityLog(`✅ Task Completed: ${title}`, 'info');
             showToast(`Task completed: ${title}`, 'success');
