@@ -783,8 +783,8 @@
         .workflow-category.wm24 .category-title { color: #3498db; }
         .workflow-category.inventory .category-header { border-left: 3px solid #2ecc71; }
         .workflow-category.inventory .category-title { color: #2ecc71; }
-        .workflow-category.sync .category-header { border-left: 3px solid #9b59b6; }
-        .workflow-category.sync .category-title { color: #9b59b6; }
+        .workflow-category.utility .category-header { border-left: 3px solid #9b59b6; }
+        .workflow-category.utility .category-title { color: #9b59b6; }
         .workflow-category.other .category-header { border-left: 3px solid #95a5a6; }
         .workflow-category.other .category-title { color: #95a5a6; }
 
@@ -1190,135 +1190,27 @@
                     </div>
                 </div>
 
-                <!-- Workflow Triggers Panel -->
+                <!-- Workflow Triggers Panel (Dynamic) -->
                 <div class="workflow-triggers-panel" id="workflowTriggersPanel">
                     <div class="triggers-panel-header" onclick="toggleTriggersPanel()">
                         <div class="triggers-panel-title">
                             <span>🚀</span>
                             <span>Quick Workflow Triggers</span>
-                            <span id="totalWorkflowCount" style="font-size: 0.75rem; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 10px; color: #8892b0;">0 workflows</span>
+                            <span id="totalWorkflowCount" style="font-size: 0.75rem; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 10px; color: #8892b0;">Loading...</span>
                         </div>
                         <span class="triggers-panel-toggle" id="triggersPanelToggle">▼</span>
                     </div>
 
-                    <!-- Quick Access Row - Most Used -->
+                    <!-- Quick Access Row - Dynamically populated -->
                     <div class="quick-access-row" id="quickAccessRow">
-                        <button class="quick-access-btn" onclick="triggerWorkflow('wm19-retire-system-problem', 'WM19 Retire')">
-                            <span>🗑️</span> WM19 Retire
-                        </button>
-                        <button class="quick-access-btn" onclick="triggerWorkflow('wm24-full-sync-manual', 'WM24 Full Sync')">
-                            <span>🔄</span> WM24 Full Sync
-                        </button>
-                        <button class="quick-access-btn" onclick="triggerWorkflow('wm19-repricing', 'WM19 Repricing')">
-                            <span>💰</span> WM19 Repricing
-                        </button>
+                        <div style="color: #8892b0; font-size: 0.8rem;">Loading workflows...</div>
                     </div>
 
                     <div class="triggers-panel-body" id="triggersPanelBody">
-                        <!-- WM19 Category -->
-                        <div class="workflow-category wm19">
-                            <div class="category-header" onclick="toggleCategory('wm19')">
-                                <div class="category-title">
-                                    <span class="cat-icon">🏪</span>
-                                    <span>WM19 Workflows</span>
-                                    <span class="category-count" id="wm19Count">5</span>
-                                </div>
-                                <span class="category-toggle" id="wm19Toggle">▼</span>
-                            </div>
-                            <div class="category-workflows" id="wm19Workflows">
-                                <button class="trigger-btn" onclick="triggerWorkflow('wm19-retire-system-problem', 'WM19 Retire Products')">
-                                    <span class="trigger-icon">🗑️</span>
-                                    <div class="trigger-info">
-                                        <div class="trigger-name">Retire Products</div>
-                                        <div class="trigger-desc">Retire products by system problem</div>
-                                    </div>
-                                    <span class="trigger-arrow">→</span>
-                                </button>
-                                <button class="trigger-btn" onclick="triggerWorkflow('wm19-repricing', 'WM19 Repricing')">
-                                    <span class="trigger-icon">💰</span>
-                                    <div class="trigger-info">
-                                        <div class="trigger-name">Repricing</div>
-                                        <div class="trigger-desc">Update product prices</div>
-                                    </div>
-                                    <span class="trigger-arrow">→</span>
-                                </button>
-                                <button class="trigger-btn" onclick="triggerWorkflow('wm19-orders-sync', 'WM19 Orders Sync')">
-                                    <span class="trigger-icon">📦</span>
-                                    <div class="trigger-info">
-                                        <div class="trigger-name">Orders Sync</div>
-                                        <div class="trigger-desc">Sync order data</div>
-                                    </div>
-                                    <span class="trigger-arrow">→</span>
-                                </button>
-                                <button class="trigger-btn" onclick="triggerWorkflow('wm19-fc-check', 'WM19 FC Check')">
-                                    <span class="trigger-icon">🏭</span>
-                                    <div class="trigger-info">
-                                        <div class="trigger-name">FC Inventory Check</div>
-                                        <div class="trigger-desc">Check & set FC inventory</div>
-                                    </div>
-                                    <span class="trigger-arrow">→</span>
-                                </button>
-                                <button class="trigger-btn" onclick="triggerWorkflow('b1a4f472-72b8-4ea4-853a-0b510a3a0e1e', 'WM19 Inventory Monitor')">
-                                    <span class="trigger-icon">📊</span>
-                                    <div class="trigger-info">
-                                        <div class="trigger-name">Inventory Monitor RE-STOCK</div>
-                                        <div class="trigger-desc">Monitor and restock inventory</div>
-                                    </div>
-                                    <span class="trigger-arrow">→</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- WM24 Category -->
-                        <div class="workflow-category wm24">
-                            <div class="category-header" onclick="toggleCategory('wm24')">
-                                <div class="category-title">
-                                    <span class="cat-icon">🛒</span>
-                                    <span>WM24 Workflows</span>
-                                    <span class="category-count" id="wm24Count">1</span>
-                                </div>
-                                <span class="category-toggle" id="wm24Toggle">▼</span>
-                            </div>
-                            <div class="category-workflows" id="wm24Workflows">
-                                <button class="trigger-btn" onclick="triggerWorkflow('wm24-full-sync-manual', 'WM24 Full Sync')">
-                                    <span class="trigger-icon">🔄</span>
-                                    <div class="trigger-info">
-                                        <div class="trigger-name">Full Sync (Manual)</div>
-                                        <div class="trigger-desc">Manual full data sync v2</div>
-                                    </div>
-                                    <span class="trigger-arrow">→</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Inventory Category -->
-                        <div class="workflow-category inventory">
-                            <div class="category-header" onclick="toggleCategory('inventory')">
-                                <div class="category-title">
-                                    <span class="cat-icon">📦</span>
-                                    <span>Inventory</span>
-                                    <span class="category-count" id="inventoryCount">2</span>
-                                </div>
-                                <span class="category-toggle" id="inventoryToggle">▼</span>
-                            </div>
-                            <div class="category-workflows" id="inventoryWorkflows">
-                                <button class="trigger-btn" onclick="triggerWorkflow('wm19-fc-check', 'FC Inventory Check')">
-                                    <span class="trigger-icon">🏭</span>
-                                    <div class="trigger-info">
-                                        <div class="trigger-name">FC Inventory Check</div>
-                                        <div class="trigger-desc">Check fulfillment center stock</div>
-                                    </div>
-                                    <span class="trigger-arrow">→</span>
-                                </button>
-                                <button class="trigger-btn" onclick="triggerWorkflow('b1a4f472-72b8-4ea4-853a-0b510a3a0e1e', 'Inventory RE-STOCK')">
-                                    <span class="trigger-icon">📊</span>
-                                    <div class="trigger-info">
-                                        <div class="trigger-name">Inventory RE-STOCK</div>
-                                        <div class="trigger-desc">Monitor and restock levels</div>
-                                    </div>
-                                    <span class="trigger-arrow">→</span>
-                                </button>
-                            </div>
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #8892b0;">
+                            <div class="skeleton" style="height: 120px; margin-bottom: 16px; border-radius: 12px;"></div>
+                            <div class="skeleton" style="height: 120px; margin-bottom: 16px; border-radius: 12px;"></div>
+                            <div class="skeleton" style="height: 120px; border-radius: 12px;"></div>
                         </div>
                     </div>
                 </div>
@@ -1975,8 +1867,20 @@
         setInterval(saveToStorage, 30000);
 
         // ============================================
-        // Workflow Triggers Panel
+        // Workflow Triggers Panel (Dynamic from n8n)
         // ============================================
+        let allWorkflows = [];
+        let workflowsByTag = {};
+
+        // Tag configuration with colors and icons
+        const TAG_CONFIG = {
+            'WM19': { color: '#f39c12', icon: '🏪', cssClass: 'wm19' },
+            'WM24': { color: '#3498db', icon: '🛒', cssClass: 'wm24' },
+            'Inventory': { color: '#2ecc71', icon: '📦', cssClass: 'inventory' },
+            'Utility': { color: '#9b59b6', icon: '🔧', cssClass: 'utility' },
+            'Untagged': { color: '#95a5a6', icon: '📁', cssClass: 'other' }
+        };
+
         function toggleTriggersPanel() {
             const body = document.getElementById('triggersPanelBody');
             const toggle = document.getElementById('triggersPanelToggle');
@@ -1987,16 +1891,154 @@
         function toggleCategory(categoryId) {
             const workflows = document.getElementById(categoryId + 'Workflows');
             const toggle = document.getElementById(categoryId + 'Toggle');
-            workflows.classList.toggle('collapsed');
-            toggle.classList.toggle('collapsed');
+            if (workflows) workflows.classList.toggle('collapsed');
+            if (toggle) toggle.classList.toggle('collapsed');
+        }
+
+        // Load workflows and group by tags
+        async function loadWorkflowsWithTags() {
+            try {
+                const response = await fetch(`${N8N_API_BASE}?path=workflows`);
+                const data = await response.json();
+
+                if (data.error) throw new Error(data.error);
+
+                allWorkflows = data.data || [];
+
+                // Group by tag
+                workflowsByTag = {};
+                allWorkflows.forEach(wf => {
+                    const tagName = wf.tags && wf.tags.length > 0 ? wf.tags[0].name : 'Untagged';
+                    if (!workflowsByTag[tagName]) {
+                        workflowsByTag[tagName] = [];
+                    }
+                    // Find webhook path for this workflow
+                    const webhookNode = wf.nodes?.find(n => n.type === 'n8n-nodes-base.webhook' && !n.disabled);
+                    const webhookPath = webhookNode?.parameters?.path || null;
+
+                    workflowsByTag[tagName].push({
+                        id: wf.id,
+                        name: wf.name,
+                        active: wf.active,
+                        webhookPath: webhookPath
+                    });
+
+                    // Also update the name cache
+                    workflowCache[wf.id] = wf.name;
+                });
+
+                renderWorkflowTriggers();
+                updateWorkflowCounts();
+
+            } catch (e) {
+                console.error('Failed to load workflows:', e);
+                showToast('Failed to load workflows', 'error');
+            }
+        }
+
+        // Render workflow triggers dynamically
+        function renderWorkflowTriggers() {
+            const panelBody = document.getElementById('triggersPanelBody');
+            const quickAccess = document.getElementById('quickAccessRow');
+
+            if (!panelBody) return;
+
+            // Render categories
+            const tagOrder = ['WM19', 'WM24', 'Inventory', 'Utility', 'Untagged'];
+            let categoriesHtml = '';
+
+            tagOrder.forEach(tagName => {
+                const workflows = workflowsByTag[tagName];
+                if (!workflows || workflows.length === 0) return;
+
+                const config = TAG_CONFIG[tagName] || TAG_CONFIG['Untagged'];
+                const activeWorkflows = workflows.filter(wf => wf.active);
+                const inactiveWorkflows = workflows.filter(wf => !wf.active);
+
+                categoriesHtml += `
+                    <div class="workflow-category ${config.cssClass}">
+                        <div class="category-header" onclick="toggleCategory('${tagName.toLowerCase().replace(/\s/g, '')}')">
+                            <div class="category-title">
+                                <span class="cat-icon">${config.icon}</span>
+                                <span>${tagName}</span>
+                                <span class="category-count">${activeWorkflows.length}/${workflows.length}</span>
+                            </div>
+                            <span class="category-toggle" id="${tagName.toLowerCase().replace(/\s/g, '')}Toggle">▼</span>
+                        </div>
+                        <div class="category-workflows" id="${tagName.toLowerCase().replace(/\s/g, '')}Workflows">
+                            ${activeWorkflows.map(wf => renderWorkflowButton(wf, true)).join('')}
+                            ${inactiveWorkflows.length > 0 ? `
+                                <div style="font-size: 0.7rem; color: #5a6a8a; margin: 8px 0 4px; padding-left: 4px;">Inactive (${inactiveWorkflows.length})</div>
+                                ${inactiveWorkflows.map(wf => renderWorkflowButton(wf, false)).join('')}
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            panelBody.innerHTML = categoriesHtml;
+
+            // Update quick access with active workflows that have webhooks
+            if (quickAccess) {
+                const quickWorkflows = allWorkflows
+                    .filter(wf => wf.active && wf.nodes?.some(n => n.type === 'n8n-nodes-base.webhook' && !n.disabled))
+                    .slice(0, 5);
+
+                quickAccess.innerHTML = quickWorkflows.map(wf => {
+                    const webhookNode = wf.nodes.find(n => n.type === 'n8n-nodes-base.webhook' && !n.disabled);
+                    const webhookPath = webhookNode?.parameters?.path || wf.id;
+                    const tagConfig = TAG_CONFIG[wf.tags?.[0]?.name] || TAG_CONFIG['Untagged'];
+                    const shortName = wf.name.replace(/^(WM19|WM24|\[Inventory\])\s*[-:]\s*/i, '').substring(0, 20);
+
+                    return `
+                        <button class="quick-access-btn" onclick="triggerWorkflow('${webhookPath}', '${wf.name.replace(/'/g, "\\'")}')">
+                            <span>${tagConfig.icon}</span> ${shortName}
+                        </button>
+                    `;
+                }).join('');
+            }
+        }
+
+        function renderWorkflowButton(wf, isActive) {
+            const shortName = wf.name
+                .replace(/^(WM19|WM24|\[Inventory\])\s*[-:]\s*/i, '')
+                .replace(/\(.*?\)/g, '')
+                .trim();
+
+            const hasWebhook = !!wf.webhookPath;
+            const opacity = isActive ? '1' : '0.5';
+
+            if (!hasWebhook) {
+                return `
+                    <div class="trigger-btn" style="opacity: ${opacity}; cursor: default;" title="${wf.name} (No webhook trigger)">
+                        <span class="trigger-icon">📋</span>
+                        <div class="trigger-info">
+                            <div class="trigger-name">${shortName}</div>
+                            <div class="trigger-desc">${isActive ? 'Schedule/Manual only' : 'Inactive'}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <button class="trigger-btn" style="opacity: ${opacity};" onclick="triggerWorkflow('${wf.webhookPath}', '${wf.name.replace(/'/g, "\\'")}')" ${!isActive ? 'disabled' : ''}>
+                    <span class="trigger-icon">⚡</span>
+                    <div class="trigger-info">
+                        <div class="trigger-name">${shortName}</div>
+                        <div class="trigger-desc">${isActive ? 'Webhook trigger' : 'Inactive'}</div>
+                    </div>
+                    <span class="trigger-arrow">→</span>
+                </button>
+            `;
         }
 
         // Update total workflow count
         function updateWorkflowCounts() {
-            const totalCount = document.querySelectorAll('.workflow-category .trigger-btn').length;
+            const totalCount = allWorkflows.length;
+            const activeCount = allWorkflows.filter(wf => wf.active).length;
             const countEl = document.getElementById('totalWorkflowCount');
             if (countEl) {
-                countEl.textContent = `${totalCount} workflows`;
+                countEl.textContent = `${activeCount}/${totalCount} active`;
             }
         }
 
@@ -2044,19 +2086,10 @@
             return 'Just now';
         }
 
-        // Load workflows for name mapping
+        // Load workflows for name mapping (now uses loadWorkflowsWithTags)
         async function loadWorkflows() {
-            try {
-                const response = await fetch(`${N8N_API_BASE}?path=workflows`);
-                const data = await response.json();
-                if (data.data) {
-                    data.data.forEach(wf => {
-                        workflowCache[wf.id] = wf.name;
-                    });
-                }
-            } catch (e) {
-                console.error('Failed to load workflows:', e);
-            }
+            // This is now handled by loadWorkflowsWithTags which also updates workflowCache
+            await loadWorkflowsWithTags();
         }
 
         // Load executions
