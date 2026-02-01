@@ -1,5 +1,5 @@
-// Vercel Serverless Function - Daily Check-up Real-time API
-// Fetches real-time data directly from Walmart Marketplace API via n8n workflow
+// Vercel Serverless Function - Daily Check-up API
+// Returns cached data from Airtable (updated every 6 hours by scheduled n8n workflow)
 
 export default async function handler(req, res) {
     // CORS headers
@@ -15,7 +15,6 @@ export default async function handler(req, res) {
     const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
     const BASE_ID = 'appRCQASsApV4C33N';
     const TABLE_ID = 'tblo1uuy8Nc9CSjX4';
-    const N8N_WEBHOOK_URL = 'https://n8n.nuxec.com/webhook/daily-checkup-realtime';
 
     if (!AIRTABLE_API_KEY) {
         return res.status(500).json({ error: 'AIRTABLE_API_KEY not configured' });
@@ -65,6 +64,8 @@ export default async function handler(req, res) {
             'Daily Check Our Price',
             'Daily Check Lowest 3P Price',
             'Daily Check Is Winning',
+            // Cached data timestamp (updated by scheduled workflow)
+            'Daily Check Last Run',
         ];
 
         const airtableUrl = new URL(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}`);
@@ -91,71 +92,48 @@ export default async function handler(req, res) {
         const airtableData = await airtableResponse.json();
         const records = airtableData.records || [];
 
-        // Step 2: Prepare products for n8n webhook
-        const productsForN8n = records.map(record => ({
-            sku: record.fields.SKU,
-            store: record.fields.Store || 'WM19',
-            productId: record.fields['Product ID'],
-        }));
-
-        // Step 3: Call n8n webhook for real-time Walmart data
-        let realTimeData = null;
-        try {
-            const n8nResponse = await fetch(N8N_WEBHOOK_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ products: productsForN8n }),
-            });
-
-            if (n8nResponse.ok) {
-                realTimeData = await n8nResponse.json();
-            } else {
-                console.error('n8n webhook error:', await n8nResponse.text());
-            }
-        } catch (n8nError) {
-            console.error('n8n webhook call failed:', n8nError.message);
-        }
-
-        // Step 4: Merge Airtable data with real-time data
-        const realTimeMap = {};
-        if (realTimeData?.products) {
-            for (const p of realTimeData.products) {
-                realTimeMap[p.sku] = p.realTime;
+        // Find the most recent "Daily Check Last Run" timestamp across all records
+        let lastDataUpdate = null;
+        for (const record of records) {
+            const lastRun = record.fields['Daily Check Last Run'];
+            if (lastRun) {
+                const runDate = new Date(lastRun);
+                if (!lastDataUpdate || runDate > lastDataUpdate) {
+                    lastDataUpdate = runDate;
+                }
             }
         }
 
+        // Step 2: Process Airtable data (all data is cached from scheduled workflow)
         const products = records.map((record) => {
             const f = record.fields;
             const sku = f.SKU || '';
-            const realTime = realTimeMap[sku] || {};
 
             // Pricing data from Airtable
             const productCost = f['Product Cost'] || null;
             const ourSellingPrice = f['Approved Base Price'] || null;
             const declaredPrice = f['Declared Price'] || null;
 
-            // Real-time inventory from Walmart API
-            const defaultInventory = realTime.defaultInventory || 0;
-            const fcInventory = realTime.fcInventory || 0;
-            const totalInventory = realTime.totalInventory || Math.max(defaultInventory, fcInventory);
+            // Inventory from cached Airtable data (updated by scheduled workflow every 6 hours)
+            const cachedInventory = f['WM Inventory'] || 0;
+            // For now, we store total inventory; breakdown can be added to Airtable if needed
+            const defaultInventory = cachedInventory;
+            const fcInventory = 0; // FC inventory breakdown not stored separately yet
+            const totalInventory = cachedInventory;
 
-            // Publish status - prefer Airtable (already synced) if real-time is Unknown
-            let publishedStatus = realTime.publishedStatus;
-            if (!publishedStatus || publishedStatus === 'Unknown') {
-                const wmStatus = f['WM Publish Status'] || '';
-                if (wmStatus.includes('PUBLISHED') || wmStatus.includes('ACTIVE')) {
-                    publishedStatus = 'PUBLISHED';
-                } else if (wmStatus.includes('UNPUBLISHED') || wmStatus.includes('RETIRED')) {
-                    publishedStatus = 'UNPUBLISHED';
-                } else {
-                    publishedStatus = wmStatus || 'Unknown';
-                }
+            // Publish status from Airtable
+            const wmStatus = f['WM Publish Status'] || '';
+            let publishedStatus;
+            if (wmStatus.includes('PUBLISHED') || wmStatus.includes('ACTIVE')) {
+                publishedStatus = 'PUBLISHED';
+            } else if (wmStatus.includes('UNPUBLISHED') || wmStatus.includes('RETIRED')) {
+                publishedStatus = 'UNPUBLISHED';
+            } else {
+                publishedStatus = wmStatus || 'Unknown';
             }
 
-            // Walmart.com current price - from scrape data or real-time
-            const walmartPrice = realTime.walmartPrice || f['Scrape Current Price'] || f['Scrape Price'] || null;
+            // Walmart.com current price - from scrape data
+            const walmartPrice = f['Scrape Current Price'] || f['Scrape Price'] || null;
 
             // Calculate Margin using correct formula:
             // Margin = Our Selling Price - Product Cost - $4.5 shipping - (Our Selling Price * 10.5% platform fee)
@@ -220,7 +198,7 @@ export default async function handler(req, res) {
                 isWinning,
                 buyBoxSeller: f['Scrape Seller Name'] || 'Unknown',
                 // Product info
-                productName: realTime.productName || f.Title,
+                productName: f.Title,
                 brand: f['Scrape Brand'] || null,
                 rating: f['Scrape Rating'] || null,
                 reviewCount: f['Scrape Review Count'] || 0,
@@ -229,9 +207,9 @@ export default async function handler(req, res) {
                 // Links
                 supplierLink: f['Primary Supplier Link'] || null,
                 walmartUrl: f['Walmart Listing URL'] || `https://www.walmart.com/ip/${f['Product ID']}`,
-                // Timestamp
-                lastChecked: realTimeData?.timestamp || new Date().toISOString(),
-                isRealTime: totalInventory > 0 || (realTime.defaultInventory !== undefined),
+                // Timestamp - when this product's data was last updated by scheduled workflow
+                lastChecked: f['Daily Check Last Run'] || null,
+                isCached: true,
             };
         });
 
@@ -248,8 +226,10 @@ export default async function handler(req, res) {
             zeroInventory,
             totalSales7Day: products.reduce((sum, p) => sum + (p.sales7Day || 0), 0),
             totalSales3Day: products.reduce((sum, p) => sum + (p.sales3Day || 0), 0),
-            lastCheck: realTimeData?.timestamp || new Date().toISOString(),
-            isRealTime: !!realTimeData,
+            // Last data update from scheduled workflow (every 6 hours)
+            lastDataUpdate: lastDataUpdate ? lastDataUpdate.toISOString() : null,
+            dataSource: 'cached',
+            refreshInterval: '6 hours',
         };
 
         return res.status(200).json({
