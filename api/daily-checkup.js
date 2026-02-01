@@ -22,10 +22,11 @@ export default async function handler(req, res) {
 
     const { limit = '10', store } = req.query;
 
-    // Build filter formula - only WM19/WM24 Active products with sales
-    let filterFormula = "AND({Status}='Active', {7-Day Sales}>0, OR({Store}='WM19', {Store}='WM24'))";
+    // Build filter formula - only WM19/WM24 products with sales
+    // Note: Status is null for many records, so we just filter by store and sales
+    let filterFormula = "AND({7-Day Sales}>0, OR({Store}='WM19', {Store}='WM24'))";
     if (store && store !== 'all') {
-        filterFormula = `AND({Status}='Active', {7-Day Sales}>0, {Store}='${store}')`;
+        filterFormula = `AND({7-Day Sales}>0, {Store}='${store}')`;
     }
 
     // Build URL with fields
