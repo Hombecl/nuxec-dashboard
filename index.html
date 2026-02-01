@@ -1229,14 +1229,42 @@
                 `).join('');
                 showModal(guide.title, `<div style="margin-bottom: 12px; color: #8892b0;">${guide.note}</div>${stepsHtml}`);
             } else if (tool === 'partykit') {
-                showModal('🖥️ VPS WebSocket', `
-                    <div style="margin-bottom: 12px; color: #8892b0;">Connect dashboard to your VPS</div>
-                    <div style="margin-bottom: 16px;">
-                        <div style="color: #64ffda; font-weight: 600; margin-bottom: 6px;">SSH to VPS</div>
-                        <code style="display: block; background: #0d1117; padding: 10px; border-radius: 6px; color: #c9d1d9;">ssh user@YOUR_VPS_IP</code>
+                const steps = [
+                    { num: 1, title: 'SSH to VPS', cmd: 'ssh root@72.62.253.231', desc: 'Connect to your Hostinger VPS' },
+                    { num: 2, title: 'Navigate folder', cmd: 'cd /root/.openclaw/workspace/partykit-dashboard', desc: 'Go to the project folder' },
+                    { num: 3, title: 'Install WebSocket', cmd: 'npm install ws', desc: 'Install WebSocket library' },
+                    { num: 4, title: 'Edit IP (nano)', cmd: 'nano vps-server.js', desc: 'Edit file, change HOST to 72.62.253.231' },
+                    { num: 5, title: 'Start Server', cmd: 'node vps-server.js', desc: 'Start the WebSocket server' },
+                    { num: 6, title: 'Test Connection', cmd: 'curl http://72.62.253.231:8080', desc: 'Test if server is running' }
+                ];
+                
+                const stepsHtml = steps.map(s => `
+                    <div style="margin-bottom: 16px; background: rgba(255,255,255,0.02); border-radius: 10px; padding: 14px;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                            <span style="width: 24px; height: 24px; background: rgba(100,255,218,0.2); color: #64ffda; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600;">${s.num}</span>
+                            <span style="color: #ccd6f6; font-weight: 500;">${s.title}</span>
+                        </div>
+                        <div style="color: #8892b0; font-size: 0.8rem; margin-bottom: 8px;">${s.desc}</div>
+                        <div style="display: flex; gap: 8px;">
+                            <code style="flex:1; background: #0d1117; padding: 10px 14px; border-radius: 6px; font-size: 0.8rem; overflow-x: auto; color: #c9d1d9; font-family: monospace;">${s.cmd}</code>
+                            <button onclick="copyCommand('${s.cmd.replace(/'/g, "\'")}')" style="background: #238636; color: white; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">📋</button>
+                        </div>
                     </div>
-                    <div style="padding: 12px; background: rgba(255, 217, 61, 0.1); border: 1px solid #ffd93d; border-radius: 8px;">
-                        ⚠️ Replace YOUR_VPS_IP with actual IP
+                `).join('');
+                
+                showModal('🖥️ VPS WebSocket Setup <span style="color:#64ffda;">72.62.253.231</span>', `
+                    <div style="margin-bottom: 20px; padding: 14px; background: rgba(100,255,218,0.08); border: 1px solid rgba(100,255,218,0.2); border-radius: 10px;">
+                        <div style="color: #64ffda; font-weight: 500; margin-bottom: 4px;">Your VPS IP: 72.62.253.231</div>
+                        <div style="color: #8892b0; font-size: 0.85rem;">Follow these steps in Hostinger Terminal</div>
+                    </div>
+                    ${stepsHtml}
+                    <div style="margin-top: 20px; padding: 14px; background: rgba(255,217,61,0.08); border: 1px solid #ffd93d; border-radius: 10px;">
+                        <div style="color: #ffd93d; font-weight: 500; margin-bottom: 6px;">💡 Quick Tips</div>
+                        <div style="color: #8892b0; font-size: 0.8rem; line-height: 1.6;">
+                            • Step 4: Use arrow keys to move, delete old IP, type <strong style="color:#64ffda;">72.62.253.231</strong><br>
+                            • After editing: Press <strong style="color:#64ffda;">Ctrl+X</strong> → <strong style="color:#64ffda;">Y</strong> → <strong style="color:#64ffda;">Enter</strong><br>
+                            • Keep terminal open after Step 5 to keep server running
+                        </div>
                     </div>
                 `);
             } else {
