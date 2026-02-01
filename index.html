@@ -595,30 +595,198 @@
             color: #e74c3c;
         }
 
-        /* Quick Trigger Buttons */
-        .quick-triggers {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
+        /* Workflow Triggers Panel */
+        .workflow-triggers-panel {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            margin-bottom: 20px;
+            overflow: hidden;
         }
 
-        .trigger-btn {
+        .triggers-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
             background: rgba(100, 255, 218, 0.05);
-            border: 1px solid rgba(100, 255, 218, 0.3);
-            color: #64ffda;
-            padding: 10px 16px;
-            border-radius: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.3s;
+            transition: background 0.3s;
+        }
+        .triggers-panel-header:hover { background: rgba(100, 255, 218, 0.08); }
+
+        .triggers-panel-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #64ffda;
+        }
+
+        .triggers-panel-toggle {
+            font-size: 0.8rem;
+            color: #8892b0;
+            transition: transform 0.3s;
+        }
+        .triggers-panel-toggle.collapsed { transform: rotate(-90deg); }
+
+        .triggers-panel-body {
+            padding: 16px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        .triggers-panel-body.collapsed { display: none; }
+
+        /* Workflow Category */
+        .workflow-category {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            cursor: pointer;
+        }
+        .category-header:hover { background: rgba(255, 255, 255, 0.05); }
+
+        .category-title {
             display: flex;
             align-items: center;
             gap: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
         }
-        .trigger-btn:hover { background: rgba(100, 255, 218, 0.15); border-color: #64ffda; }
-        .trigger-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .trigger-btn .trigger-icon { font-size: 1.1rem; }
+        .category-title .cat-icon { font-size: 1rem; }
+
+        .category-count {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            color: #8892b0;
+        }
+
+        .category-toggle {
+            font-size: 0.7rem;
+            color: #5a6a8a;
+            transition: transform 0.2s;
+        }
+        .category-toggle.collapsed { transform: rotate(-90deg); }
+
+        .category-workflows {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .category-workflows.collapsed { display: none; }
+
+        /* Individual Trigger Button */
+        .trigger-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            color: #ccd6f6;
+            font-size: 0.8rem;
+        }
+        .trigger-btn:hover {
+            background: rgba(100, 255, 218, 0.1);
+            border-color: rgba(100, 255, 218, 0.3);
+            transform: translateX(4px);
+        }
+        .trigger-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .trigger-btn:active { transform: scale(0.98); }
+
+        .trigger-btn .trigger-icon {
+            font-size: 1rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .trigger-btn .trigger-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .trigger-btn .trigger-name {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .trigger-btn .trigger-desc {
+            font-size: 0.7rem;
+            color: #5a6a8a;
+            margin-top: 2px;
+        }
+
+        .trigger-btn .trigger-arrow {
+            color: #64ffda;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .trigger-btn:hover .trigger-arrow { opacity: 1; }
+
+        /* Quick Access Row */
+        .quick-access-row {
+            display: flex;
+            gap: 10px;
+            padding: 12px 16px;
+            background: rgba(100, 255, 218, 0.03);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            flex-wrap: wrap;
+        }
+
+        .quick-access-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: linear-gradient(135deg, rgba(100, 255, 218, 0.15) 0%, rgba(100, 255, 218, 0.05) 100%);
+            border: 1px solid rgba(100, 255, 218, 0.4);
+            border-radius: 20px;
+            cursor: pointer;
+            color: #64ffda;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .quick-access-btn:hover {
+            background: rgba(100, 255, 218, 0.25);
+            border-color: #64ffda;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(100, 255, 218, 0.2);
+        }
+        .quick-access-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* Category Colors */
+        .workflow-category.wm19 .category-header { border-left: 3px solid #f39c12; }
+        .workflow-category.wm19 .category-title { color: #f39c12; }
+        .workflow-category.wm24 .category-header { border-left: 3px solid #3498db; }
+        .workflow-category.wm24 .category-title { color: #3498db; }
+        .workflow-category.inventory .category-header { border-left: 3px solid #2ecc71; }
+        .workflow-category.inventory .category-title { color: #2ecc71; }
+        .workflow-category.sync .category-header { border-left: 3px solid #9b59b6; }
+        .workflow-category.sync .category-title { color: #9b59b6; }
+        .workflow-category.other .category-header { border-left: 3px solid #95a5a6; }
+        .workflow-category.other .category-title { color: #95a5a6; }
 
         /* Bottom Section */
         .bottom-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -1022,16 +1190,137 @@
                     </div>
                 </div>
 
-                <!-- Quick Trigger Buttons -->
-                <div class="quick-triggers" id="quickTriggers">
-                    <button class="trigger-btn" onclick="triggerWorkflow('wm19-retire-system-problem', 'WM19 Retire')">
-                        <span class="trigger-icon">🗑️</span>
-                        <span>WM19 Retire</span>
-                    </button>
-                    <button class="trigger-btn" onclick="triggerWorkflow('wm24-full-sync-manual', 'WM24 Full Sync')">
-                        <span class="trigger-icon">🔄</span>
-                        <span>WM24 Full Sync</span>
-                    </button>
+                <!-- Workflow Triggers Panel -->
+                <div class="workflow-triggers-panel" id="workflowTriggersPanel">
+                    <div class="triggers-panel-header" onclick="toggleTriggersPanel()">
+                        <div class="triggers-panel-title">
+                            <span>🚀</span>
+                            <span>Quick Workflow Triggers</span>
+                            <span id="totalWorkflowCount" style="font-size: 0.75rem; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 10px; color: #8892b0;">0 workflows</span>
+                        </div>
+                        <span class="triggers-panel-toggle" id="triggersPanelToggle">▼</span>
+                    </div>
+
+                    <!-- Quick Access Row - Most Used -->
+                    <div class="quick-access-row" id="quickAccessRow">
+                        <button class="quick-access-btn" onclick="triggerWorkflow('wm19-retire-system-problem', 'WM19 Retire')">
+                            <span>🗑️</span> WM19 Retire
+                        </button>
+                        <button class="quick-access-btn" onclick="triggerWorkflow('wm24-full-sync-manual', 'WM24 Full Sync')">
+                            <span>🔄</span> WM24 Full Sync
+                        </button>
+                        <button class="quick-access-btn" onclick="triggerWorkflow('wm19-repricing', 'WM19 Repricing')">
+                            <span>💰</span> WM19 Repricing
+                        </button>
+                    </div>
+
+                    <div class="triggers-panel-body" id="triggersPanelBody">
+                        <!-- WM19 Category -->
+                        <div class="workflow-category wm19">
+                            <div class="category-header" onclick="toggleCategory('wm19')">
+                                <div class="category-title">
+                                    <span class="cat-icon">🏪</span>
+                                    <span>WM19 Workflows</span>
+                                    <span class="category-count" id="wm19Count">5</span>
+                                </div>
+                                <span class="category-toggle" id="wm19Toggle">▼</span>
+                            </div>
+                            <div class="category-workflows" id="wm19Workflows">
+                                <button class="trigger-btn" onclick="triggerWorkflow('wm19-retire-system-problem', 'WM19 Retire Products')">
+                                    <span class="trigger-icon">🗑️</span>
+                                    <div class="trigger-info">
+                                        <div class="trigger-name">Retire Products</div>
+                                        <div class="trigger-desc">Retire products by system problem</div>
+                                    </div>
+                                    <span class="trigger-arrow">→</span>
+                                </button>
+                                <button class="trigger-btn" onclick="triggerWorkflow('wm19-repricing', 'WM19 Repricing')">
+                                    <span class="trigger-icon">💰</span>
+                                    <div class="trigger-info">
+                                        <div class="trigger-name">Repricing</div>
+                                        <div class="trigger-desc">Update product prices</div>
+                                    </div>
+                                    <span class="trigger-arrow">→</span>
+                                </button>
+                                <button class="trigger-btn" onclick="triggerWorkflow('wm19-orders-sync', 'WM19 Orders Sync')">
+                                    <span class="trigger-icon">📦</span>
+                                    <div class="trigger-info">
+                                        <div class="trigger-name">Orders Sync</div>
+                                        <div class="trigger-desc">Sync order data</div>
+                                    </div>
+                                    <span class="trigger-arrow">→</span>
+                                </button>
+                                <button class="trigger-btn" onclick="triggerWorkflow('wm19-fc-check', 'WM19 FC Check')">
+                                    <span class="trigger-icon">🏭</span>
+                                    <div class="trigger-info">
+                                        <div class="trigger-name">FC Inventory Check</div>
+                                        <div class="trigger-desc">Check & set FC inventory</div>
+                                    </div>
+                                    <span class="trigger-arrow">→</span>
+                                </button>
+                                <button class="trigger-btn" onclick="triggerWorkflow('b1a4f472-72b8-4ea4-853a-0b510a3a0e1e', 'WM19 Inventory Monitor')">
+                                    <span class="trigger-icon">📊</span>
+                                    <div class="trigger-info">
+                                        <div class="trigger-name">Inventory Monitor RE-STOCK</div>
+                                        <div class="trigger-desc">Monitor and restock inventory</div>
+                                    </div>
+                                    <span class="trigger-arrow">→</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- WM24 Category -->
+                        <div class="workflow-category wm24">
+                            <div class="category-header" onclick="toggleCategory('wm24')">
+                                <div class="category-title">
+                                    <span class="cat-icon">🛒</span>
+                                    <span>WM24 Workflows</span>
+                                    <span class="category-count" id="wm24Count">1</span>
+                                </div>
+                                <span class="category-toggle" id="wm24Toggle">▼</span>
+                            </div>
+                            <div class="category-workflows" id="wm24Workflows">
+                                <button class="trigger-btn" onclick="triggerWorkflow('wm24-full-sync-manual', 'WM24 Full Sync')">
+                                    <span class="trigger-icon">🔄</span>
+                                    <div class="trigger-info">
+                                        <div class="trigger-name">Full Sync (Manual)</div>
+                                        <div class="trigger-desc">Manual full data sync v2</div>
+                                    </div>
+                                    <span class="trigger-arrow">→</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Inventory Category -->
+                        <div class="workflow-category inventory">
+                            <div class="category-header" onclick="toggleCategory('inventory')">
+                                <div class="category-title">
+                                    <span class="cat-icon">📦</span>
+                                    <span>Inventory</span>
+                                    <span class="category-count" id="inventoryCount">2</span>
+                                </div>
+                                <span class="category-toggle" id="inventoryToggle">▼</span>
+                            </div>
+                            <div class="category-workflows" id="inventoryWorkflows">
+                                <button class="trigger-btn" onclick="triggerWorkflow('wm19-fc-check', 'FC Inventory Check')">
+                                    <span class="trigger-icon">🏭</span>
+                                    <div class="trigger-info">
+                                        <div class="trigger-name">FC Inventory Check</div>
+                                        <div class="trigger-desc">Check fulfillment center stock</div>
+                                    </div>
+                                    <span class="trigger-arrow">→</span>
+                                </button>
+                                <button class="trigger-btn" onclick="triggerWorkflow('b1a4f472-72b8-4ea4-853a-0b510a3a0e1e', 'Inventory RE-STOCK')">
+                                    <span class="trigger-icon">📊</span>
+                                    <div class="trigger-info">
+                                        <div class="trigger-name">Inventory RE-STOCK</div>
+                                        <div class="trigger-desc">Monitor and restock levels</div>
+                                    </div>
+                                    <span class="trigger-arrow">→</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Execution List -->
@@ -1686,6 +1975,32 @@
         setInterval(saveToStorage, 30000);
 
         // ============================================
+        // Workflow Triggers Panel
+        // ============================================
+        function toggleTriggersPanel() {
+            const body = document.getElementById('triggersPanelBody');
+            const toggle = document.getElementById('triggersPanelToggle');
+            body.classList.toggle('collapsed');
+            toggle.classList.toggle('collapsed');
+        }
+
+        function toggleCategory(categoryId) {
+            const workflows = document.getElementById(categoryId + 'Workflows');
+            const toggle = document.getElementById(categoryId + 'Toggle');
+            workflows.classList.toggle('collapsed');
+            toggle.classList.toggle('collapsed');
+        }
+
+        // Update total workflow count
+        function updateWorkflowCounts() {
+            const totalCount = document.querySelectorAll('.workflow-category .trigger-btn').length;
+            const countEl = document.getElementById('totalWorkflowCount');
+            if (countEl) {
+                countEl.textContent = `${totalCount} workflows`;
+            }
+        }
+
+        // ============================================
         // n8n Execution Monitor
         // ============================================
         const N8N_API_BASE = '/api/n8n';
@@ -1968,6 +2283,9 @@
 
         // Load n8n data on startup
         initN8nMonitor();
+
+        // Update workflow counts
+        updateWorkflowCounts();
 
         // Auto-refresh executions every 30 seconds
         setInterval(loadExecutions, 30000);
