@@ -29,12 +29,18 @@ export default async function handler(req, res) {
         filterFormula = `AND({7-Day Sales}>0, {Store}='${store}')`;
     }
 
-    // Build URL with fields
+    // Build URL with fields - includes both Daily Check and Scrape fields
     const fields = [
         'SKU',
         'Product ID',
         'Store',
         '7-Day Sales',
+        '3-Day Sales',
+        'Title',
+        'Walmart Listing URL',
+        'WM Publish Status',
+        'WM Inventory',
+        // Daily Check fields
         'Daily Check Our Rank',
         'Daily Check Our Price',
         'Daily Check Our Shipping',
@@ -43,9 +49,29 @@ export default async function handler(req, res) {
         'Daily Check Last Run',
         'Daily Check Lowest 3P Price',
         'Daily Check Price Diff',
+        'Daily Check Publish Status',
+        // Scrape fields (already populated by other workflows)
+        'Scrape Seller Name',
+        'Scrape Price',
+        'Scrape Shipping',
         'Scrape Total Sellers',
-        'Title',
-        'Walmart Listing URL'
+        'Scrape 3P Seller Count',
+        'Scrape Price 3P',
+        'Scrape Availability Status',
+        'Scrape Delivery',
+        'Scrape Last Date',
+        'Scrape Rating',
+        'Scrape Review Count',
+        'Scrape Brand',
+        'Scrape Low Stock Message',
+        'Scrape Out of Stock',
+        'Scrape Current Price',
+        'Scrape Shipping Fee',
+        'Scrape Total Price',
+        // Cost and margin
+        'Product Cost',
+        'Approved Base Price',
+        'Margin%',
     ];
 
     const url = new URL(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}`);
@@ -86,9 +112,30 @@ export default async function handler(req, res) {
                 sellers = [];
             }
 
-            const ourPrice = f['Daily Check Our Price'] || null;
-            const ourShipping = f['Daily Check Our Shipping'] || 0;
+            // Use Daily Check data if available, fall back to Scrape data
+            const ourPrice = f['Daily Check Our Price'] || f['Scrape Price'] || null;
+            const ourShipping = f['Daily Check Our Shipping'] || f['Scrape Shipping Fee'] || 0;
             const ourTotal = ourPrice ? ourPrice + ourShipping : null;
+            const totalSellers = f['Scrape Total Sellers'] || sellers.length || 1;
+            const thirdPartySellers = f['Scrape 3P Seller Count'] || 0;
+
+            // Determine publish/availability status
+            let publishStatus = f['Daily Check Publish Status'] || 'Unknown';
+            if (publishStatus === 'Unknown' && f['WM Publish Status']) {
+                publishStatus = f['WM Publish Status'].includes('ACTIVE') ? 'Published' : f['WM Publish Status'];
+            }
+            if (f['Scrape Out of Stock']) {
+                publishStatus = 'Out of Stock';
+            } else if (f['Scrape Availability Status'] === 'OUT_OF_STOCK') {
+                publishStatus = 'Out of Stock';
+            }
+
+            // Determine if we're competitive (winning)
+            const lowest3P = f['Daily Check Lowest 3P Price'] || f['Scrape Price 3P'] || null;
+            let isWinning = f['Daily Check Is Winning'] || false;
+            if (!isWinning && ourPrice && lowest3P) {
+                isWinning = ourPrice <= lowest3P;
+            }
 
             return {
                 id: record.id,
@@ -97,26 +144,59 @@ export default async function handler(req, res) {
                 title: f.Title || f.SKU || 'Unknown Product',
                 store: f.Store || 'Unknown',
                 sales7Day: f['7-Day Sales'] || 0,
-                ourRank: f['Daily Check Our Rank'] || null,
-                ourPrice: f['Daily Check Our Price'] || null,
-                ourShipping: f['Daily Check Our Shipping'] || null,
+                sales3Day: f['3-Day Sales'] || 0,
+                // Pricing
+                ourPrice,
+                ourShipping,
                 ourTotal,
-                isWinning: f['Daily Check Is Winning'] || false,
-                lowest3PPrice: f['Daily Check Lowest 3P Price'] || null,
-                priceDiff: f['Daily Check Price Diff'] || null,
-                totalSellers: f['Scrape Total Sellers'] || sellers.length,
-                lastCheck: f['Daily Check Last Run'] || null,
+                productCost: f['Product Cost'] || null,
+                approvedPrice: f['Approved Base Price'] || null,
+                marginPercent: f['Margin%'] || null,
+                // Competition
+                ourRank: f['Daily Check Our Rank'] || null,
+                isWinning,
+                lowest3PPrice: lowest3P,
+                priceDiff: f['Daily Check Price Diff'] || (ourPrice && lowest3P ? ourPrice - lowest3P : null),
+                totalSellers,
+                thirdPartySellers,
+                // Scrape data
+                scrapeSellerName: f['Scrape Seller Name'] || 'Unknown',
+                scrapePrice: f['Scrape Current Price'] || f['Scrape Price'] || null,
+                scrapeShipping: f['Scrape Shipping Fee'] || 0,
+                scrapeTotal: f['Scrape Total Price'] || null,
+                // Status
+                publishStatus,
+                inventory: f['WM Inventory'] || 0,
+                availability: f['Scrape Availability Status'] || 'Unknown',
+                lowStockWarning: f['Scrape Low Stock Message'] || null,
+                // Product info
+                rating: f['Scrape Rating'] || null,
+                reviewCount: f['Scrape Review Count'] || 0,
+                brand: f['Scrape Brand'] || null,
+                hasDelivery: f['Scrape Delivery'] || false,
+                // Timestamps
+                lastCheck: f['Daily Check Last Run'] || f['Scrape Last Date'] || null,
                 sellers,
                 walmartUrl: f['Walmart Listing URL'] || `https://www.walmart.com/ip/${f['Product ID']}`,
             };
         });
 
         // Calculate summary stats
+        const published = products.filter(p => p.publishStatus === 'Published' || p.publishStatus?.includes('ACTIVE'));
+        const outOfStock = products.filter(p => p.publishStatus === 'Out of Stock' || p.availability === 'OUT_OF_STOCK');
+        const withCompetitors = products.filter(p => p.thirdPartySellers > 0);
+        const winning = products.filter(p => p.isWinning);
+
         const summary = {
             totalProducts: products.length,
-            winning: products.filter(p => p.isWinning).length,
-            losing: products.filter(p => !p.isWinning && p.ourRank !== null).length,
-            notFound: products.filter(p => p.ourRank === null).length,
+            published: published.length,
+            outOfStock: outOfStock.length,
+            withCompetitors: withCompetitors.length,
+            winning: winning.length,
+            losing: products.filter(p => !p.isWinning && p.lowest3PPrice !== null).length,
+            noCompetitorData: products.filter(p => p.thirdPartySellers === 0 && !p.lowest3PPrice).length,
+            totalSales7Day: products.reduce((sum, p) => sum + (p.sales7Day || 0), 0),
+            totalSales3Day: products.reduce((sum, p) => sum + (p.sales3Day || 0), 0),
             lastCheck: products[0]?.lastCheck || null,
         };
 
