@@ -3,1485 +3,972 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nuxec Dashboard - Orland v3.0</title>
-    <meta name="description" content="AI Assistant Dashboard for task management and monitoring">
+    <title>Nuxec Dashboard v4.0</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: #0d1117;
             min-height: 100vh;
-            color: #fff;
-            overflow-x: hidden;
+            color: #e6edf3;
         }
 
-        /* Layout */
-        .app-container { display: flex; min-height: 100vh; }
+        /* ===== LAYOUT ===== */
+        .app { display: flex; min-height: 100vh; }
 
-        /* Left Sidebar */
+        /* ===== SIDEBAR - Compact & Clean ===== */
         .sidebar {
-            width: 260px;
-            background: #0d1117;
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 0;
+            width: 220px;
+            background: #161b22;
+            border-right: 1px solid #30363d;
             display: flex;
             flex-direction: column;
             position: fixed;
             left: 0; top: 0; bottom: 0;
             z-index: 100;
         }
-        .sidebar.collapsed { width: 70px; }
 
-        .sidebar-toggle {
-            position: absolute;
-            right: -12px; top: 20px;
-            width: 24px; height: 24px;
-            background: #64ffda;
-            border-radius: 50%;
-            border: none;
-            cursor: pointer;
-            font-size: 0.7rem;
-            color: #1a1a2e;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-        }
-
-        /* Profile Section */
-        .profile-section {
-            text-align: center;
-            padding: 25px 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .avatar {
-            width: 80px; height: 80px;
-            border-radius: 50%;
-            margin: 0 auto 12px;
-            border: 3px solid rgba(100, 255, 218, 0.4);
-            overflow: hidden;
-            position: relative;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .avatar-photo {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-size: cover;
-            background-position: center;
-            transition: opacity 0.3s;
-        }
-
-        .avatar-photo.idle {
-            background-image: url('https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=200&h=200&fit=crop&crop=face');
-            opacity: 1;
-        }
-        .avatar-photo.active {
-            background-image: url('https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=face');
-            opacity: 0;
-        }
-
-        .avatar[data-status="running"] .avatar-photo.idle,
-        .avatar[data-status="thinking"] .avatar-photo.idle,
-        .avatar[data-status="searching"] .avatar-photo.idle,
-        .avatar[data-status="coding"] .avatar-photo.idle { opacity: 0; }
-        .avatar[data-status="running"] .avatar-photo.active,
-        .avatar[data-status="thinking"] .avatar-photo.active,
-        .avatar[data-status="searching"] .avatar-photo.active,
-        .avatar[data-status="coding"] .avatar-photo.active { opacity: 1; }
-
-        .avatar[data-status="thinking"] { border-color: #9b59b6; }
-        .avatar[data-status="searching"] { border-color: #3498db; }
-        .avatar[data-status="coding"] { border-color: #2ecc71; }
-        .avatar[data-status="running"] { border-color: #6bcb77; }
-        .avatar[data-status="error"] { border-color: #e74c3c; }
-        .avatar[data-status="waiting"] { border-color: #f39c12; }
-
-        .avatar-name {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #ccd6f6;
-            margin-bottom: 10px;
-        }
-
-        .status-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-
-        .status-chip[data-status="idle"] { background: rgba(255, 217, 61, 0.15); color: #ffd93d; border: 1px solid #ffd93d; }
-        .status-chip[data-status="running"] { background: rgba(107, 203, 119, 0.15); color: #6bcb77; border: 1px solid #6bcb77; }
-        .status-chip[data-status="thinking"] { background: rgba(155, 89, 182, 0.15); color: #9b59b6; border: 1px solid #9b59b6; }
-        .status-chip[data-status="searching"] { background: rgba(52, 152, 219, 0.15); color: #3498db; border: 1px solid #3498db; }
-        .status-chip[data-status="coding"] { background: rgba(46, 204, 113, 0.15); color: #2ecc71; border: 1px solid #2ecc71; }
-        .status-chip[data-status="error"] { background: rgba(231, 76, 60, 0.15); color: #e74c3c; border: 1px solid #e74c3c; }
-        .status-chip[data-status="waiting"] { background: rgba(243, 156, 18, 0.15); color: #f39c12; border: 1px solid #f39c12; }
-
-        .status-dot {
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: currentColor;
-            animation: pulse-dot 1.5s infinite;
-        }
-
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(1.2); }
-        }
-
-        /* Thought Log */
-        .thought-log {
-            background: rgba(155, 89, 182, 0.1);
-            border: 1px solid rgba(155, 89, 182, 0.3);
-            border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 15px;
-            max-height: 120px;
-            overflow-y: auto;
-        }
-        .thought-header {
-            font-size: 0.75rem;
-            color: #9b59b6;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-        .thought-step {
-            font-size: 0.8rem;
-            color: #ccc;
-            padding: 4px 0;
-            border-left: 2px solid #9b59b6;
-            padding-left: 10px;
-            margin-bottom: 4px;
-        }
-        .thought-step:last-child { color: #fff; }
-
-        /* Quick Tools Section */
-        .quick-tools-section { margin-bottom: 20px; }
-
-        .section-label {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            color: #8892b0;
-            margin-bottom: 10px;
-            letter-spacing: 1px;
-        }
-
-        .tool-btn {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 12px 15px;
-            margin-bottom: 8px;
-            cursor: pointer;
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid #30363d;
             display: flex;
             align-items: center;
             gap: 12px;
-            color: #fff;
-            font-size: 0.9rem;
-            transition: all 0.3s;
+        }
+
+        .logo {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, #58a6ff 0%, #8b5cf6 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .brand { font-weight: 600; font-size: 1rem; color: #fff; }
+
+        /* Nav Items */
+        .nav-section {
+            padding: 12px 8px;
+            border-bottom: 1px solid #30363d;
+        }
+
+        .nav-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            color: #8b949e;
+            padding: 0 8px;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: #8b949e;
+            text-decoration: none;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            border: none;
+            background: none;
+            width: 100%;
             text-align: left;
         }
-        .tool-btn:hover, .tool-btn:focus {
-            background: rgba(100, 255, 218, 0.1);
-            border-color: rgba(100, 255, 218, 0.3);
-            outline: none;
+
+        .nav-item:hover { background: #21262d; color: #e6edf3; }
+        .nav-item.active { background: rgba(88, 166, 255, 0.15); color: #58a6ff; }
+        .nav-item .icon { font-size: 1rem; width: 20px; text-align: center; }
+        .nav-item .badge {
+            margin-left: auto;
+            background: #30363d;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7rem;
         }
-        .tool-btn .icon { font-size: 1.2rem; }
-        .tool-btn .label { flex: 1; }
+        .nav-item .badge.error { background: #f85149; color: #fff; }
+        .nav-item .badge.warning { background: #d29922; color: #fff; }
 
-        .sidebar.collapsed .tool-btn .label,
-        .sidebar.collapsed .section-label,
-        .sidebar.collapsed .sync-info,
-        .sidebar.collapsed .thought-log,
-        .sidebar.collapsed .logout-btn { display: none; }
-        .sidebar.collapsed .tool-btn { justify-content: center; padding: 12px; }
-
-        .sidebar-bottom {
+        /* Status Footer */
+        .sidebar-footer {
             margin-top: auto;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-top: 1px solid #30363d;
         }
 
-        .sync-info {
-            color: #8892b0;
-            font-size: 0.8rem;
-            margin-bottom: 12px;
-            text-align: center;
-        }
-        .sync-time { color: #64ffda; font-weight: 500; }
-
-        .connection-status {
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            background: #21262d;
+            border-radius: 6px;
             font-size: 0.75rem;
-            text-align: center;
-            margin-bottom: 10px;
-            padding: 6px;
+        }
+
+        .status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #3fb950;
+        }
+        .status-dot.error { background: #f85149; animation: pulse 1.5s infinite; }
+        .status-dot.warning { background: #d29922; }
+        .status-dot.offline { background: #8b949e; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main {
+            flex: 1;
+            margin-left: 220px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ===== TOP BAR - n8n Status (Compact) ===== */
+        .top-bar {
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .n8n-status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .status-summary {
+            display: flex;
+            gap: 16px;
+            font-size: 0.8rem;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: #21262d;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .status-item:hover { background: #30363d; }
+        .status-item.has-issues { background: rgba(248, 81, 73, 0.2); color: #f85149; }
+        .status-item.has-issues:hover { background: rgba(248, 81, 73, 0.3); }
+        .status-item .count { font-weight: 600; }
+
+        .top-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #8b949e;
+            width: 32px; height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+        .btn-icon:hover { background: #30363d; color: #e6edf3; }
+
+        /* ===== CONTENT AREA ===== */
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        /* ===== ALERT BANNER (Only shows when errors) ===== */
+        .alert-banner {
+            display: none;
+            background: linear-gradient(90deg, rgba(248, 81, 73, 0.15) 0%, rgba(248, 81, 73, 0.05) 100%);
+            border: 1px solid #f85149;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            align-items: center;
+            gap: 12px;
+        }
+        .alert-banner.visible { display: flex; }
+        .alert-banner .alert-icon { font-size: 1.2rem; }
+        .alert-banner .alert-text { flex: 1; font-size: 0.85rem; }
+        .alert-banner .alert-action {
+            background: #f85149;
+            color: #fff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        /* ===== KANBAN BOARD ===== */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .kanban-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .kanban-column {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 12px;
+            min-height: 200px;
+        }
+
+        .col-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #30363d;
+        }
+
+        .col-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .col-title.todo { color: #d29922; }
+        .col-title.progress { color: #58a6ff; }
+        .col-title.done { color: #3fb950; }
+        .col-title.archive { color: #8b949e; }
+
+        .col-count {
+            background: #30363d;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+        }
+
+        .task-card {
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            border-left: 3px solid transparent;
+        }
+        .task-card:hover { border-color: #58a6ff; background: #262c36; }
+        .kanban-column:nth-child(1) .task-card { border-left-color: #d29922; }
+        .kanban-column:nth-child(2) .task-card { border-left-color: #58a6ff; }
+        .kanban-column:nth-child(3) .task-card { border-left-color: #3fb950; }
+        .kanban-column:nth-child(4) .task-card { border-left-color: #8b949e; opacity: 0.7; }
+
+        .task-title { font-size: 0.85rem; margin-bottom: 4px; }
+        .task-date { font-size: 0.7rem; color: #8b949e; }
+
+        /* ===== QUICK ACTIONS GRID ===== */
+        .quick-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .quick-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .quick-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .quick-card-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quick-card-badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: #30363d;
+        }
+
+        /* Workflow Triggers - Compact Pills */
+        .trigger-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .trigger-pill {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 10px;
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            color: #8b949e;
+        }
+        .trigger-pill:hover { background: #30363d; color: #e6edf3; border-color: #58a6ff; }
+        .trigger-pill:disabled { opacity: 0.5; cursor: not-allowed; }
+        .trigger-pill.wm19 { border-color: #d29922; }
+        .trigger-pill.wm19:hover { background: rgba(210, 153, 34, 0.2); color: #d29922; }
+        .trigger-pill.wm24 { border-color: #58a6ff; }
+        .trigger-pill.wm24:hover { background: rgba(88, 166, 255, 0.2); color: #58a6ff; }
+        .trigger-pill.inventory { border-color: #3fb950; }
+        .trigger-pill.inventory:hover { background: rgba(63, 185, 80, 0.2); color: #3fb950; }
+
+        .more-triggers {
+            color: #58a6ff;
+            font-size: 0.75rem;
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+        .more-triggers:hover { text-decoration: underline; }
+
+        /* Executions - Compact List */
+        .exec-list {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .exec-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+            border-bottom: 1px solid #21262d;
+            font-size: 0.75rem;
+        }
+        .exec-item:last-child { border-bottom: none; }
+
+        .exec-status {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+        }
+        .exec-status.success { background: #3fb950; }
+        .exec-status.error { background: #f85149; }
+        .exec-status.running { background: #d29922; animation: pulse 1s infinite; }
+
+        .exec-name {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #8b949e;
+        }
+        .exec-item.error .exec-name { color: #f85149; }
+
+        .exec-time { color: #8b949e; font-size: 0.7rem; }
+
+        /* Notes - Compact */
+        .notes-list { max-height: 150px; overflow-y: auto; }
+        .note-item {
+            padding: 8px 10px;
+            background: #21262d;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            font-size: 0.8rem;
+            border-left: 2px solid #58a6ff;
+        }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h2 { font-size: 1rem; }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #8b949e;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            max-height: calc(80vh - 60px);
+        }
+
+        .modal-section {
+            background: #21262d;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+        .modal-section h4 { color: #58a6ff; margin-bottom: 10px; font-size: 0.85rem; }
+
+        /* Execution Detail Modal */
+        .exec-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .exec-detail-item {
+            background: #21262d;
+            padding: 12px;
             border-radius: 6px;
         }
-        .connection-status.connected { background: rgba(46, 204, 113, 0.2); color: #2ecc71; }
-        .connection-status.disconnected { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
+        .exec-detail-label { font-size: 0.7rem; color: #8b949e; margin-bottom: 4px; }
+        .exec-detail-value { font-size: 0.9rem; font-weight: 500; }
 
-        .logout-btn {
-            width: 100%;
-            background: rgba(255, 107, 107, 0.1);
-            border: 1px solid #ff6b6b;
-            color: #ff6b6b;
-            padding: 10px 16px;
-            border-radius: 8px;
+        /* All Workflows Modal */
+        .workflow-group {
+            margin-bottom: 16px;
+        }
+        .workflow-group-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 8px 12px;
+            background: #21262d;
+            border-radius: 6px 6px 0 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .workflow-group-title.wm19 { border-left: 3px solid #d29922; }
+        .workflow-group-title.wm24 { border-left: 3px solid #58a6ff; }
+        .workflow-group-title.inventory { border-left: 3px solid #3fb950; }
+        .workflow-group-title.utility { border-left: 3px solid #8b5cf6; }
+
+        .workflow-list {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            padding: 8px;
+        }
+
+        .workflow-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.3s;
+            transition: all 0.15s;
         }
-        .logout-btn:hover { background: #ff6b6b; color: #fff; }
+        .workflow-item:hover { background: #21262d; }
+        .workflow-item.inactive { opacity: 0.5; }
+        .workflow-item .wf-icon { font-size: 0.9rem; }
+        .workflow-item .wf-name { flex: 1; font-size: 0.8rem; }
+        .workflow-item .wf-status {
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+        .workflow-item .wf-status.active { background: rgba(63, 185, 80, 0.2); color: #3fb950; }
+        .workflow-item .wf-status.inactive { background: #30363d; color: #8b949e; }
 
-
-        /* Daily Quote */
-        .daily-quote-section {
-            margin-bottom: 25px;
-        }
-        .quote-container {
-            background: linear-gradient(135deg, rgba(100, 255, 218, 0.08) 0%, rgba(102, 126, 234, 0.08) 100%);
-            border: 1px solid rgba(100, 255, 218, 0.15);
-            border-radius: 16px;
-            padding: 25px 30px;
-            text-align: center;
-        }
-        .quote-icon {
-            font-size: 2rem;
-            margin-bottom: 15px;
-        }
-        .quote-text {
-            font-size: 1.1rem;
-            color: #ccd6f6;
-            line-height: 1.6;
-            font-style: italic;
-            margin-bottom: 12px;
-        }
-        .quote-author {
-            font-size: 0.85rem;
-            color: #64ffda;
-            font-weight: 500;
-        }
-        .quote-date {
-            font-size: 0.75rem;
-            color: #5a6a8a;
-            margin-top: 15px;
-        }
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            margin-left: 260px;
-            padding: 25px;
-            transition: margin-left 0.3s;
-        }
-        .sidebar.collapsed ~ .main-content { margin-left: 70px; }
-
-        /* Error Toast */
+        /* Toast */
         .toast-container {
             position: fixed;
             top: 20px; right: 20px;
             z-index: 2000;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
         }
         .toast {
-            padding: 14px 20px;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
             animation: slideIn 0.3s ease;
-            max-width: 350px;
         }
-        .toast.success { background: rgba(46, 204, 113, 0.95); color: #fff; }
-        .toast.error { background: rgba(231, 76, 60, 0.95); color: #fff; }
-        .toast.warning { background: rgba(243, 156, 18, 0.95); color: #fff; }
-        .toast.info { background: rgba(52, 152, 219, 0.95); color: #fff; }
+        .toast.success { background: #238636; color: #fff; }
+        .toast.error { background: #da3633; color: #fff; }
+        .toast.info { background: #1f6feb; color: #fff; }
 
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
 
-        /* Task Board */
-        .kanban-section { margin-bottom: 35px; }
-
-        .section-header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 18px;
-        }
-        .section-title { font-size: 1.3rem; font-weight: 600; }
-
-        .kanban-board {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-        }
-
-        .kanban-column {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 14px;
-            padding: 16px;
-            min-height: 280px;
-        }
-
-        .kanban-col-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .kanban-col-title {
-            font-size: 0.9rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .kanban-col-count {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-        }
-
-        .kanban-column.todo .kanban-col-title { color: #ffd93d; }
-        .kanban-column.inprogress .kanban-col-title { color: #6bcb77; }
-        .kanban-column.done .kanban-col-title { color: #4d96ff; }
-        .kanban-column.archive .kanban-col-title { color: #8892b0; }
-
-        .kanban-card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            padding: 14px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            border-left: 4px solid;
-            transition: all 0.3s;
-        }
-        .kanban-card:hover, .kanban-card:focus {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-            outline: none;
-        }
-
-        .kanban-column.todo .kanban-card { border-left-color: #ffd93d; }
-        .kanban-column.inprogress .kanban-card { border-left-color: #6bcb77; }
-        .kanban-column.done .kanban-card { border-left-color: #4d96ff; }
-        .kanban-column.archive .kanban-card { border-left-color: #8892b0; opacity: 0.6; }
-
-        .kanban-card-title { font-size: 0.9rem; margin-bottom: 6px; font-weight: 500; }
-        .kanban-card-date { font-size: 0.75rem; color: #64ffda; }
-
-        /* Deliverables Section */
-        .deliverables-section { margin-bottom: 35px; }
-
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 12px;
-        }
-
-        .metric-card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: 1px solid transparent;
-        }
-        .metric-card:hover, .metric-card:focus {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(100, 255, 218, 0.3);
-            outline: none;
-        }
-
-        .metric-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .metric-name { font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
-        .metric-count {
-            background: rgba(100, 255, 218, 0.1);
-            color: #64ffda;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        .metric-items { font-size: 0.75rem; color: #8892b0; }
-        .metric-item { padding: 4px 0; display: flex; align-items: center; gap: 6px; }
-        .metric-item-dot { width: 4px; height: 4px; background: #64ffda; border-radius: 50%; }
-
-        /* n8n Execution Monitor */
-        .n8n-section { margin-bottom: 35px; }
-
-        .n8n-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 18px;
-        }
-
-        .n8n-controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .n8n-refresh-btn {
-            background: rgba(100, 255, 218, 0.1);
-            border: 1px solid #64ffda;
-            color: #64ffda;
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .n8n-refresh-btn:hover { background: #64ffda; color: #1a1a2e; }
-        .n8n-refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .n8n-refresh-btn.loading .icon { animation: spin 1s linear infinite; }
-
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-        .n8n-filter {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #fff;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-        }
-
-        .execution-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-height: 400px;
-            overflow-y: auto;
-            padding-right: 8px;
-        }
-
-        /* Custom scrollbar for execution list */
-        .execution-list::-webkit-scrollbar {
-            width: 6px;
-        }
-        .execution-list::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 3px;
-        }
-        .execution-list::-webkit-scrollbar-thumb {
-            background: rgba(100, 255, 218, 0.3);
-            border-radius: 3px;
-        }
-        .execution-list::-webkit-scrollbar-thumb:hover {
-            background: rgba(100, 255, 218, 0.5);
-        }
-
-        .execution-card {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 12px;
-            padding: 16px;
-            border-left: 4px solid;
-            display: grid;
-            grid-template-columns: 1fr auto auto;
-            gap: 16px;
-            align-items: center;
-            transition: all 0.3s;
-        }
-        .execution-card:hover { background: rgba(255, 255, 255, 0.06); }
-
-        .execution-card.success { border-left-color: #2ecc71; }
-        .execution-card.error { border-left-color: #e74c3c; }
-        .execution-card.running { border-left-color: #f39c12; animation: pulse-border 2s infinite; }
-        .execution-card.waiting { border-left-color: #3498db; }
-        .execution-card.canceled { border-left-color: #95a5a6; }
-
-        @keyframes pulse-border {
-            0%, 100% { border-left-color: #f39c12; }
-            50% { border-left-color: #e67e22; }
-        }
-
-        .execution-info { min-width: 0; }
-        .execution-workflow {
-            font-weight: 600;
-            font-size: 0.95rem;
-            margin-bottom: 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .execution-meta {
-            display: flex;
-            gap: 16px;
-            font-size: 0.8rem;
-            color: #8892b0;
-            flex-wrap: wrap;
-        }
-        .execution-meta span { display: flex; align-items: center; gap: 4px; }
-
-        .execution-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            white-space: nowrap;
-        }
-        .execution-status.success { background: rgba(46, 204, 113, 0.2); color: #2ecc71; }
-        .execution-status.error { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
-        .execution-status.running { background: rgba(243, 156, 18, 0.2); color: #f39c12; }
-        .execution-status.waiting { background: rgba(52, 152, 219, 0.2); color: #3498db; }
-        .execution-status.canceled { background: rgba(149, 165, 166, 0.2); color: #95a5a6; }
-
-        .execution-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .exec-action-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #fff;
-            padding: 8px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: all 0.3s;
-        }
-        .exec-action-btn:hover { background: rgba(255, 255, 255, 0.1); }
-        .exec-action-btn.stop { border-color: #e74c3c; color: #e74c3c; }
-        .exec-action-btn.stop:hover { background: #e74c3c; color: #fff; }
-        .exec-action-btn.retry { border-color: #3498db; color: #3498db; }
-        .exec-action-btn.retry:hover { background: #3498db; color: #fff; }
-
-        .duration-warning { color: #e74c3c !important; font-weight: 600; }
-
-        .n8n-loading {
-            text-align: center;
-            padding: 40px;
-            color: #8892b0;
-        }
-
-        .n8n-error {
-            text-align: center;
-            padding: 20px;
-            background: rgba(231, 76, 60, 0.1);
-            border: 1px solid #e74c3c;
-            border-radius: 12px;
-            color: #e74c3c;
-        }
-
-        /* Workflow Triggers Panel */
-        .workflow-triggers-panel {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 14px;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
-
-        .triggers-panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px 18px;
-            background: rgba(100, 255, 218, 0.05);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .triggers-panel-header:hover { background: rgba(100, 255, 218, 0.08); }
-
-        .triggers-panel-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #64ffda;
-        }
-
-        .triggers-panel-toggle {
-            font-size: 0.8rem;
-            color: #8892b0;
-            transition: transform 0.3s;
-        }
-        .triggers-panel-toggle.collapsed { transform: rotate(-90deg); }
-
-        .triggers-panel-body {
-            padding: 16px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 16px;
-        }
-        .triggers-panel-body.collapsed { display: none; }
-
-        /* Workflow Category */
-        .workflow-category {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .category-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 14px;
-            background: rgba(255, 255, 255, 0.02);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            cursor: pointer;
-        }
-        .category-header:hover { background: rgba(255, 255, 255, 0.05); }
-
-        .category-title {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-        .category-title .cat-icon { font-size: 1rem; }
-
-        .category-count {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.7rem;
-            color: #8892b0;
-        }
-
-        .category-toggle {
-            font-size: 0.7rem;
-            color: #5a6a8a;
-            transition: transform 0.2s;
-        }
-        .category-toggle.collapsed { transform: rotate(-90deg); }
-
-        .category-workflows {
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .category-workflows.collapsed { display: none; }
-
-        /* Individual Trigger Button */
-        .trigger-btn {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 14px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: left;
-            color: #ccd6f6;
-            font-size: 0.8rem;
-        }
-        .trigger-btn:hover {
-            background: rgba(100, 255, 218, 0.1);
-            border-color: rgba(100, 255, 218, 0.3);
-            transform: translateX(4px);
-        }
-        .trigger-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        .trigger-btn:active { transform: scale(0.98); }
-
-        .trigger-btn .trigger-icon {
-            font-size: 1rem;
-            width: 24px;
-            text-align: center;
-        }
-
-        .trigger-btn .trigger-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .trigger-btn .trigger-name {
-            font-weight: 500;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .trigger-btn .trigger-desc {
-            font-size: 0.7rem;
-            color: #5a6a8a;
-            margin-top: 2px;
-        }
-
-        .trigger-btn .trigger-arrow {
-            color: #64ffda;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        .trigger-btn:hover .trigger-arrow { opacity: 1; }
-
-        /* Quick Access Row */
-        .quick-access-row {
-            display: flex;
-            gap: 10px;
-            padding: 12px 16px;
-            background: rgba(100, 255, 218, 0.03);
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
-            flex-wrap: wrap;
-        }
-
-        .quick-access-btn {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 14px;
-            background: linear-gradient(135deg, rgba(100, 255, 218, 0.15) 0%, rgba(100, 255, 218, 0.05) 100%);
-            border: 1px solid rgba(100, 255, 218, 0.4);
-            border-radius: 20px;
-            cursor: pointer;
-            color: #64ffda;
-            font-size: 0.8rem;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        .quick-access-btn:hover {
-            background: rgba(100, 255, 218, 0.25);
-            border-color: #64ffda;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(100, 255, 218, 0.2);
-        }
-        .quick-access-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
-
-        /* Category Colors */
-        .workflow-category.wm19 .category-header { border-left: 3px solid #f39c12; }
-        .workflow-category.wm19 .category-title { color: #f39c12; }
-        .workflow-category.wm24 .category-header { border-left: 3px solid #3498db; }
-        .workflow-category.wm24 .category-title { color: #3498db; }
-        .workflow-category.inventory .category-header { border-left: 3px solid #2ecc71; }
-        .workflow-category.inventory .category-title { color: #2ecc71; }
-        .workflow-category.utility .category-header { border-left: 3px solid #9b59b6; }
-        .workflow-category.utility .category-title { color: #9b59b6; }
-        .workflow-category.other .category-header { border-left: 3px solid #95a5a6; }
-        .workflow-category.other .category-title { color: #95a5a6; }
-
-        /* Bottom Section */
-        .bottom-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-
-        .bottom-column {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 14px;
-            padding: 18px;
-        }
-
-        .column-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .column-title { font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-
-        .add-btn-small {
-            background: rgba(100, 255, 218, 0.1);
-            border: 1px solid #64ffda;
-            color: #64ffda;
-            width: 28px; height: 28px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-        }
-        .add-btn-small:hover { background: #64ffda; color: #1a1a2e; }
-
-        .note-item, .action-item {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 10px;
-            font-size: 0.85rem;
-            border-left: 3px solid;
-        }
-        .note-item { border-left-color: #4d96ff; }
-        .action-item { border-left-color: #6bcb77; }
-        .action-item.error { border-left-color: #e74c3c; }
-        .action-item.warning { border-left-color: #f39c12; }
-
-        .item-time { color: #8892b0; font-size: 0.75rem; margin-top: 6px; }
-
-        /* Modal */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 1000;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        .modal-overlay.active { display: flex; justify-content: center; align-items: flex-start; }
-
-        .modal {
-            background: #1a1a2e;
-            border-radius: 14px;
-            max-width: 550px;
-            width: 100%;
-            margin-top: 40px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .modal-header {
-            padding: 18px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .modal-header h2 { font-size: 1.1rem; }
-        .modal-close {
-            background: none;
-            border: none;
-            color: #8892b0;
-            font-size: 1.4rem;
-            cursor: pointer;
-        }
-        .modal-body { padding: 18px; }
-
-        .modal-section {
-            background: rgba(100, 255, 218, 0.05);
-            border-radius: 8px;
-            padding: 14px;
-            margin-bottom: 14px;
-        }
-        .modal-section h4 { color: #64ffda; margin-bottom: 10px; font-size: 0.85rem; }
-
-        .instruction-step { display: flex; gap: 10px; margin-bottom: 8px; font-size: 0.85rem; }
-        .step-num {
-            background: #64ffda;
-            color: #1a1a2e;
-            width: 18px; height: 18px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.65rem;
-            font-weight: bold;
-            flex-shrink: 0;
-        }
-
-        .action-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: #238636;
-            color: #fff;
-            padding: 8px 14px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 0.8rem;
-            margin: 4px;
-            transition: all 0.3s;
-        }
-        .action-link:hover { background: #2ea043; transform: translateY(-2px); }
-        .action-link.secondary { background: #1f6feb; }
-
-        .pull-refresh-indicator {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            height: 0;
-            background: linear-gradient(135deg, #64ffda 0%, #4d96ff 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: #1a1a2e;
-            z-index: 1000;
-            transition: height 0.3s;
-        }
-        .pull-refresh-indicator.active { height: 50px; }
-
-        /* Loading Skeleton */
-        .skeleton {
-            background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
-            background-size: 200% 100%;
-            animation: skeleton-loading 1.5s infinite;
-            border-radius: 6px;
-        }
-        @keyframes skeleton-loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #21262d; }
+        ::-webkit-scrollbar-thumb { background: #484f58; border-radius: 3px; }
 
         /* Responsive */
-        @media (max-width: 1100px) {
-            .sidebar { width: 240px; }
-            .main-content { margin-left: 240px; }
+        @media (max-width: 1200px) {
             .kanban-board { grid-template-columns: repeat(2, 1fr); }
+            .quick-grid { grid-template-columns: repeat(2, 1fr); }
         }
-
         @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); width: 240px !important; }
-            .sidebar.mobile-open { transform: translateX(0); }
-            .main-content { margin-left: 0; }
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; }
             .kanban-board { grid-template-columns: 1fr; }
-            .bottom-section { grid-template-columns: 1fr; }
-            .metrics-grid { grid-template-columns: repeat(2, 1fr); }
-            .mobile-menu-btn { display: flex !important; }
+            .quick-grid { grid-template-columns: 1fr; }
         }
-
-        .mobile-menu-btn {
-            display: none;
-            position: fixed;
-            top: 15px; left: 15px;
-            z-index: 200;
-            background: #64ffda;
-            border: none;
-            border-radius: 8px;
-            padding: 10px 15px;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-
-        /* Skip to content for accessibility */
-        .skip-link {
-            position: absolute;
-            top: -40px; left: 0;
-            background: #64ffda;
-            color: #1a1a2e;
-            padding: 8px;
-            z-index: 9999;
-        }
-        .skip-link:focus { top: 0; }
     </style>
 </head>
 <body>
-    <a href="#main-content" class="skip-link">Skip to main content</a>
-    <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Toggle menu">☰ Menu</button>
+    <div class="toast-container" id="toastContainer"></div>
 
-    <div class="pull-refresh-indicator" id="pullRefreshIndicator" role="status" aria-live="polite">🔄 Release to refresh...</div>
-
-    <!-- Toast Container -->
-    <div class="toast-container" id="toastContainer" role="alert" aria-live="assertive"></div>
-
-    <div class="app-container">
-        <!-- Left Sidebar -->
-        <aside class="sidebar" id="sidebar" role="complementary" aria-label="Sidebar">
-            <!-- Profile Section -->
-            <div class="profile-section">
-                <div class="avatar" id="avatar" data-status="running">
-                    <div class="avatar-photo idle"></div>
-                    <div class="avatar-photo active"></div>
-                </div>
-                <div class="avatar-name">Orland</div>
-                <div class="status-chip running" id="statusChip" data-status="running">
-                    <span class="status-dot"></span>
-                    <span class="status-text" id="statusText">Running</span>
-                </div>
+    <div class="app">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">🚀</div>
+                <span class="brand">Nuxec</span>
             </div>
 
-            <!-- Quick Links -->
-            <div class="quick-links">
-                <a href="https://nuxec-dashboard.vercel.app" class="quick-link" target="_blank">
+            <nav class="nav-section">
+                <div class="nav-label">Main</div>
+                <button class="nav-item active" onclick="showSection('dashboard')">
                     <span class="icon">📊</span>
-                    <span class="label">Dashboard</span>
+                    <span>Dashboard</span>
+                </button>
+                <button class="nav-item" onclick="showSection('workflows')">
+                    <span class="icon">⚡</span>
+                    <span>Workflows</span>
+                    <span class="badge" id="workflowBadge">-</span>
+                </button>
+                <button class="nav-item" onclick="showSection('executions')">
+                    <span class="icon">📋</span>
+                    <span>Executions</span>
+                    <span class="badge" id="execBadge">-</span>
+                </button>
+            </nav>
+
+            <nav class="nav-section">
+                <div class="nav-label">Quick Links</div>
+                <a class="nav-item" href="https://n8n.nuxec.com" target="_blank">
+                    <span class="icon">🔗</span>
+                    <span>n8n Backend</span>
                 </a>
-                <a href="https://github.com/Hombecl/nuxec-dashboard" class="quick-link" target="_blank">
+                <a class="nav-item" href="https://github.com/Hombecl/nuxec-dashboard" target="_blank">
                     <span class="icon">📦</span>
-                    <span class="label">GitHub</span>
+                    <span>GitHub</span>
                 </a>
-            </div>
+            </nav>
 
-            <!-- Tools -->
-            <div class="tools-section">
-                <div class="section-header">Tools</div>
-                <button class="tool-btn" onclick="openQuickTool('partykit')">
-                    <span class="icon">🖥️</span>
-                    <span class="label">VPS WebSocket</span>
-                </button>
-                <button class="tool-btn" onclick="openQuickTool('code')">
-                    <span class="icon">💻</span>
-                    <span class="label">Code Snippets</span>
-                </button>
-                <button class="tool-btn" onclick="openQuickTool('notes')">
-                    <span class="icon">📝</span>
-                    <span class="label">Quick Notes</span>
-                </button>
-            </div>
-
-            <!-- Setup -->
-            <div class="tools-section">
-                <div class="section-header">Setup</div>
-                <button class="tool-btn" onclick="openQuickTool('install-browser')">
-                    <span class="icon">🌐</span>
-                    <span class="label">Browser</span>
-                </button>
-                <button class="tool-btn" onclick="openQuickTool('install-search')">
-                    <span class="icon">🔍</span>
-                    <span class="label">Web Search</span>
-                </button>
-                <button class="tool-btn" onclick="openQuickTool('install-screenshot')">
-                    <span class="icon">📸</span>
-                    <span class="label">Screenshot</span>
-                </button>
-            </div>
-
-            <!-- Bottom -->
             <div class="sidebar-footer">
-                <div class="connection-status disconnected" id="connectionStatus">
-                    <span class="status-dot"></span>
-                    <span>WebSocket: Disconnected</span>
+                <div class="status-indicator">
+                    <span class="status-dot" id="connectionDot"></span>
+                    <span id="connectionText">Checking...</span>
                 </div>
             </div>
-        </aside>        
-            <!-- Daily Motivation -->
-            <section class="daily-quote-section">
-                <div class="quote-container">
-                    <div class="quote-icon">💡</div>
-                    <div class="quote-text">"Stay hungry, stay foolish."</div>
-                    <div class="quote-author">— Steve Jobs</div>
-                    <div class="quote-date">Daily Motivation · February 01, 2026</div>
-                </div>
-            </section>
-<!-- Main Content -->
-        <main class="main-content" id="main-content" role="main">
-            <!-- Task Board -->
-            <section class="kanban-section" aria-labelledby="taskBoardTitle">
-                <div class="section-header-row">
-                    <span class="section-title" id="taskBoardTitle">📋 Task Board</span>
-                </div>
+        </aside>
 
-                <div class="kanban-board" role="region" aria-label="Kanban board">
-                    <div class="kanban-column todo">
-                        <div class="kanban-col-header">
-                            <span class="kanban-col-title">📌 To Do <span class="kanban-col-count" id="todoCount">0</span></span>
+        <!-- Main -->
+        <main class="main">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <div class="n8n-status">
+                    <span style="font-size: 0.85rem; font-weight: 500;">n8n Status:</span>
+                    <div class="status-summary" id="statusSummary">
+                        <div class="status-item" onclick="filterExecutions('running')">
+                            <span>🟡</span>
+                            <span class="count" id="runningCount">0</span>
+                            <span>Running</span>
                         </div>
-                        <div id="todoList" role="list"></div>
-                    </div>
-
-                    <div class="kanban-column inprogress">
-                        <div class="kanban-col-header">
-                            <span class="kanban-col-title">🔄 In Progress <span class="kanban-col-count" id="progressCount">0</span></span>
+                        <div class="status-item" id="errorStatusItem" onclick="filterExecutions('error')">
+                            <span>🔴</span>
+                            <span class="count" id="errorCount">0</span>
+                            <span>Errors</span>
                         </div>
-                        <div id="progressList" role="list"></div>
-                    </div>
-
-                    <div class="kanban-column done">
-                        <div class="kanban-col-header">
-                            <span class="kanban-col-title">✅ Done <span class="kanban-col-count" id="doneCount">0</span></span>
-                        </div>
-                        <div id="doneList" role="list"></div>
-                    </div>
-
-                    <div class="kanban-column archive">
-                        <div class="kanban-col-header">
-                            <span class="kanban-col-title">📦 Archive <span class="kanban-col-count" id="archiveCount">0</span></span>
-                        </div>
-                        <div id="archiveList" role="list"></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Deliverables -->
-            <section class="deliverables-section" aria-labelledby="deliverablesTitle">
-                <div class="section-header-row">
-                    <span class="section-title" id="deliverablesTitle">📊 Deliverables</span>
-                </div>
-
-                <div class="metrics-grid">
-                    <div class="metric-card" onclick="showDeliverable('ecommerce')" tabindex="0" role="button">
-                        <div class="metric-header">
-                            <span class="metric-name">🛒 E-Commerce</span>
-                            <span class="metric-count">3</span>
-                        </div>
-                        <div class="metric-items">
-                            <div class="metric-item"><span class="metric-item-dot"></span> Walmart Scraper</div>
-                            <div class="metric-item"><span class="metric-item-dot"></span> Subscription Tracker</div>
-                            <div class="metric-item"><span class="metric-item-dot"></span> Bank Statement Analyzer</div>
-                        </div>
-                    </div>
-
-                    <div class="metric-card" onclick="showDeliverable('nen')" tabindex="0" role="button">
-                        <div class="metric-header">
-                            <span class="metric-name">⚡ NEN Workflow</span>
-                            <span class="metric-count">2</span>
-                        </div>
-                        <div class="metric-items">
-                            <div class="metric-item"><span class="metric-item-dot"></span> Daily Summary</div>
-                            <div class="metric-item"><span class="metric-item-dot"></span> Task Automation</div>
-                        </div>
-                    </div>
-
-                    <div class="metric-card" onclick="showDeliverable('upwork')" tabindex="0" role="button">
-                        <div class="metric-header">
-                            <span class="metric-name">💼 Upwork</span>
-                            <span class="metric-count">1</span>
-                        </div>
-                        <div class="metric-items">
-                            <div class="metric-item"><span class="metric-item-dot"></span> GMC Service Website</div>
-                        </div>
-                    </div>
-
-                    <div class="metric-card" onclick="showDeliverable('security')" tabindex="0" role="button">
-                        <div class="metric-header">
-                            <span class="metric-name">🔐 Security Audit</span>
-                            <span class="metric-count">0</span>
-                        </div>
-                        <div class="metric-items">
-                            <div class="metric-item"><span class="metric-item-dot"></span> Pending setup</div>
-                        </div>
-                    </div>
-
-                    <div class="metric-card" onclick="showDeliverable('dashboard')" tabindex="0" role="button">
-                        <div class="metric-header">
-                            <span class="metric-name">🚀 Dashboard</span>
-                            <span class="metric-count">v3.0</span>
-                        </div>
-                        <div class="metric-items">
-                            <div class="metric-item"><span class="metric-item-dot"></span> Enhanced Status</div>
-                            <div class="metric-item"><span class="metric-item-dot"></span> Persistence</div>
+                        <div class="status-item" onclick="filterExecutions('success')">
+                            <span>🟢</span>
+                            <span class="count" id="successCount">0</span>
+                            <span>Success</span>
                         </div>
                     </div>
                 </div>
-            </section>
+                <div class="top-actions">
+                    <button class="btn-icon" onclick="loadAllData()" title="Refresh">🔄</button>
+                    <button class="btn-icon" onclick="showAllExecutions()" title="View All Executions">📋</button>
+                </div>
+            </div>
 
-            <!-- n8n Execution Monitor -->
-            <section class="n8n-section" aria-labelledby="n8nTitle">
-                <div class="n8n-header">
-                    <span class="section-title" id="n8nTitle">⚡ n8n Execution Monitor <span id="executionCount" style="font-size: 0.75rem; background: rgba(100, 255, 218, 0.15); color: #64ffda; padding: 3px 10px; border-radius: 12px; margin-left: 8px;">-</span></span>
-                    <div class="n8n-controls">
-                        <select class="n8n-filter" id="executionFilter" onchange="loadExecutions()">
-                            <option value="">All Status</option>
-                            <option value="running">🟡 Running</option>
-                            <option value="success">✅ Success</option>
-                            <option value="error">❌ Error</option>
-                            <option value="waiting">⏳ Waiting</option>
-                        </select>
-                        <button class="n8n-refresh-btn" id="refreshBtn" onclick="loadExecutions()">
-                            <span class="icon">🔄</span>
-                            <span>Refresh</span>
-                        </button>
-                    </div>
+            <!-- Content -->
+            <div class="content">
+                <!-- Alert Banner (Hidden by default) -->
+                <div class="alert-banner" id="alertBanner">
+                    <span class="alert-icon">⚠️</span>
+                    <span class="alert-text" id="alertText">3 workflows have errors in the last hour</span>
+                    <button class="alert-action" onclick="showAllExecutions('error')">View Errors</button>
                 </div>
 
-                <!-- Workflow Triggers Panel (Dynamic) -->
-                <div class="workflow-triggers-panel" id="workflowTriggersPanel">
-                    <div class="triggers-panel-header" onclick="toggleTriggersPanel()">
-                        <div class="triggers-panel-title">
-                            <span>🚀</span>
-                            <span>Quick Workflow Triggers</span>
-                            <span id="totalWorkflowCount" style="font-size: 0.75rem; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 10px; color: #8892b0;">Loading...</span>
+                <!-- Kanban Board -->
+                <section>
+                    <div class="section-header">
+                        <span class="section-title">📋 Task Board</span>
+                    </div>
+                    <div class="kanban-board" id="kanbanBoard">
+                        <div class="kanban-column">
+                            <div class="col-header">
+                                <span class="col-title todo">📌 To Do</span>
+                                <span class="col-count" id="todoCount">0</span>
+                            </div>
+                            <div id="todoList"></div>
                         </div>
-                        <span class="triggers-panel-toggle" id="triggersPanelToggle">▼</span>
-                    </div>
-
-                    <!-- Quick Access Row - Dynamically populated -->
-                    <div class="quick-access-row" id="quickAccessRow">
-                        <div style="color: #8892b0; font-size: 0.8rem;">Loading workflows...</div>
-                    </div>
-
-                    <div class="triggers-panel-body" id="triggersPanelBody">
-                        <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #8892b0;">
-                            <div class="skeleton" style="height: 120px; margin-bottom: 16px; border-radius: 12px;"></div>
-                            <div class="skeleton" style="height: 120px; margin-bottom: 16px; border-radius: 12px;"></div>
-                            <div class="skeleton" style="height: 120px; border-radius: 12px;"></div>
+                        <div class="kanban-column">
+                            <div class="col-header">
+                                <span class="col-title progress">🔄 In Progress</span>
+                                <span class="col-count" id="progressCount">0</span>
+                            </div>
+                            <div id="progressList"></div>
+                        </div>
+                        <div class="kanban-column">
+                            <div class="col-header">
+                                <span class="col-title done">✅ Done</span>
+                                <span class="col-count" id="doneCount">0</span>
+                            </div>
+                            <div id="doneList"></div>
+                        </div>
+                        <div class="kanban-column">
+                            <div class="col-header">
+                                <span class="col-title archive">📦 Archive</span>
+                                <span class="col-count" id="archiveCount">0</span>
+                            </div>
+                            <div id="archiveList"></div>
                         </div>
                     </div>
-                </div>
+                </section>
 
-                <!-- Execution List -->
-                <div class="execution-list" id="executionList">
-                    <div class="n8n-loading">
-                        <div class="skeleton" style="height: 80px; margin-bottom: 10px;"></div>
-                        <div class="skeleton" style="height: 80px; margin-bottom: 10px;"></div>
-                        <div class="skeleton" style="height: 80px;"></div>
+                <!-- Quick Actions Grid -->
+                <div class="quick-grid">
+                    <!-- Quick Triggers -->
+                    <div class="quick-card">
+                        <div class="quick-card-header">
+                            <span class="quick-card-title">⚡ Quick Triggers</span>
+                            <span class="more-triggers" onclick="showAllWorkflows()">View All</span>
+                        </div>
+                        <div class="trigger-pills" id="triggerPills">
+                            <span style="color: #8b949e; font-size: 0.75rem;">Loading...</span>
+                        </div>
                     </div>
-                </div>
-            </section>
 
-            <!-- Bottom Section -->
-            <section class="bottom-section">
-                <div class="bottom-column">
-                    <div class="column-header">
-                        <span class="column-title">📝 Notes</span>
-                        <button class="add-btn-small" onclick="addNote()" aria-label="Add note">+</button>
+                    <!-- Recent Executions -->
+                    <div class="quick-card">
+                        <div class="quick-card-header">
+                            <span class="quick-card-title">📋 Recent Executions</span>
+                            <span class="quick-card-badge" id="recentExecCount">-</span>
+                        </div>
+                        <div class="exec-list" id="recentExecList">
+                            <span style="color: #8b949e; font-size: 0.75rem;">Loading...</span>
+                        </div>
                     </div>
-                    <div id="notesList" role="list"></div>
-                </div>
 
-                <div class="bottom-column">
-                    <div class="column-header">
-                        <span class="column-title">📜 Activity Log</span>
-                        <button class="add-btn-small" onclick="clearActivityLog()" aria-label="Clear log" style="background: rgba(255, 107, 107, 0.1); border-color: #ff6b6b; color: #ff6b6b;">×</button>
-                    </div>
-                    <div id="actionLog" role="log" aria-live="polite"></div>
-                    <div class="add-action-form">
-                        <input type="text" id="newActionInput" placeholder="Add action or command..." 
-                               onkeypress="if(event.key==='Enter')addManualAction()">
-                        <button onclick="addManualAction()">+</button>
+                    <!-- Notes -->
+                    <div class="quick-card">
+                        <div class="quick-card-header">
+                            <span class="quick-card-title">📝 Notes</span>
+                            <button class="btn-icon" onclick="addNote()" style="width: 24px; height: 24px; font-size: 0.8rem;">+</button>
+                        </div>
+                        <div class="notes-list" id="notesList"></div>
                     </div>
                 </div>
-            </section>
+            </div>
         </main>
     </div>
 
-    <!-- Task Modal -->
-    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
         <div class="modal" onclick="event.stopPropagation()">
             <div class="modal-header">
-                <h2 id="modalTitle">Task Details</h2>
-                <button class="modal-close" onclick="closeModal()" aria-label="Close modal">×</button>
+                <h2 id="modalTitle">Modal Title</h2>
+                <button class="modal-close" onclick="closeModal()">×</button>
             </div>
             <div class="modal-body" id="modalBody"></div>
         </div>
     </div>
 
     <script>
-        // ============================================
-        // Enhanced Status System (7 States)
-        // ============================================
-        const STATUS = {
-            IDLE: { key: 'idle', label: 'Idle', icon: '😴' },
-            THINKING: { key: 'thinking', label: 'Thinking...', icon: '🤔' },
-            SEARCHING: { key: 'searching', label: 'Searching...', icon: '🔍' },
-            CODING: { key: 'coding', label: 'Coding...', icon: '💻' },
-            RUNNING: { key: 'running', label: 'Running', icon: '⚡' },
-            ERROR: { key: 'error', label: 'Error', icon: '❌' },
-            WAITING: { key: 'waiting', label: 'Waiting...', icon: '⏳' }
-        };
+        // ===== STATE =====
+        const N8N_API = '/api/n8n';
+        const N8N_WEBHOOK = '/api/n8n-webhook';
 
-        let currentStatus = STATUS.IDLE;
-
-        // ============================================
-        // Default Data
-        // ============================================
-        const defaultTasks = [
-            { id: 1, title: "Setup nuxec-dashboard", date: "2026-01-30", status: "done", instructions: [{step:1,text:"Done!"}], links: [{text:"Dashboard",url:"https://nuxec-dashboard.vercel.app"}] },
-            { id: 2, title: "Build Dashboard UI v2", date: "2026-01-31", status: "done", instructions: [{step:1,text:"Done!"}], links: [{text:"View",url:"https://nuxec-dashboard.vercel.app"}] },
-            { id: 3, title: "Walmart Scraper Development", date: "2026-01-31", status: "inprogress", instructions: [{step:1,text:"Download from GitHub"}, {step:2,text:"Run locally"}], links: [{text:"View Script",url:"https://github.com/Hombecl/nuxec-dashboard/blob/main/walmart-scraper.js"}] },
-            { id: 4, title: "Subscription Email Scanner", date: "2026-01-31", status: "inprogress", instructions: [{step:1,text:"Go to Google Apps Script"}, {step:2,text:"Run findSubscriptions()"}], links: [{text:"Run Scanner",url:"https://script.google.com/home"}] },
-            { id: 5, title: "Private Repo Setup", date: "2026-01-31", status: "done", instructions: [{step:1,text:"Done!"}], links: [{text:"Private Repo",url:"https://github.com/Hombecl/nuxec-sensitive"}] },
-            { id: 6, title: "Bank Statement Analyzer", date: "2026-02-02", status: "todo", instructions: [{step:1,text:"Upload statements"}, {step:2,text:"Tell Orland"}], links: [] },
-            { id: 7, title: "Daily Summary Automation", date: "2026-02-01", status: "todo", instructions: [{step:1,text:"Orland will send daily summary"}], links: [] },
-            { id: 8, title: "GMC Service Website", date: "2026-02-02", status: "inprogress", instructions: [{step:1,text:"Nuxt 3 website created"}, {step:2,text:"Deploy to Vercel"}], links: [{text:"View Repo",url:"https://github.com/Hombecl/gmc-service-website"}] }
-        ];
-
-        const defaultNotes = [
-            { id: 1, text: "Complete GMC website by Feb 5", time: "Jan 31" }
-        ];
-
-        // ============================================
-        // State (Loaded from localStorage)
-        // ============================================
+        let allWorkflows = [];
+        let workflowsByTag = {};
+        let workflowCache = {};
+        let executions = [];
         let tasks = [];
         let notes = [];
-        let activityLogs = [];
-        let thoughtLogs = [];
 
-        // ============================================
-        // localStorage Persistence
-        // ============================================
-        const STORAGE_KEYS = {
-            TASKS: 'nuxec-tasks',
-            NOTES: 'nuxec-notes',
-            ACTIVITY: 'nuxec-activity',
-            THOUGHTS: 'nuxec-thoughts',
-            STATUS: 'nuxec-status'
-        };
+        // Default data
+        const defaultTasks = [
+            { id: 1, title: "Setup nuxec-dashboard", date: "2026-01-30", status: "done" },
+            { id: 2, title: "Build Dashboard UI v4", date: "2026-02-01", status: "done" },
+            { id: 3, title: "Walmart Scraper Development", date: "2026-01-31", status: "inprogress" },
+            { id: 4, title: "Bank Statement Analyzer", date: "2026-02-02", status: "todo" }
+        ];
 
-        function saveToStorage() {
+        // ===== INIT =====
+        async function init() {
+            loadFromStorage();
+            renderKanban();
+            renderNotes();
+            await loadAllData();
+            setInterval(loadAllData, 60000); // Refresh every minute
+        }
+
+        async function loadAllData() {
+            await Promise.all([
+                loadWorkflows(),
+                loadExecutions()
+            ]);
+            checkConnection();
+        }
+
+        // ===== WORKFLOWS =====
+        async function loadWorkflows() {
             try {
-                localStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify(tasks));
-                localStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(notes));
-                localStorage.setItem(STORAGE_KEYS.ACTIVITY, JSON.stringify(activityLogs.slice(0, 50)));
-                localStorage.setItem(STORAGE_KEYS.THOUGHTS, JSON.stringify(thoughtLogs.slice(0, 20)));
-                localStorage.setItem(STORAGE_KEYS.STATUS, currentStatus.key);
+                const res = await fetch(`${N8N_API}?path=workflows`);
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+
+                allWorkflows = data.data || [];
+                workflowsByTag = {};
+
+                allWorkflows.forEach(wf => {
+                    const tag = wf.tags?.[0]?.name || 'Other';
+                    if (!workflowsByTag[tag]) workflowsByTag[tag] = [];
+
+                    const webhookNode = wf.nodes?.find(n => n.type === 'n8n-nodes-base.webhook' && !n.disabled);
+                    workflowsByTag[tag].push({
+                        id: wf.id,
+                        name: wf.name,
+                        active: wf.active,
+                        webhookPath: webhookNode?.parameters?.path || null
+                    });
+                    workflowCache[wf.id] = wf.name;
+                });
+
+                document.getElementById('workflowBadge').textContent = allWorkflows.filter(w => w.active).length;
+                renderQuickTriggers();
             } catch (e) {
-                console.error('Failed to save to localStorage:', e);
-                showToast('Failed to save data', 'error');
+                console.error('Failed to load workflows:', e);
             }
         }
 
-        function loadFromStorage() {
+        function renderQuickTriggers() {
+            const container = document.getElementById('triggerPills');
+            const tagOrder = ['WM19', 'WM24', 'Inventory'];
+            let pills = [];
+
+            tagOrder.forEach(tag => {
+                const wfs = workflowsByTag[tag]?.filter(w => w.active && w.webhookPath) || [];
+                wfs.slice(0, 2).forEach(wf => {
+                    const shortName = wf.name.replace(/^(WM19|WM24|\[Inventory\])\s*[-:]\s*/i, '').replace(/\(.*?\)/g, '').trim().substring(0, 18);
+                    pills.push(`<button class="trigger-pill ${tag.toLowerCase()}" onclick="triggerWorkflow('${wf.webhookPath}', '${wf.name.replace(/'/g, "\\'")}')">
+                        ${shortName}
+                    </button>`);
+                });
+            });
+
+            container.innerHTML = pills.length > 0 ? pills.join('') : '<span style="color: #8b949e;">No webhook triggers</span>';
+        }
+
+        // ===== EXECUTIONS =====
+        async function loadExecutions() {
             try {
-                const savedTasks = localStorage.getItem(STORAGE_KEYS.TASKS);
-                const savedNotes = localStorage.getItem(STORAGE_KEYS.NOTES);
-                const savedActivity = localStorage.getItem(STORAGE_KEYS.ACTIVITY);
-                const savedThoughts = localStorage.getItem(STORAGE_KEYS.THOUGHTS);
-                const savedStatus = localStorage.getItem(STORAGE_KEYS.STATUS);
+                const res = await fetch(`${N8N_API}?path=executions&limit=50`);
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
 
-                tasks = savedTasks ? JSON.parse(savedTasks) : [...defaultTasks];
-                notes = savedNotes ? JSON.parse(savedNotes) : [...defaultNotes];
-                activityLogs = savedActivity ? JSON.parse(savedActivity) : [];
-                thoughtLogs = savedThoughts ? JSON.parse(savedThoughts) : [{ text: 'Dashboard loaded', time: new Date().toISOString() }];
-
-                if (savedStatus) {
-                    const statusObj = Object.values(STATUS).find(s => s.key === savedStatus);
-                    if (statusObj) currentStatus = statusObj;
-                }
+                executions = data.data || [];
+                updateExecutionCounts();
+                renderRecentExecutions();
             } catch (e) {
-                console.error('Failed to load from localStorage:', e);
-                tasks = [...defaultTasks];
-                notes = [...defaultNotes];
-                activityLogs = [];
-                thoughtLogs = [];
+                console.error('Failed to load executions:', e);
             }
         }
 
-        function clearData() {
-            if (confirm('Clear all saved data? This cannot be undone.')) {
-                localStorage.clear();
-                location.reload();
+        function updateExecutionCounts() {
+            const running = executions.filter(e => e.status === 'running' || (!e.finished && !e.stoppedAt)).length;
+            const errors = executions.filter(e => e.status === 'error').length;
+            const success = executions.filter(e => e.status === 'success').length;
+
+            document.getElementById('runningCount').textContent = running;
+            document.getElementById('errorCount').textContent = errors;
+            document.getElementById('successCount').textContent = success;
+            document.getElementById('execBadge').textContent = executions.length;
+            document.getElementById('recentExecCount').textContent = executions.length;
+
+            // Update error styling
+            const errorItem = document.getElementById('errorStatusItem');
+            if (errors > 0) {
+                errorItem.classList.add('has-issues');
+                document.getElementById('alertBanner').classList.add('visible');
+                document.getElementById('alertText').textContent = `${errors} execution(s) failed recently`;
+            } else {
+                errorItem.classList.remove('has-issues');
+                document.getElementById('alertBanner').classList.remove('visible');
+            }
+
+            // Update sidebar badge
+            const execBadge = document.getElementById('execBadge');
+            if (errors > 0) {
+                execBadge.classList.add('error');
+                execBadge.textContent = errors;
+            } else {
+                execBadge.classList.remove('error');
             }
         }
 
-        // ============================================
-        // Toast Notifications
-        // ============================================
-        function showToast(message, type = 'info', duration = 3000) {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerHTML = `<span>${message}</span>`;
-            container.appendChild(toast);
+        function renderRecentExecutions() {
+            const container = document.getElementById('recentExecList');
+            const recent = executions.slice(0, 8);
 
-            setTimeout(() => {
-                toast.style.animation = 'slideIn 0.3s ease reverse';
-                setTimeout(() => toast.remove(), 300);
-            }, duration);
-        }
-
-        // ============================================
-        // Enhanced Status Management
-        // ============================================
-        function setStatus(status) {
-            currentStatus = status;
-            const avatar = document.getElementById('avatar');
-            const statusChip = document.getElementById('statusChip');
-            const statusText = document.getElementById('statusText');
-
-            avatar.setAttribute('data-status', status.key);
-            statusChip.setAttribute('data-status', status.key);
-            statusText.textContent = status.label;
-
-            saveToStorage();
-            addActivityLog(`Status changed to: ${status.label}`, status.key === 'error' ? 'error' : 'info');
-        }
-
-        // Expose for external use
-        window.setOrlandStatus = (statusKey) => {
-            const status = Object.values(STATUS).find(s => s.key === statusKey);
-            if (status) setStatus(status);
-        };
-
-        // Legacy support
-        window.setOrlandRunning = (running) => {
-            setStatus(running ? STATUS.RUNNING : STATUS.IDLE);
-        };
-
-        // ============================================
-        // Thought Log
-        // ============================================
-        function addThought(text) {
-            thoughtLogs.unshift({ text, time: new Date().toISOString() });
-            if (thoughtLogs.length > 20) thoughtLogs.pop();
-            renderThoughtLog();
-            saveToStorage();
-        }
-
-        function renderThoughtLog() {
-            const container = document.getElementById('thoughtLogContent');
-            if (!container) return; // Element doesn't exist in current layout
-            container.innerHTML = thoughtLogs.slice(0, 5).map(t =>
-                `<div class="thought-step">${t.text}</div>`
-            ).join('') || '<div class="thought-step">Waiting for tasks...</div>';
-        }
-
-        window.addOrlandThought = addThought;
-
-        // ============================================
-        // Activity Log
-        // ============================================
-        function addActivityLog(message, type = 'info') {
-            const log = {
-                id: Date.now(),
-                message,
-                type,
-                timestamp: new Date().toISOString()
-            };
-            activityLogs.unshift(log);
-            if (activityLogs.length > 50) activityLogs.pop();
-            renderActivityLog();
-            saveToStorage();
-        }
-
-        function renderActivityLog() {
-            const container = document.getElementById('actionLog');
-            if (activityLogs.length === 0) {
-                container.innerHTML = '<div class="action-item">No activity yet</div>';
+            if (recent.length === 0) {
+                container.innerHTML = '<span style="color: #8b949e; font-size: 0.75rem;">No executions</span>';
                 return;
             }
-            container.innerHTML = activityLogs.slice(0, 10).map(log => {
-                const time = new Date(log.timestamp).toLocaleTimeString();
-                const typeClass = log.type === 'error' ? 'error' : log.type === 'warning' ? 'warning' : '';
-                return `<div class="action-item ${typeClass}">
-                    ${log.message}
-                    <div class="item-time">${time}</div>
+
+            container.innerHTML = recent.map(exec => {
+                const name = workflowCache[exec.workflowId] || `#${exec.workflowId}`;
+                const shortName = name.replace(/^(WM19|WM24|\[Inventory\])\s*[-:]\s*/i, '').substring(0, 25);
+                const status = exec.status || (exec.finished ? 'success' : 'running');
+                const time = exec.startedAt ? formatTimeAgo(exec.startedAt) : '-';
+
+                return `<div class="exec-item ${status}" onclick="viewExecution('${exec.id}')">
+                    <span class="exec-status ${status}"></span>
+                    <span class="exec-name">${shortName}</span>
+                    <span class="exec-time">${time}</span>
                 </div>`;
             }).join('');
         }
 
-        function clearActivityLog() {
-            if (confirm('Clear activity log?')) {
-                activityLogs = [];
-                renderActivityLog();
-                saveToStorage();
-                showToast('Activity log cleared', 'success');
+        // ===== TRIGGER WORKFLOW =====
+        async function triggerWorkflow(path, name) {
+            try {
+                showToast(`Triggering ${name}...`, 'info');
+                const res = await fetch(`${N8N_WEBHOOK}?path=${path}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ source: 'dashboard', timestamp: new Date().toISOString() })
+                });
+                if (res.ok) {
+                    showToast(`${name} triggered!`, 'success');
+                    setTimeout(loadExecutions, 2000);
+                } else {
+                    throw new Error('Trigger failed');
+                }
+            } catch (e) {
+                showToast(`Failed: ${e.message}`, 'error');
             }
         }
 
-        window.addOrlandLog = addActivityLog;
+        // ===== KANBAN =====
+        function renderKanban() {
+            const columns = {
+                todo: tasks.filter(t => t.status === 'todo'),
+                inprogress: tasks.filter(t => t.status === 'inprogress'),
+                done: tasks.filter(t => t.status === 'done'),
+                archive: tasks.filter(t => t.status === 'archive')
+            };
 
-        // ============================================
-        // Notes Management
-        // ============================================
+            ['todo', 'inprogress', 'done', 'archive'].forEach((status, i) => {
+                const listId = status === 'inprogress' ? 'progressList' : status + 'List';
+                const countId = status === 'inprogress' ? 'progressCount' : status + 'Count';
+                const list = document.getElementById(listId);
+                const count = document.getElementById(countId);
+
+                list.innerHTML = columns[status].map(t => `
+                    <div class="task-card" onclick="showTask(${t.id})">
+                        <div class="task-title">${t.title}</div>
+                        <div class="task-date">📅 ${t.date}</div>
+                    </div>
+                `).join('');
+                count.textContent = columns[status].length;
+            });
+        }
+
+        // ===== NOTES =====
+        function renderNotes() {
+            const container = document.getElementById('notesList');
+            if (notes.length === 0) {
+                container.innerHTML = '<div style="color: #8b949e; font-size: 0.75rem; padding: 8px;">No notes. Click + to add.</div>';
+                return;
+            }
+            container.innerHTML = notes.map(n => `
+                <div class="note-item" onclick="deleteNote(${n.id})" title="Click to delete">
+                    ${n.text}
+                </div>
+            `).join('');
+        }
+
         function addNote() {
-            const note = prompt('Enter new note:');
-            if (note && note.trim()) {
-                notes.unshift({
-                    id: Date.now(),
-                    text: note.trim(),
-                    time: new Date().toLocaleDateString()
-                });
+            const text = prompt('Enter note:');
+            if (text?.trim()) {
+                notes.unshift({ id: Date.now(), text: text.trim() });
                 renderNotes();
                 saveToStorage();
-                showToast('Note added', 'success');
             }
         }
 
@@ -1491,837 +978,208 @@
             saveToStorage();
         }
 
-        function renderNotes() {
-            const container = document.getElementById('notesList');
-            if (notes.length === 0) {
-                container.innerHTML = '<div class="note-item">No notes yet. Click + to add.</div>';
-                return;
-            }
-            container.innerHTML = notes.map(note => `
-                <div class="note-item" onclick="deleteNote(${note.id})" style="cursor: pointer;" title="Click to delete">
-                    ${note.text}
-                    <div class="item-time">Added: ${note.time}</div>
-                </div>
-            `).join('');
-        }
-
-        // ============================================
-        // Kanban Rendering (with debounce)
-        // ============================================
-        let renderTimeout;
-        function renderKanban() {
-            clearTimeout(renderTimeout);
-            renderTimeout = setTimeout(() => {
-                const columns = {
-                    todo: tasks.filter(t => t.status === 'todo'),
-                    inprogress: tasks.filter(t => t.status === 'inprogress'),
-                    done: tasks.filter(t => t.status === 'done'),
-                    archive: tasks.filter(t => t.status === 'archive')
-                };
-
-                Object.keys(columns).forEach(status => {
-                    const listId = status === 'inprogress' ? 'progressList' : status + 'List';
-                    const countId = status === 'inprogress' ? 'progressCount' : status + 'Count';
-                    const list = document.getElementById(listId);
-                    const count = document.getElementById(countId);
-
-                    list.innerHTML = columns[status].map(t => `
-                        <div class="kanban-card"
-                             onclick="showTaskModal(${t.id})"
-                             onkeypress="if(event.key==='Enter') showTaskModal(${t.id})"
-                             tabindex="0"
-                             role="listitem"
-                             aria-label="${t.title}">
-                            <div class="kanban-card-title">${t.title}</div>
-                            <div class="kanban-card-date">📅 ${t.date}</div>
-                        </div>
-                    `).join('');
-                    count.textContent = columns[status].length;
-                });
-            }, 50);
-        }
-
-        // ============================================
-        // UI Functions
-        // ============================================
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('collapsed');
-        }
-
-        function toggleMobileMenu() {
-            document.getElementById('sidebar').classList.toggle('mobile-open');
-        }
-
+        // ===== MODALS =====
         function showModal(title, content) {
             document.getElementById('modalTitle').textContent = title;
             document.getElementById('modalBody').innerHTML = content;
             document.getElementById('modalOverlay').classList.add('active');
-            document.body.style.overflow = 'hidden';
         }
 
         function closeModal(e) {
-            if (!e || e.target === document.getElementById('modalOverlay')) {
+            if (!e || e.target.id === 'modalOverlay') {
                 document.getElementById('modalOverlay').classList.remove('active');
-                document.body.style.overflow = '';
             }
         }
 
-        // Keyboard support for modal
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeModal();
-        });
-
-        function showTaskModal(taskId) {
-            const task = tasks.find(t => t.id === taskId);
+        function showTask(id) {
+            const task = tasks.find(t => t.id === id);
             if (!task) return;
-
-            const links = task.links && task.links.length > 0
-                ? task.links.map(l => `<a href="${l.url}" target="_blank" class="action-link">🔗 ${l.text}</a>`).join('')
-                : '';
-
-            const instructions = task.instructions && task.instructions.length > 0
-                ? task.instructions.map(i => `
-                    <div class="instruction-step">
-                        <span class="step-num">${i.step}</span>
-                        <span>${i.text}</span>
-                    </div>
-                `).join('')
-                : '<p>No instructions available</p>';
-
             showModal(task.title, `
-                ${links ? `<div style="margin-bottom:15px;">${links}</div>` : ''}
                 <div class="modal-section">
-                    <h4>📋 Instructions</h4>
-                    ${instructions}
+                    <h4>📅 Details</h4>
+                    <p>Date: ${task.date}</p>
+                    <p>Status: ${task.status}</p>
                 </div>
-                <div style="color:#64ffda;font-size:0.8rem;margin-top:10px;">📅 ${task.date}</div>
             `);
         }
 
-        function showDeliverable(type) {
-            showModal(`📊 Deliverable: ${type}`, '<p>Deliverable details coming soon...</p>');
-        }
-
-        // ============================================
-        // Quick Tools
-        // ============================================
-        function openQuickTool(tool) {
-            const installGuides = {
-                'install-browser': {
-                    title: '🌐 Browser Setup',
-                    steps: [
-                        { label: 'Install Chrome', cmd: 'wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && dpkg -i google-chrome-stable_current_amd64.deb' },
-                        { label: 'Install Playwright', cmd: 'npm install -g playwright && playwright install' },
-                        { label: 'Install Puppeteer', cmd: 'npm install puppeteer puppeteer-extra' }
-                    ],
-                    note: 'For web scraping and automation'
-                },
-                'install-search': {
-                    title: '🔍 Web Search Setup',
-                    steps: [
-                        { label: 'Get Brave API Key', cmd: 'echo "Visit https://brave.com/search-api/"' },
-                        { label: 'Set Environment', cmd: 'export BRAVE_API_KEY="your_key"' }
-                    ],
-                    note: 'Need Brave Search API key'
-                },
-                'install-screenshot': {
-                    title: '📸 Screenshot Tool',
-                    steps: [
-                        { label: 'Install lib', cmd: 'npm install -g html-screenshot-tool' },
-                        { label: 'Configure', cmd: 'mkdir -p ~/.openclaw/screenshots' }
-                    ],
-                    note: 'For capturing screenshots'
-                }
-            };
-
-            if (installGuides[tool]) {
-                const guide = installGuides[tool];
-                const stepsHtml = guide.steps.map(s => `
-                    <div style="margin-bottom: 16px;">
-                        <div style="color: #64ffda; font-weight: 600; margin-bottom: 6px;">${s.label}</div>
-                        <div style="display: flex; gap: 8px;">
-                            <code style="flex:1; background: #0d1117; padding: 10px; border-radius: 6px; font-size: 0.8rem; overflow-x: auto; color: #c9d1d9;">${s.cmd}</code>
-                            <button onclick="copyCommand(\`${s.cmd}\`)" style="background: #238636; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">📋</button>
-                        </div>
-                    </div>
-                `).join('');
-                showModal(guide.title, `<div style="margin-bottom: 12px; color: #8892b0;">${guide.note}</div>${stepsHtml}`);
-            } else if (tool === 'partykit') {
-                const steps = [
-                    { num: 1, title: 'SSH to VPS (VPS Terminal)', cmd: 'ssh root@72.62.253.231', desc: 'Connect to Hostinger VPS (password: your VPS password)', terminal: 'VPS' },
-                    { num: 2, title: 'Navigate folder (VPS Terminal)', cmd: 'cd /root/.openclaw/workspace/partykit-dashboard', desc: 'Go to project folder', terminal: 'VPS' },
-                    { num: 3, title: 'Stop Server (VPS Terminal)', cmd: 'pkill -f vps-server.js', desc: 'Stop current server before restarting', terminal: 'VPS' },
-                    { num: 4, title: 'Start Server (VPS Terminal)', cmd: 'node vps-server.js', desc: 'Start/Restart WebSocket server', terminal: 'VPS' },
-                    { num: 5, title: 'Test Connection (Your PC Terminal)', cmd: 'curl http://72.62.253.231:8080', desc: 'Test if server responds', terminal: 'PC' },
-                    { num: 6, title: 'Refresh Dashboard', cmd: 'https://nuxec-dashboard.vercel.app', desc: 'Refresh page to see Connected status', terminal: 'Browser' }
-                ];
-                
-                const stepsHtml = steps.map(s => `
-                    <div style="margin-bottom: 16px; background: rgba(255,255,255,0.02); border-radius: 10px; padding: 14px;">
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                            <span style="width: 24px; height: 24px; background: rgba(100,255,218,0.2); color: #64ffda; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600;">${s.num}</span>
-                            <span style="color: #ccd6f6; font-weight: 500;">${s.title}</span>
-                        </div>
-                        <div style="color: #8892b0; font-size: 0.8rem; margin-bottom: 8px;">${s.desc}</div>
-                        <div style="display: flex; gap: 8px;">
-                            <code style="flex:1; background: #0d1117; padding: 10px 14px; border-radius: 6px; font-size: 0.8rem; overflow-x: auto; color: #c9d1d9; font-family: monospace;">${s.cmd}</code>
-                            <button onclick="copyCommand('${s.cmd.replace(/'/g, "\'")}')" style="background: #238636; color: white; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">📋</button>
-                        </div>
-                    </div>
-                `).join('');
-                
-                showModal('🖥️ VPS WebSocket Setup <span style="color:#64ffda;">72.62.253.231</span>', `
-                    <div style="margin-bottom: 20px; padding: 14px; background: rgba(100,255,218,0.08); border: 1px solid rgba(100,255,218,0.2); border-radius: 10px;">
-                        <div style="color: #64ffda; font-weight: 500; margin-bottom: 4px;">Your VPS IP: 72.62.253.231</div>
-                        <div style="color: #8892b0; font-size: 0.85rem;">Follow these steps in Hostinger Terminal</div>
-                    </div>
-                    ${stepsHtml}
-                    <div style="margin-top: 20px; padding: 14px; background: rgba(255,217,61,0.08); border: 1px solid #ffd93d; border-radius: 10px;">
-                        <div style="color: #ffd93d; font-weight: 500; margin-bottom: 6px;">💡 Quick Tips</div>
-                        <div style="color: #8892b0; font-size: 0.8rem; line-height: 1.6;">
-                            • Step 4: Use arrow keys to move, delete old IP, type <strong style="color:#64ffda;">72.62.253.231</strong><br>
-                            • After editing: Press <strong style="color:#64ffda;">Ctrl+X</strong> → <strong style="color:#64ffda;">Y</strong> → <strong style="color:#64ffda;">Enter</strong><br>
-                            • Keep terminal open after Step 5 to keep server running
-                        </div>
-                    </div>
-                `);
-            } else {
-                showModal(`${tool} Tool`, '<p>Coming soon...</p>');
-            }
-        }
-
-        function copyCommand(cmd) {
-            navigator.clipboard.writeText(cmd).then(() => {
-                showToast('Command copied!', 'success');
-            }).catch(() => {
-                const t = document.createElement('textarea');
-                t.value = cmd;
-                document.body.appendChild(t);
-                t.select();
-                document.execCommand('copy');
-                document.body.removeChild(t);
-                showToast('Command copied!', 'success');
-            });
-        }
-        
-        // Copy text helper
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                showToast('Copied to clipboard!', 'success');
-            }).catch(() => {
-                const t = document.createElement('textarea');
-                t.value = text;
-                document.body.appendChild(t);
-                t.select();
-                document.execCommand('copy');
-                document.body.removeChild(t);
-                showToast('Copied to clipboard!', 'success');
-            });
-        }
-
-        // ============================================
-        // Pull to Refresh
-        // ============================================
-        let pullStartY = 0, pullDistance = 0;
-        const indicator = document.getElementById('pullRefreshIndicator');
-
-        document.addEventListener('touchstart', e => {
-            if (window.scrollY === 0) pullStartY = e.touches[0].clientY;
-        }, { passive: true });
-
-        document.addEventListener('touchmove', e => {
-            if (window.scrollY === 0 && pullStartY > 0) {
-                pullDistance = e.touches[0].clientY - pullStartY;
-                if (pullDistance > 50) {
-                    indicator.classList.add('active');
-                    indicator.textContent = pullDistance > 150 ? '🔄 Release to refresh...' : '🔄 Pull...';
-                }
-            }
-        }, { passive: true });
-
-        document.addEventListener('touchend', () => {
-            if (pullDistance > 100) location.reload(true);
-            pullStartY = 0;
-            pullDistance = 0;
-            indicator.classList.remove('active');
-        }, { passive: true });
-
-        // ============================================
-        // WebSocket Connection
-        // ============================================
-        class SimpleWS {
-            constructor(url) {
-                this.url = url;
-                this.ws = null;
-                this.reconnectDelay = 3000;
-                this.maxRetries = 5;
-                this.retries = 0;
-                this.connect();
-            }
-
-            connect() {
-                if (this.url.includes('YOUR_VPS_IP')) {
-                    this.updateConnectionStatus(false);
-                    return;
-                }
-
-                try {
-                    this.ws = new WebSocket(this.url);
-                    this.ws.onopen = () => {
-                        this.retries = 0;
-                        this.updateConnectionStatus(true);
-                        addActivityLog('WebSocket connected', 'info');
-                    };
-                    this.ws.onmessage = (e) => {
-                        try {
-                            const data = JSON.parse(e.data);
-                            if (data.type === 'status') {
-                                window.setOrlandStatus(data.status);
-                            }
-                            if (data.type === 'thought') {
-                                addThought(data.text);
-                            }
-                            if (data.type === 'log') {
-                                addActivityLog(data.message, data.logType || 'info');
-                            }
-                        } catch (err) {
-                            console.error('WS parse error:', err);
-                        }
-                    };
-                    this.ws.onclose = () => {
-                        this.updateConnectionStatus(false);
-                        if (this.retries < this.maxRetries) {
-                            this.retries++;
-                            setTimeout(() => this.connect(), this.reconnectDelay);
-                        }
-                    };
-                    this.ws.onerror = () => {
-                        this.updateConnectionStatus(false);
-                    };
-                } catch (e) {
-                    this.updateConnectionStatus(false);
-                }
-            }
-
-            updateConnectionStatus(connected) {
-                const el = document.getElementById('connectionStatus');
-                el.className = `connection-status ${connected ? 'connected' : 'disconnected'}`;
-                el.textContent = connected ? '🟢 Connected' : '⚫ Disconnected';
-            }
-
-            send(msg) {
-                if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-                    this.ws.send(JSON.stringify(msg));
-                }
-            }
-        }
-
-        // ============================================
-        // Initialize
-        // ============================================
-        loadFromStorage();
-        renderKanban();
-        renderNotes();
-        renderActivityLog();
-        renderThoughtLog();
-        setStatus(currentStatus);
-        const lastSyncEl = document.getElementById('lastSync');
-        if (lastSyncEl) lastSyncEl.textContent = new Date().toLocaleString();
-
-        // HTTP Polling (every 5 seconds)
-        const STATUS_URL = 'http://72.62.253.231:8080';
-        
-        async function checkServerStatus() {
-            const statusEl = document.getElementById('connectionStatus');
+        async function viewExecution(id) {
             try {
-                const response = await fetch(STATUS_URL + '?t=' + Date.now(), { method: 'GET', cache: 'no-cache' });
-                if (statusEl) {
-                    statusEl.classList.add('connected');
-                    statusEl.classList.remove('disconnected');
-                    statusEl.innerHTML = '<span class="status-dot" style="background:#2ecc71;"></span><span style="color:#2ecc71;">Connected</span>';
-                }
-            } catch (e) {
-                if (statusEl) {
-                    statusEl.classList.remove('connected');
-                    statusEl.classList.add('disconnected');
-                    statusEl.innerHTML = '<span class="status-dot" style="background:#e74c3c;"></span><span style="color:#e74c3c;">Disconnected</span>';
-                }
-            }
-        }
-        
-        // Poll every 5 seconds
-        setInterval(checkServerStatus, 5000);
-        
-        // Expose APIs
-        window.setStatusViaWS = (status) => { console.log('Status:', status); };
-        window.taskCompleted = (title) => {
-            addActivityLog(`✅ Task Completed: ${title}`, 'info');
-            showToast(`Task completed: ${title}`, 'success');
-        };
-
-        // Startup log
-        addActivityLog('Dashboard v3.0 loaded', 'info');
-        addThought('Dashboard initialized');
-
-        // Auto-save every 30 seconds
-        setInterval(saveToStorage, 30000);
-
-        // ============================================
-        // Workflow Triggers Panel (Dynamic from n8n)
-        // ============================================
-        let allWorkflows = [];
-        let workflowsByTag = {};
-
-        // Tag configuration with colors and icons
-        const TAG_CONFIG = {
-            'WM19': { color: '#f39c12', icon: '🏪', cssClass: 'wm19' },
-            'WM24': { color: '#3498db', icon: '🛒', cssClass: 'wm24' },
-            'Inventory': { color: '#2ecc71', icon: '📦', cssClass: 'inventory' },
-            'Utility': { color: '#9b59b6', icon: '🔧', cssClass: 'utility' },
-            'Untagged': { color: '#95a5a6', icon: '📁', cssClass: 'other' }
-        };
-
-        function toggleTriggersPanel() {
-            const body = document.getElementById('triggersPanelBody');
-            const toggle = document.getElementById('triggersPanelToggle');
-            body.classList.toggle('collapsed');
-            toggle.classList.toggle('collapsed');
-        }
-
-        function toggleCategory(categoryId) {
-            const workflows = document.getElementById(categoryId + 'Workflows');
-            const toggle = document.getElementById(categoryId + 'Toggle');
-            if (workflows) workflows.classList.toggle('collapsed');
-            if (toggle) toggle.classList.toggle('collapsed');
-        }
-
-        // Load workflows and group by tags
-        async function loadWorkflowsWithTags() {
-            try {
-                const response = await fetch(`${N8N_API_BASE}?path=workflows`);
-                const data = await response.json();
-
-                if (data.error) throw new Error(data.error);
-
-                allWorkflows = data.data || [];
-
-                // Group by tag
-                workflowsByTag = {};
-                allWorkflows.forEach(wf => {
-                    const tagName = wf.tags && wf.tags.length > 0 ? wf.tags[0].name : 'Untagged';
-                    if (!workflowsByTag[tagName]) {
-                        workflowsByTag[tagName] = [];
-                    }
-                    // Find webhook path for this workflow
-                    const webhookNode = wf.nodes?.find(n => n.type === 'n8n-nodes-base.webhook' && !n.disabled);
-                    const webhookPath = webhookNode?.parameters?.path || null;
-
-                    workflowsByTag[tagName].push({
-                        id: wf.id,
-                        name: wf.name,
-                        active: wf.active,
-                        webhookPath: webhookPath
-                    });
-
-                    // Also update the name cache
-                    workflowCache[wf.id] = wf.name;
-                });
-
-                renderWorkflowTriggers();
-                updateWorkflowCounts();
-
-            } catch (e) {
-                console.error('Failed to load workflows:', e);
-                showToast('Failed to load workflows', 'error');
-            }
-        }
-
-        // Render workflow triggers dynamically
-        function renderWorkflowTriggers() {
-            const panelBody = document.getElementById('triggersPanelBody');
-            const quickAccess = document.getElementById('quickAccessRow');
-
-            if (!panelBody) return;
-
-            // Render categories
-            const tagOrder = ['WM19', 'WM24', 'Inventory', 'Utility', 'Untagged'];
-            let categoriesHtml = '';
-
-            tagOrder.forEach(tagName => {
-                const workflows = workflowsByTag[tagName];
-                if (!workflows || workflows.length === 0) return;
-
-                const config = TAG_CONFIG[tagName] || TAG_CONFIG['Untagged'];
-                const activeWorkflows = workflows.filter(wf => wf.active);
-                const inactiveWorkflows = workflows.filter(wf => !wf.active);
-
-                categoriesHtml += `
-                    <div class="workflow-category ${config.cssClass}">
-                        <div class="category-header" onclick="toggleCategory('${tagName.toLowerCase().replace(/\s/g, '')}')">
-                            <div class="category-title">
-                                <span class="cat-icon">${config.icon}</span>
-                                <span>${tagName}</span>
-                                <span class="category-count">${activeWorkflows.length}/${workflows.length}</span>
-                            </div>
-                            <span class="category-toggle" id="${tagName.toLowerCase().replace(/\s/g, '')}Toggle">▼</span>
-                        </div>
-                        <div class="category-workflows" id="${tagName.toLowerCase().replace(/\s/g, '')}Workflows">
-                            ${activeWorkflows.map(wf => renderWorkflowButton(wf, true)).join('')}
-                            ${inactiveWorkflows.length > 0 ? `
-                                <div style="font-size: 0.7rem; color: #5a6a8a; margin: 8px 0 4px; padding-left: 4px;">Inactive (${inactiveWorkflows.length})</div>
-                                ${inactiveWorkflows.map(wf => renderWorkflowButton(wf, false)).join('')}
-                            ` : ''}
-                        </div>
-                    </div>
-                `;
-            });
-
-            panelBody.innerHTML = categoriesHtml;
-
-            // Update quick access with active workflows that have webhooks
-            if (quickAccess) {
-                const quickWorkflows = allWorkflows
-                    .filter(wf => wf.active && wf.nodes?.some(n => n.type === 'n8n-nodes-base.webhook' && !n.disabled))
-                    .slice(0, 5);
-
-                quickAccess.innerHTML = quickWorkflows.map(wf => {
-                    const webhookNode = wf.nodes.find(n => n.type === 'n8n-nodes-base.webhook' && !n.disabled);
-                    const webhookPath = webhookNode?.parameters?.path || wf.id;
-                    const tagConfig = TAG_CONFIG[wf.tags?.[0]?.name] || TAG_CONFIG['Untagged'];
-                    const shortName = wf.name.replace(/^(WM19|WM24|\[Inventory\])\s*[-:]\s*/i, '').substring(0, 20);
-
-                    return `
-                        <button class="quick-access-btn" onclick="triggerWorkflow('${webhookPath}', '${wf.name.replace(/'/g, "\\'")}')">
-                            <span>${tagConfig.icon}</span> ${shortName}
-                        </button>
-                    `;
-                }).join('');
-            }
-        }
-
-        function renderWorkflowButton(wf, isActive) {
-            const shortName = wf.name
-                .replace(/^(WM19|WM24|\[Inventory\])\s*[-:]\s*/i, '')
-                .replace(/\(.*?\)/g, '')
-                .trim();
-
-            const hasWebhook = !!wf.webhookPath;
-            const opacity = isActive ? '1' : '0.5';
-
-            if (!hasWebhook) {
-                return `
-                    <div class="trigger-btn" style="opacity: ${opacity}; cursor: default;" title="${wf.name} (No webhook trigger)">
-                        <span class="trigger-icon">📋</span>
-                        <div class="trigger-info">
-                            <div class="trigger-name">${shortName}</div>
-                            <div class="trigger-desc">${isActive ? 'Schedule/Manual only' : 'Inactive'}</div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            return `
-                <button class="trigger-btn" style="opacity: ${opacity};" onclick="triggerWorkflow('${wf.webhookPath}', '${wf.name.replace(/'/g, "\\'")}')" ${!isActive ? 'disabled' : ''}>
-                    <span class="trigger-icon">⚡</span>
-                    <div class="trigger-info">
-                        <div class="trigger-name">${shortName}</div>
-                        <div class="trigger-desc">${isActive ? 'Webhook trigger' : 'Inactive'}</div>
-                    </div>
-                    <span class="trigger-arrow">→</span>
-                </button>
-            `;
-        }
-
-        // Update total workflow count
-        function updateWorkflowCounts() {
-            const totalCount = allWorkflows.length;
-            const activeCount = allWorkflows.filter(wf => wf.active).length;
-            const countEl = document.getElementById('totalWorkflowCount');
-            if (countEl) {
-                countEl.textContent = `${activeCount}/${totalCount} active`;
-            }
-        }
-
-        // ============================================
-        // n8n Execution Monitor
-        // ============================================
-        const N8N_API_BASE = '/api/n8n';
-        const N8N_WEBHOOK_BASE = '/api/n8n-webhook';
-
-        let workflowCache = {};
-        let executionsData = [];
-
-        // Format duration
-        function formatDuration(startedAt, stoppedAt) {
-            const start = new Date(startedAt);
-            const end = stoppedAt ? new Date(stoppedAt) : new Date();
-            const diffMs = end - start;
-
-            const hours = Math.floor(diffMs / 3600000);
-            const minutes = Math.floor((diffMs % 3600000) / 60000);
-            const seconds = Math.floor((diffMs % 60000) / 1000);
-
-            if (hours > 0) {
-                return { text: `${hours}h ${minutes}m`, isLong: hours >= 1 };
-            } else if (minutes > 0) {
-                return { text: `${minutes}m ${seconds}s`, isLong: minutes >= 30 };
-            } else {
-                return { text: `${seconds}s`, isLong: false };
-            }
-        }
-
-        // Format time ago
-        function formatTimeAgo(dateStr) {
-            const date = new Date(dateStr);
-            const now = new Date();
-            const diffMs = now - date;
-
-            const minutes = Math.floor(diffMs / 60000);
-            const hours = Math.floor(diffMs / 3600000);
-            const days = Math.floor(diffMs / 86400000);
-
-            if (days > 0) return `${days}d ago`;
-            if (hours > 0) return `${hours}h ago`;
-            if (minutes > 0) return `${minutes}m ago`;
-            return 'Just now';
-        }
-
-        // Load workflows for name mapping (now uses loadWorkflowsWithTags)
-        async function loadWorkflows() {
-            // This is now handled by loadWorkflowsWithTags which also updates workflowCache
-            await loadWorkflowsWithTags();
-        }
-
-        // Load executions
-        async function loadExecutions() {
-            const refreshBtn = document.getElementById('refreshBtn');
-            const executionList = document.getElementById('executionList');
-            const filter = document.getElementById('executionFilter').value;
-
-            refreshBtn.classList.add('loading');
-            refreshBtn.disabled = true;
-
-            try {
-                let url = `${N8N_API_BASE}?path=executions&limit=20`;
-                if (filter) {
-                    url += `&status=${filter}`;
-                }
-
-                const response = await fetch(url);
-                const data = await response.json();
-
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-
-                executionsData = data.data || [];
-                renderExecutions();
-                addActivityLog('n8n executions loaded', 'info');
-
-            } catch (e) {
-                console.error('Failed to load executions:', e);
-                executionList.innerHTML = `
-                    <div class="n8n-error">
-                        <div style="font-size: 1.5rem; margin-bottom: 10px;">⚠️</div>
-                        <div>Failed to load executions</div>
-                        <div style="font-size: 0.8rem; margin-top: 8px; opacity: 0.8;">${e.message}</div>
-                    </div>
-                `;
-                showToast('Failed to load n8n executions', 'error');
-            } finally {
-                refreshBtn.classList.remove('loading');
-                refreshBtn.disabled = false;
-            }
-        }
-
-        // Render executions
-        function renderExecutions() {
-            const executionList = document.getElementById('executionList');
-            const countEl = document.getElementById('executionCount');
-
-            // Update count
-            if (countEl) {
-                countEl.textContent = executionsData.length;
-            }
-
-            if (executionsData.length === 0) {
-                executionList.innerHTML = `
-                    <div class="n8n-loading" style="padding: 30px;">
-                        No executions found
-                    </div>
-                `;
-                return;
-            }
-
-            executionList.innerHTML = executionsData.map(exec => {
-                const workflowName = workflowCache[exec.workflowId] || `Workflow ${exec.workflowId}`;
+                const res = await fetch(`${N8N_API}?path=executions/${id}&includeData=true`);
+                const exec = await res.json();
+                const name = workflowCache[exec.workflowId] || `Workflow ${exec.workflowId}`;
                 const status = exec.status || (exec.finished ? 'success' : 'running');
-                const statusLabel = {
-                    success: '✅ Success',
-                    error: '❌ Error',
-                    running: '🟡 Running',
-                    waiting: '⏳ Waiting',
-                    canceled: '⏹️ Canceled'
-                }[status] || status;
+                const duration = exec.startedAt && exec.stoppedAt ? formatDuration(exec.startedAt, exec.stoppedAt) : '-';
 
-                const startTime = exec.startedAt ? formatTimeAgo(exec.startedAt) : '-';
-                const duration = exec.startedAt ? formatDuration(exec.startedAt, exec.stoppedAt) : { text: '-', isLong: false };
-                const durationClass = duration.isLong ? 'duration-warning' : '';
-
-                const showStop = status === 'running';
-                const showRetry = status === 'error';
-
-                return `
-                    <div class="execution-card ${status}">
-                        <div class="execution-info">
-                            <div class="execution-workflow" title="${workflowName}">${workflowName}</div>
-                            <div class="execution-meta">
-                                <span>🕐 ${startTime}</span>
-                                <span class="${durationClass}">⏱️ ${duration.text}</span>
-                                <span>#${exec.id}</span>
-                            </div>
-                        </div>
-                        <div class="execution-status ${status}">${statusLabel}</div>
-                        <div class="execution-actions">
-                            ${showStop ? `<button class="exec-action-btn stop" onclick="stopExecution('${exec.id}')">⏹️ Stop</button>` : ''}
-                            ${showRetry ? `<button class="exec-action-btn retry" onclick="retryExecution('${exec.id}', '${exec.workflowId}')">🔄 Retry</button>` : ''}
-                            <button class="exec-action-btn" onclick="viewExecution('${exec.id}')">👁️ View</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Stop execution
-        async function stopExecution(executionId) {
-            if (!confirm('Stop this execution?')) return;
-
-            try {
-                showToast('Stopping execution...', 'info');
-                const response = await fetch(`${N8N_API_BASE}?path=executions/${executionId}`, {
-                    method: 'DELETE'
-                });
-                const data = await response.json();
-
-                if (data.error) throw new Error(data.error);
-
-                showToast('Execution stopped', 'success');
-                addActivityLog(`Stopped execution #${executionId}`, 'warning');
-                loadExecutions();
-            } catch (e) {
-                console.error('Failed to stop execution:', e);
-                showToast('Failed to stop execution: ' + e.message, 'error');
-            }
-        }
-
-        // Retry execution (trigger workflow again)
-        async function retryExecution(executionId, workflowId) {
-            showToast('Retry not available - use Quick Trigger buttons', 'warning');
-        }
-
-        // View execution details
-        async function viewExecution(executionId) {
-            try {
-                showToast('Loading execution details...', 'info');
-                const response = await fetch(`${N8N_API_BASE}?path=executions/${executionId}&includeData=true`);
-                const data = await response.json();
-
-                if (data.error) throw new Error(data.error);
-
-                const exec = data;
-                const workflowName = workflowCache[exec.workflowId] || `Workflow ${exec.workflowId}`;
-                const status = exec.status || (exec.finished ? 'success' : 'running');
-
-                let errorInfo = '';
+                let errorHtml = '';
                 if (exec.data?.resultData?.error) {
                     const err = exec.data.resultData.error;
-                    errorInfo = `
-                        <div class="modal-section" style="background: rgba(231, 76, 60, 0.1); border-color: #e74c3c;">
-                            <h4 style="color: #e74c3c;">❌ Error Details</h4>
-                            <div style="font-size: 0.85rem; color: #e74c3c;">
-                                <strong>${err.message || 'Unknown error'}</strong>
-                                ${err.node ? `<div style="margin-top: 8px; color: #8892b0;">Node: ${err.node}</div>` : ''}
-                            </div>
-                        </div>
-                    `;
+                    errorHtml = `<div class="modal-section" style="background: rgba(248, 81, 73, 0.1); border: 1px solid #f85149;">
+                        <h4 style="color: #f85149;">❌ Error</h4>
+                        <p style="font-size: 0.85rem;">${err.message || 'Unknown error'}</p>
+                        ${err.node ? `<p style="font-size: 0.75rem; color: #8b949e;">Node: ${err.node}</p>` : ''}
+                    </div>`;
                 }
 
-                const duration = exec.startedAt ? formatDuration(exec.startedAt, exec.stoppedAt) : { text: '-' };
-
-                showModal(`Execution #${executionId}`, `
-                    <div class="modal-section">
-                        <h4>📋 Details</h4>
-                        <div style="font-size: 0.85rem;">
-                            <div style="margin-bottom: 8px;"><strong>Workflow:</strong> ${workflowName}</div>
-                            <div style="margin-bottom: 8px;"><strong>Status:</strong> ${status}</div>
-                            <div style="margin-bottom: 8px;"><strong>Started:</strong> ${exec.startedAt ? new Date(exec.startedAt).toLocaleString() : '-'}</div>
-                            <div style="margin-bottom: 8px;"><strong>Ended:</strong> ${exec.stoppedAt ? new Date(exec.stoppedAt).toLocaleString() : '-'}</div>
-                            <div><strong>Duration:</strong> ${duration.text}</div>
+                showModal(`Execution #${id}`, `
+                    <div class="exec-detail-grid">
+                        <div class="exec-detail-item">
+                            <div class="exec-detail-label">Workflow</div>
+                            <div class="exec-detail-value">${name}</div>
+                        </div>
+                        <div class="exec-detail-item">
+                            <div class="exec-detail-label">Status</div>
+                            <div class="exec-detail-value">${status}</div>
+                        </div>
+                        <div class="exec-detail-item">
+                            <div class="exec-detail-label">Started</div>
+                            <div class="exec-detail-value">${exec.startedAt ? new Date(exec.startedAt).toLocaleString() : '-'}</div>
+                        </div>
+                        <div class="exec-detail-item">
+                            <div class="exec-detail-label">Duration</div>
+                            <div class="exec-detail-value">${duration}</div>
                         </div>
                     </div>
-                    ${errorInfo}
-                    <div style="margin-top: 15px;">
-                        <a href="https://n8n.nuxec.com/workflow/${exec.workflowId}/executions/${executionId}"
-                           target="_blank"
-                           class="action-link">
-                            🔗 View in n8n
-                        </a>
-                    </div>
+                    ${errorHtml}
+                    <a href="https://n8n.nuxec.com/workflow/${exec.workflowId}/executions/${id}" target="_blank"
+                       style="display: inline-block; background: #238636; color: #fff; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 0.85rem;">
+                        🔗 Open in n8n
+                    </a>
                 `);
             } catch (e) {
-                console.error('Failed to load execution:', e);
-                showToast('Failed to load execution details', 'error');
+                showToast('Failed to load execution', 'error');
             }
         }
 
-        // Trigger workflow via webhook
-        async function triggerWorkflow(webhookPath, workflowName) {
-            const btn = event.target.closest('.trigger-btn');
-            btn.disabled = true;
+        function showAllWorkflows() {
+            const tagOrder = ['WM19', 'WM24', 'Inventory', 'Utility', 'Other'];
+            let html = '';
 
+            tagOrder.forEach(tag => {
+                const wfs = workflowsByTag[tag];
+                if (!wfs || wfs.length === 0) return;
+
+                const activeWfs = wfs.filter(w => w.active);
+                const inactiveWfs = wfs.filter(w => !w.active);
+
+                html += `<div class="workflow-group">
+                    <div class="workflow-group-title ${tag.toLowerCase()}">${tag} <span style="color: #8b949e; font-weight: normal;">(${activeWfs.length}/${wfs.length})</span></div>
+                    <div class="workflow-list">
+                        ${activeWfs.map(wf => renderWorkflowItem(wf, tag)).join('')}
+                        ${inactiveWfs.length > 0 ? `<div style="font-size: 0.7rem; color: #8b949e; padding: 8px;">Inactive (${inactiveWfs.length})</div>` : ''}
+                        ${inactiveWfs.map(wf => renderWorkflowItem(wf, tag, true)).join('')}
+                    </div>
+                </div>`;
+            });
+
+            showModal('All Workflows', html);
+        }
+
+        function renderWorkflowItem(wf, tag, inactive = false) {
+            const shortName = wf.name.replace(/^(WM19|WM24|\[Inventory\])\s*[-:]\s*/i, '').replace(/\(.*?\)/g, '').trim();
+            const hasWebhook = !!wf.webhookPath;
+            const clickAction = hasWebhook && !inactive ? `onclick="triggerWorkflow('${wf.webhookPath}', '${wf.name.replace(/'/g, "\\'")}'); closeModal();"` : '';
+
+            return `<div class="workflow-item ${inactive ? 'inactive' : ''}" ${clickAction} style="${hasWebhook && !inactive ? 'cursor: pointer;' : ''}">
+                <span class="wf-icon">${hasWebhook ? '⚡' : '📋'}</span>
+                <span class="wf-name">${shortName}</span>
+                <span class="wf-status ${inactive ? 'inactive' : 'active'}">${inactive ? 'Inactive' : (hasWebhook ? 'Webhook' : 'Manual')}</span>
+            </div>`;
+        }
+
+        function showAllExecutions(filter = '') {
+            let filtered = executions;
+            if (filter) {
+                filtered = executions.filter(e => e.status === filter);
+            }
+
+            const html = filtered.length === 0
+                ? '<p style="color: #8b949e;">No executions found</p>'
+                : filtered.map(exec => {
+                    const name = workflowCache[exec.workflowId] || `#${exec.workflowId}`;
+                    const status = exec.status || (exec.finished ? 'success' : 'running');
+                    const time = exec.startedAt ? new Date(exec.startedAt).toLocaleString() : '-';
+
+                    return `<div class="exec-item ${status}" onclick="viewExecution('${exec.id}')" style="cursor: pointer; padding: 10px;">
+                        <span class="exec-status ${status}"></span>
+                        <span class="exec-name" style="flex: 1;">${name}</span>
+                        <span class="exec-time">${time}</span>
+                    </div>`;
+                }).join('');
+
+            showModal(`Executions ${filter ? `(${filter})` : ''}`, `<div style="max-height: 400px; overflow-y: auto;">${html}</div>`);
+        }
+
+        function filterExecutions(status) {
+            showAllExecutions(status);
+        }
+
+        // ===== UTILITIES =====
+        function formatTimeAgo(dateStr) {
+            const diff = Date.now() - new Date(dateStr).getTime();
+            const mins = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+            if (days > 0) return `${days}d`;
+            if (hours > 0) return `${hours}h`;
+            if (mins > 0) return `${mins}m`;
+            return 'now';
+        }
+
+        function formatDuration(start, end) {
+            const diff = new Date(end) - new Date(start);
+            const secs = Math.floor(diff / 1000);
+            const mins = Math.floor(secs / 60);
+            const hours = Math.floor(mins / 60);
+            if (hours > 0) return `${hours}h ${mins % 60}m`;
+            if (mins > 0) return `${mins}m ${secs % 60}s`;
+            return `${secs}s`;
+        }
+
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = msg;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        async function checkConnection() {
+            const dot = document.getElementById('connectionDot');
+            const text = document.getElementById('connectionText');
             try {
-                showToast(`Triggering ${workflowName}...`, 'info');
-                addActivityLog(`Triggering ${workflowName}...`, 'info');
-
-                const response = await fetch(`${N8N_WEBHOOK_BASE}?path=${webhookPath}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ triggeredFrom: 'dashboard', timestamp: new Date().toISOString() })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    showToast(`${workflowName} triggered successfully!`, 'success');
-                    addActivityLog(`${workflowName} triggered`, 'info');
-                    // Reload executions after a short delay
-                    setTimeout(loadExecutions, 2000);
+                const res = await fetch(`${N8N_API}?path=workflows&limit=1`);
+                if (res.ok) {
+                    dot.className = 'status-dot';
+                    text.textContent = 'n8n Connected';
                 } else {
-                    throw new Error(data.error || data.message || 'Trigger failed');
+                    throw new Error();
                 }
-            } catch (e) {
-                console.error('Failed to trigger workflow:', e);
-                showToast(`Failed to trigger ${workflowName}: ${e.message}`, 'error');
-                addActivityLog(`Failed to trigger ${workflowName}`, 'error');
-            } finally {
-                btn.disabled = false;
+            } catch {
+                dot.className = 'status-dot offline';
+                text.textContent = 'n8n Offline';
             }
         }
 
-        // Initialize n8n monitor
-        async function initN8nMonitor() {
-            await loadWorkflows();
-            await loadExecutions();
+        // ===== STORAGE =====
+        function saveToStorage() {
+            localStorage.setItem('nuxec-tasks', JSON.stringify(tasks));
+            localStorage.setItem('nuxec-notes', JSON.stringify(notes));
         }
 
-        // Load n8n data on startup
-        initN8nMonitor();
+        function loadFromStorage() {
+            tasks = JSON.parse(localStorage.getItem('nuxec-tasks')) || [...defaultTasks];
+            notes = JSON.parse(localStorage.getItem('nuxec-notes')) || [];
+        }
 
-        // Update workflow counts
-        updateWorkflowCounts();
+        // Keyboard shortcuts
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeModal();
+        });
 
-        // Auto-refresh executions every 30 seconds
-        setInterval(loadExecutions, 30000);
+        // Init
+        init();
     </script>
 </body>
 </html>
