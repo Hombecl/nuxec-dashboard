@@ -1631,23 +1631,19 @@
         const STATUS_URL = 'http://72.62.253.231:8080';
         
         async function checkServerStatus() {
+            const statusEl = document.getElementById('connectionStatus');
             try {
-                const response = await fetch(STATUS_URL, { method: 'GET', cache: 'no-cache' });
-                const statusEl = document.getElementById('connectionStatus');
+                const response = await fetch(STATUS_URL + '?t=' + Date.now(), { method: 'GET', cache: 'no-cache' });
                 if (statusEl) {
-                    if (response.ok) {
-                        statusEl.classList.add('connected');
-                        statusEl.innerHTML = '<span class="status-dot"></span><span>Connected</span>';
-                    } else {
-                        statusEl.classList.remove('connected');
-                        statusEl.innerHTML = '<span class="status-dot"></span><span>Disconnected</span>';
-                    }
+                    statusEl.classList.add('connected');
+                    statusEl.classList.remove('disconnected');
+                    statusEl.innerHTML = '<span class="status-dot" style="background:#2ecc71;"></span><span style="color:#2ecc71;">Connected</span>';
                 }
             } catch (e) {
-                const statusEl = document.getElementById('connectionStatus');
                 if (statusEl) {
                     statusEl.classList.remove('connected');
-                    statusEl.innerHTML = '<span class="status-dot"></span><span>Disconnected</span>';
+                    statusEl.classList.add('disconnected');
+                    statusEl.innerHTML = '<span class="status-dot" style="background:#e74c3c;"></span><span style="color:#e74c3c;">Disconnected</span>';
                 }
             }
         }
