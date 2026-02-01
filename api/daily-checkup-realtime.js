@@ -43,6 +43,28 @@ export default async function handler(req, res) {
             'Approved Base Price',
             'Declared Price',
             'Primary Supplier Link',
+            // Publish status from Airtable (synced by other workflows)
+            'WM Publish Status',
+            'WM Inventory',
+            // Scrape data for sellers and pricing
+            'Scrape Seller Name',
+            'Scrape Price',
+            'Scrape Current Price',
+            'Scrape Total Sellers',
+            'Scrape 3P Seller Count',
+            'Scrape Price 3P',
+            'Scrape Availability Status',
+            'Scrape Out of Stock',
+            'Scrape Rating',
+            'Scrape Review Count',
+            'Scrape Brand',
+            'Scrape Low Stock Message',
+            // Daily Check seller data
+            'Daily Check All Sellers',
+            'Daily Check Our Rank',
+            'Daily Check Our Price',
+            'Daily Check Lowest 3P Price',
+            'Daily Check Is Winning',
         ];
 
         const airtableUrl = new URL(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}`);
@@ -114,12 +136,26 @@ export default async function handler(req, res) {
             const ourSellingPrice = f['Approved Base Price'] || null;
             const declaredPrice = f['Declared Price'] || null;
 
-            // Real-time data from Walmart API
-            const walmartPrice = realTime.walmartPrice || null;
-            const publishedStatus = realTime.publishedStatus || 'Unknown';
+            // Real-time inventory from Walmart API
             const defaultInventory = realTime.defaultInventory || 0;
             const fcInventory = realTime.fcInventory || 0;
             const totalInventory = realTime.totalInventory || Math.max(defaultInventory, fcInventory);
+
+            // Publish status - prefer Airtable (already synced) if real-time is Unknown
+            let publishedStatus = realTime.publishedStatus;
+            if (!publishedStatus || publishedStatus === 'Unknown') {
+                const wmStatus = f['WM Publish Status'] || '';
+                if (wmStatus.includes('PUBLISHED') || wmStatus.includes('ACTIVE')) {
+                    publishedStatus = 'PUBLISHED';
+                } else if (wmStatus.includes('UNPUBLISHED') || wmStatus.includes('RETIRED')) {
+                    publishedStatus = 'UNPUBLISHED';
+                } else {
+                    publishedStatus = wmStatus || 'Unknown';
+                }
+            }
+
+            // Walmart.com current price - from scrape data or real-time
+            const walmartPrice = realTime.walmartPrice || f['Scrape Current Price'] || f['Scrape Price'] || null;
 
             // Calculate Margin using correct formula:
             // Margin = Our Selling Price - Product Cost - $4.5 shipping - (Our Selling Price * 10.5% platform fee)
@@ -135,6 +171,23 @@ export default async function handler(req, res) {
             // Inventory warning
             const inventoryWarning = totalInventory === 0;
 
+            // Parse seller data from Airtable
+            let sellers = [];
+            try {
+                if (f['Daily Check All Sellers']) {
+                    sellers = JSON.parse(f['Daily Check All Sellers']);
+                }
+            } catch {
+                sellers = [];
+            }
+
+            // Seller and competition data
+            const totalSellers = f['Scrape Total Sellers'] || sellers.length || 1;
+            const thirdPartySellers = f['Scrape 3P Seller Count'] || 0;
+            const lowest3PPrice = f['Daily Check Lowest 3P Price'] || f['Scrape Price 3P'] || null;
+            const ourRank = f['Daily Check Our Rank'] || null;
+            const isWinning = f['Daily Check Is Winning'] || (ourSellingPrice && lowest3PPrice ? ourSellingPrice <= lowest3PPrice : false);
+
             return {
                 id: record.id,
                 sku,
@@ -147,25 +200,38 @@ export default async function handler(req, res) {
                 productCost,
                 ourSellingPrice,
                 declaredPrice,
-                // Real-time from Walmart API
                 walmartPrice,
-                publishedStatus,
+                // Real-time inventory from Walmart API
                 defaultInventory,
                 fcInventory,
                 totalInventory,
                 inventoryWarning,
+                // Publish status (combined)
+                publishedStatus,
                 // Calculated margin
                 marginDollar,
                 marginPercent,
-                // Real-time product info
+                // Competition data
+                sellers,
+                totalSellers,
+                thirdPartySellers,
+                lowest3PPrice,
+                ourRank,
+                isWinning,
+                buyBoxSeller: f['Scrape Seller Name'] || 'Unknown',
+                // Product info
                 productName: realTime.productName || f.Title,
-                lifecycleStatus: realTime.lifecycleStatus,
+                brand: f['Scrape Brand'] || null,
+                rating: f['Scrape Rating'] || null,
+                reviewCount: f['Scrape Review Count'] || 0,
+                availability: f['Scrape Availability Status'] || 'Unknown',
+                lowStockWarning: f['Scrape Low Stock Message'] || null,
                 // Links
                 supplierLink: f['Primary Supplier Link'] || null,
                 walmartUrl: f['Walmart Listing URL'] || `https://www.walmart.com/ip/${f['Product ID']}`,
                 // Timestamp
                 lastChecked: realTimeData?.timestamp || new Date().toISOString(),
-                isRealTime: !!realTime.publishedStatus,
+                isRealTime: totalInventory > 0 || (realTime.defaultInventory !== undefined),
             };
         });
 

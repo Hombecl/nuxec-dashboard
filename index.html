@@ -1788,12 +1788,23 @@
                                     <div style="text-align: center;">
                                         <div style="color: #8b949e;">Inventory</div>
                                         <div style="font-weight: 700; color: ${invColor};">${totalInv}</div>
+                                        <div style="font-size: 0.5rem; color: #8b949e;">D:${p.defaultInventory || 0} F:${p.fcInventory || 0}</div>
                                     </div>
                                     <div style="text-align: center;">
                                         <div style="color: #8b949e;">7D Sales</div>
                                         <div style="font-weight: 700; color: #58a6ff;">${p.sales7Day}</div>
                                     </div>
                                 </div>
+
+                                <!-- Row 4: Sellers info -->
+                                ${p.thirdPartySellers > 0 || (p.sellers && p.sellers.length > 0) ? `
+                                <div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid #30363d; font-size: 0.55rem; color: #8b949e;">
+                                    <span>👥 ${p.totalSellers || 1} seller(s)</span>
+                                    ${p.thirdPartySellers > 0 ? `<span style="margin-left: 8px; color: #d29922;">${p.thirdPartySellers} 3P</span>` : ''}
+                                    ${p.lowest3PPrice ? `<span style="margin-left: 8px;">Lowest 3P: $${p.lowest3PPrice.toFixed(2)}</span>` : ''}
+                                    ${p.ourRank ? `<span style="margin-left: 8px; color: ${p.ourRank === 1 ? '#3fb950' : '#58a6ff'};">Rank #${p.ourRank}</span>` : ''}
+                                </div>
+                                ` : ''}
                             </div>
                         `;
                     }).join('')}
