@@ -1064,7 +1064,7 @@
                                 <div class="deliverable-icon">🎯</div>
                                 <div class="deliverable-title">Daily Check-up</div>
                             </div>
-                            <div class="deliverable-desc">Top 10 product competitor analysis, pricing & seller tracking</div>
+                            <div class="deliverable-desc">Top 15 product competitor analysis, pricing & seller tracking</div>
                             <div class="deliverable-status" id="dailyCheckupStatus">
                                 <div style="font-size: 0.75rem; color: #8b949e;">Click to view</div>
                             </div>
@@ -1753,7 +1753,7 @@
 
             try {
                 // Use the real-time API endpoint
-                const response = await fetch('/api/daily-checkup-realtime?limit=10');
+                const response = await fetch('/api/daily-checkup-realtime?limit=15');
                 if (!response.ok) throw new Error('Failed to load data');
 
                 const data = await response.json();
