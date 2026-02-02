@@ -1637,47 +1637,61 @@
             const task = tasks.find(t => t.id === id);
             if (!task) return;
             
-            // Build instructions HTML (pure text steps)
+            // Build instructions as inline list with commands embedded
             let instructionsHtml = '';
             if (task.instructions && task.instructions.length > 0) {
                 instructionsHtml = task.instructions.map((inst, i) => {
-                    return `<div style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); color: #ccd6f6; font-size: 0.9rem; line-height: 1.5;">${inst}</div>`;
+                    // Detect if line contains a command pattern
+                    if (inst.includes('cd /') || inst.includes('npm install') || inst.includes('node ') || inst.includes('python3') || inst.includes('scp ')) {
+                        return `<div style="padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                            <span style="color: #8892b0; font-size: 0.85rem;">${inst.split('\n')[0]}</span>
+                            <div style="background: #0d1117; padding: 12px; border-radius: 8px; margin-top: 8px; font-family: monospace; font-size: 0.8rem; color: #c9d1d9; display: flex; justify-content: space-between; align-items: center;">
+                                <span style="flex:1; overflow-x: auto; word-break: break-all;">${inst.split('\n')[1] || inst}</span>
+                                <button onclick="copyToClipboard('${(inst.split('\n')[1] || inst).replace(/'/g, "\\'")}')" style="background: #238636; border: none; padding: 8px 12px; border-radius: 6px; color: white; cursor: pointer; font-size: 0.8rem;">📋 Copy</button>
+                            </div>
+                        </div>`;
+                    }
+                    return `<div style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); color: #ccd6f6; font-size: 0.9rem; line-height: 1.6;">${inst}</div>`;
                 }).join('');
             }
             
             // Build commands section with copy buttons
             let commandsHtml = '';
             if (task.commands && task.commands.length > 0) {
-                commandsHtml = `<div style="margin-top: 20px;">
-                    <div style="color: #64ffda; font-weight: 600; margin-bottom: 12px; font-size: 0.9rem;">📋 TERMINAL COMMANDS (Click 📋 to copy)</div>
-                    ${task.commands.map(c => `<div style="background: #0d1117; padding: 12px 15px; border-radius: 8px; margin-bottom: 8px; font-family: 'SF Mono', 'Consolas', monospace; font-size: 0.8rem; color: #c9d1d9; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
-                        <span style="flex:1; overflow-x: auto; word-break: break-all;">${c}</span>
-                        <button onclick="copyToClipboard('${c.replace(/'/g, "\\'").replace(/`/g, '\\`')}')" style="background: #238636; border: none; padding: 8px 12px; border-radius: 6px; color: white; cursor: pointer; font-size: 0.8rem; white-space: nowrap;">📋 Copy</button>
+                commandsHtml = `<div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <div style="color: #64ffda; font-weight: 600; margin-bottom: 12px; font-size: 0.9rem;">📋 TERMINAL COMMANDS</div>
+                    ${task.commands.map(c => `<div style="background: #0d1117; padding: 14px; border-radius: 8px; margin-bottom: 10px; font-family: monospace; font-size: 0.85rem; color: #c9d1d9; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                        <span style="flex:1; overflow-x: auto; word-break: break-all; white-space: pre-wrap;">${c}</span>
+                        <button onclick="copyToClipboard('${c.replace(/'/g, "\\'").replace(/`/g, '\\`').replace(/"/g, '\\\"')}')" style="background: #238636; border: none; padding: 10px 16px; border-radius: 6px; color: white; cursor: pointer; font-size: 0.85rem; white-space: nowrap;">📋 Copy</button>
                     </div>`).join('')}
                 </div>`;
             }
             
-            // Build links section with clickable URLs
+            // Build links section with clickable buttons
             let linksHtml = '';
             if (task.links && task.links.length > 0) {
-                linksHtml = `<div style="margin-top: 20px;">
-                    <div style="color: #64ffda; font-weight: 600; margin-bottom: 12px; font-size: 0.9rem;">🔗 USEFUL LINKS (Click to open)</div>
-                    <div style="display: flex; flex-direction: column; gap: 8px;">
-                        ${task.links.map(l => `<a href="${l.url}" target="_blank" style="display: flex; align-items: center; gap: 10px; background: rgba(100,255,218,0.08); padding: 12px 15px; border-radius: 8px; color: #64ffda; text-decoration: none; font-size: 0.85rem; border: 1px solid rgba(100,255,218,0.15); transition: all 0.2s;">
-                            <span style="font-size: 1rem;">${l.icon || '🔗'}</span>
+                linksHtml = `<div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <div style="color: #64ffda; font-weight: 600; margin-bottom: 12px; font-size: 0.9rem;">🔗 LINKS</div>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        ${task.links.map(l => `<a href="${l.url}" target="_blank" style="display: flex; align-items: center; gap: 12px; background: rgba(100,255,218,0.08); padding: 14px 16px; border-radius: 8px; color: #64ffda; text-decoration: none; font-size: 0.9rem; border: 1px solid rgba(100,255,218,0.15); transition: all 0.2s;">
+                            <span style="font-size: 1.1rem;">${l.icon || '🔗'}</span>
                             <span style="flex:1;">${l.text}</span>
-                            <span style="color: #8892b0; font-size: 0.75rem;">Open →</span>
+                            <span style="color: #8892b0; font-size: 0.8rem;">↗</span>
                         </a>`).join('')}
                     </div>
                 </div>`;
             }
             
+            // Status badge color
+            const statusColor = task.status === 'done' ? '#2ecc71' : task.status === 'inprogress' ? '#3498db' : '#ffd93d';
+            const statusBg = task.status === 'done' ? 'rgba(46,204,113,0.2)' : task.status === 'inprogress' ? 'rgba(52,152,219,0.2)' : 'rgba(255,217,61,0.2)';
+            
             showModal(task.title, `
-                <div style="padding: 5px 0 15px 0; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 15px;">
-                    <span style="background: ${task.status === 'done' ? 'rgba(46,204,113,0.2)' : task.status === 'inprogress' ? 'rgba(52,152,219,0.2)' : 'rgba(255,217,61,0.2)'}; padding: 5px 12px; border-radius: 15px; font-size: 0.8rem; color: ${task.status === 'done' ? '#2ecc71' : task.status === 'inprogress' ? '#3498db' : '#ffd93d'};">${task.date} • ${task.status}</span>
+                <div style="padding: 0 0 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px;">
+                    <span style="background: ${statusBg}; padding: 6px 14px; border-radius: 15px; font-size: 0.85rem; color: ${statusColor}; display: inline-block;">${task.date} • ${task.status.toUpperCase()}</span>
                 </div>
-                ${instructionsHtml ? `<div style="margin-bottom: 20px;">
-                    <div style="color: #64ffda; font-weight: 600; margin-bottom: 12px; font-size: 0.9rem;">📝 STEPS</div>
+                ${instructionsHtml ? `<div style="margin-bottom: 10px;">
+                    <div style="color: #64ffda; font-weight: 600; margin-bottom: 15px; font-size: 0.95rem;">📝 DETAILED STEPS</div>
                     ${instructionsHtml}
                 </div>` : ''}
                 ${commandsHtml}
