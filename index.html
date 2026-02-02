@@ -2539,8 +2539,36 @@
         }
 
         function loadFromStorage() {
-            tasks = JSON.parse(localStorage.getItem('nuxec-tasks')) || [...defaultTasks];
+            const storedTasks = localStorage.getItem('nuxec-tasks');
+            if (storedTasks) {
+                try {
+                    const parsed = JSON.parse(storedTasks);
+                    // Check if stored tasks match current defaultTasks structure
+                    if (parsed.length >= 9 && parsed[8]?.title?.includes('Upwork')) {
+                        tasks = parsed; // Use stored tasks
+                    } else {
+                        tasks = [...defaultTasks]; // Use default tasks
+                    }
+                } catch (e) {
+                    tasks = [...defaultTasks];
+                }
+            } else {
+                tasks = [...defaultTasks];
+            }
             notes = JSON.parse(localStorage.getItem('nuxec-notes')) || [];
+            
+            // Debug: log task count
+            console.log('Tasks loaded:', tasks.length, 'tasks');
+        }
+        
+        // Clear all localStorage data
+        function clearAllData() {
+            localStorage.removeItem('nuxec-tasks');
+            localStorage.removeItem('nuxec-notes');
+            localStorage.removeItem('nuxec-activity');
+            localStorage.removeItem('nuxec-thoughts');
+            localStorage.removeItem('nuxec-status');
+            location.reload();
         }
 
         // Keyboard shortcuts
