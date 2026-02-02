@@ -1069,6 +1069,16 @@
                                 <div style="font-size: 0.75rem; color: #8b949e;">Click to view</div>
                             </div>
                         </div>
+                        <div class="deliverable-card" onclick="showRecentRetirements()" id="retirementsCard">
+                            <div class="deliverable-header">
+                                <div class="deliverable-icon">🗑️</div>
+                                <div class="deliverable-title">Recent Retirements</div>
+                            </div>
+                            <div class="deliverable-desc">Recently retired products, reasons, and revenue impact analysis</div>
+                            <div class="deliverable-status" id="retirementsStatus">
+                                <div style="font-size: 0.75rem; color: #8b949e;">Loading...</div>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -1338,6 +1348,7 @@
             renderKanban();
             renderNotes();
             await loadAllData();
+            loadRetirementsPreview(); // Load retirements preview
             setInterval(loadAllData, 60000); // Refresh every minute
         }
 
@@ -1892,6 +1903,183 @@
 
         // ===== DAILY CHECK-UP =====
         let dailyCheckupData = null;
+        let retirementsData = null;
+
+        // ===== RECENT RETIREMENTS =====
+        async function loadRetirementsPreview() {
+            try {
+                const response = await fetch('/api/recent-retirements');
+                if (!response.ok) return;
+                const data = await response.json();
+                if (!data.success) return;
+
+                retirementsData = data;
+                updateRetirementsCard(data);
+            } catch (e) {
+                console.error('Failed to load retirements preview:', e);
+            }
+        }
+
+        function updateRetirementsCard(data) {
+            const statusEl = document.getElementById('retirementsStatus');
+            if (!statusEl) return;
+
+            const { summary } = data;
+            const hasIssues = summary.withSalesCount > 0;
+
+            statusEl.innerHTML = `
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    <span style="color: ${summary.totalRetired > 0 ? '#d29922' : '#8b949e'}; font-weight: 600;">
+                        ${summary.totalRetired} retired
+                    </span>
+                    ${summary.pendingCount > 0 ? `<span style="color: #f85149; font-weight: 600;">${summary.pendingCount} pending</span>` : ''}
+                    ${hasIssues ? `<span style="color: #f85149; font-weight: 600;">⚠️ ${summary.withSalesCount} had sales</span>` : ''}
+                </div>
+            `;
+        }
+
+        async function showRecentRetirements() {
+            setOrlandStatus('working', 'Loading retirement data...');
+
+            showModal('🗑️ Recent Retirements', `
+                <div style="text-align: center; padding: 40px;">
+                    <div style="font-size: 2rem; margin-bottom: 12px;">⏳</div>
+                    <p style="color: #8b949e;">Loading retirement data...</p>
+                </div>
+            `);
+
+            try {
+                const response = await fetch('/api/recent-retirements');
+                if (!response.ok) throw new Error('Failed to load data');
+
+                const data = await response.json();
+                if (!data.success) throw new Error(data.error || 'Unknown error');
+
+                retirementsData = data;
+                renderRetirementsModal(data);
+                updateRetirementsCard(data);
+                setOrlandStatus('success', 'Data loaded');
+            } catch (error) {
+                document.getElementById('modalBody').innerHTML = `
+                    <div style="text-align: center; padding: 40px;">
+                        <div style="font-size: 2rem; margin-bottom: 12px;">❌</div>
+                        <p style="color: #f85149;">${error.message}</p>
+                        <button onclick="showRecentRetirements()" style="margin-top: 16px; padding: 8px 16px; background: #21262d; border: 1px solid #30363d; color: #8b949e; border-radius: 6px; cursor: pointer;">
+                            Retry
+                        </button>
+                    </div>
+                `;
+                setOrlandStatus('error', 'Failed to load');
+            }
+        }
+
+        function renderRetirementsModal(data) {
+            const { summary, retiredProducts, pendingRetirements } = data;
+
+            const formatTimeAgo = (isoStr) => {
+                if (!isoStr) return 'Unknown';
+                const date = new Date(isoStr);
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMins / 60);
+                const diffDays = Math.floor(diffHours / 24);
+                if (diffMins < 60) return `${diffMins}m ago`;
+                if (diffHours < 24) return `${diffHours}h ago`;
+                if (diffDays < 7) return `${diffDays}d ago`;
+                return date.toLocaleDateString();
+            };
+
+            const html = `
+                <!-- Summary Stats -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px;">
+                    <div style="background: #21262d; padding: 10px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.2rem; font-weight: 700; color: #d29922;">${summary.totalRetired}</div>
+                        <div style="font-size: 0.6rem; color: #8b949e;">Retired (7d)</div>
+                    </div>
+                    <div style="background: ${summary.pendingCount > 0 ? 'rgba(248,81,73,0.15)' : '#21262d'}; padding: 10px; border-radius: 8px; text-align: center; border: ${summary.pendingCount > 0 ? '1px solid rgba(248,81,73,0.4)' : 'none'};">
+                        <div style="font-size: 1.2rem; font-weight: 700; color: ${summary.pendingCount > 0 ? '#f85149' : '#8b949e'};">${summary.pendingCount}</div>
+                        <div style="font-size: 0.6rem; color: #8b949e;">Pending</div>
+                    </div>
+                    <div style="background: ${summary.withSalesCount > 0 ? 'rgba(248,81,73,0.15)' : '#21262d'}; padding: 10px; border-radius: 8px; text-align: center; border: ${summary.withSalesCount > 0 ? '1px solid rgba(248,81,73,0.4)' : 'none'};">
+                        <div style="font-size: 1.2rem; font-weight: 700; color: ${summary.withSalesCount > 0 ? '#f85149' : '#8b949e'};">${summary.withSalesCount}</div>
+                        <div style="font-size: 0.6rem; color: #8b949e;">Had Sales ⚠️</div>
+                    </div>
+                    <div style="background: #21262d; padding: 10px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.2rem; font-weight: 700; color: #f85149;">$${summary.totalLostRevenue?.toFixed(0) || 0}</div>
+                        <div style="font-size: 0.6rem; color: #8b949e;">Lost Rev (est)</div>
+                    </div>
+                </div>
+
+                <!-- Reason Breakdown -->
+                <div style="background: #161b22; padding: 12px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #30363d;">
+                    <div style="font-weight: 600; margin-bottom: 8px; font-size: 0.8rem; color: #e6edf3;">📊 Retirement Reasons</div>
+                    ${Object.keys(summary.reasonBreakdown || {}).length > 0 ?
+                        Object.entries(summary.reasonBreakdown).map(([reason, count]) => `
+                            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; padding: 4px 0; border-bottom: 1px solid #21262d;">
+                                <span style="color: #8b949e;">${reason}</span>
+                                <span style="font-weight: 600; color: #d29922;">${count}</span>
+                            </div>
+                        `).join('')
+                    : '<div style="color: #8b949e; font-size: 0.75rem;">No retirements in last 7 days</div>'}
+                </div>
+
+                <!-- Store Breakdown -->
+                <div style="background: #161b22; padding: 12px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #30363d;">
+                    <div style="font-weight: 600; margin-bottom: 8px; font-size: 0.8rem; color: #e6edf3;">🏪 By Store</div>
+                    ${Object.keys(summary.byStore || {}).length > 0 ?
+                        Object.entries(summary.byStore).map(([store, count]) => `
+                            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; padding: 4px 0; border-bottom: 1px solid #21262d;">
+                                <span style="color: #58a6ff;">${store}</span>
+                                <span style="font-weight: 600; color: #e6edf3;">${count}</span>
+                            </div>
+                        `).join('')
+                    : '<div style="color: #8b949e; font-size: 0.75rem;">No data</div>'}
+                </div>
+
+                <!-- Pending Retirements (if any) -->
+                ${pendingRetirements.length > 0 ? `
+                    <div style="margin-bottom: 12px;">
+                        <div style="font-weight: 600; margin-bottom: 8px; font-size: 0.8rem; color: #f85149;">⚠️ Pending Retirements (${pendingRetirements.length})</div>
+                        <div style="max-height: 150px; overflow-y: auto;">
+                            ${pendingRetirements.slice(0, 10).map(p => `
+                                <div style="background: rgba(248,81,73,0.1); padding: 8px; border-radius: 6px; margin-bottom: 6px; border-left: 3px solid #f85149;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                        <span style="font-weight: 600; font-size: 0.75rem; color: #e6edf3;">${p.sku}</span>
+                                        <span style="font-size: 0.65rem; color: #8b949e;">${p.store}</span>
+                                    </div>
+                                    <div style="font-size: 0.65rem; color: #f85149;">Reason: ${p.retireReason}</div>
+                                    ${p.sales14Day > 0 ? `<div style="font-size: 0.65rem; color: #f85149; font-weight: 600; margin-top: 2px;">⚠️ Has ${p.sales14Day} sales in 14d!</div>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+
+                <!-- Recently Retired Products -->
+                <div>
+                    <div style="font-weight: 600; margin-bottom: 8px; font-size: 0.8rem; color: #d29922;">📦 Recently Retired (${retiredProducts.length})</div>
+                    <div style="max-height: 300px; overflow-y: auto;">
+                        ${retiredProducts.length > 0 ? retiredProducts.slice(0, 20).map(p => `
+                            <div style="background: #21262d; padding: 10px; border-radius: 8px; margin-bottom: 6px; border-left: 3px solid ${p.sales14Day > 0 ? '#f85149' : '#d29922'};">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <span style="font-weight: 600; font-size: 0.8rem; color: #e6edf3;">${p.sku}</span>
+                                    <span style="font-size: 0.65rem; color: #8b949e;">${formatTimeAgo(p.retireDate)}</span>
+                                </div>
+                                <div style="font-size: 0.7rem; color: #8b949e; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.title}</div>
+                                <div style="display: flex; gap: 12px; font-size: 0.65rem;">
+                                    <span style="color: #58a6ff;">${p.store}</span>
+                                    <span style="color: #d29922;">${p.retireReason}</span>
+                                    ${p.sales14Day > 0 ? `<span style="color: #f85149; font-weight: 600;">⚠️ ${p.sales14Day} sales</span>` : '<span style="color: #3fb950;">No recent sales</span>'}
+                                </div>
+                            </div>
+                        `).join('') : '<div style="color: #8b949e; font-size: 0.75rem; text-align: center; padding: 20px;">No retirements in last 7 days</div>'}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modalBody').innerHTML = html;
+        }
 
         async function showDailyCheckup() {
             setOrlandStatus('working', 'Loading Daily Check-up data...');
