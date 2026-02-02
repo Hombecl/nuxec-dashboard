@@ -1843,59 +1843,150 @@
             }
         }
 
-                function showTask(id) {
+        function showTask(id) {
             const task = tasks.find(t => t.id === id);
             if (!task) return;
-            
-            // Process instructions - convert URLs to clickable, commands to copy blocks
-            let html = '';
-            if (task.instructions && task.instructions.length > 0) {
-                html = task.instructions.map((line, i) => {
-                    // Check if line contains a URL
-                    const urlMatch = line.match(/🔗 CLICK: (https?:\/\/[^\s]+)/);
-                    if (urlMatch) {
-                        const url = urlMatch[1];
-                        const rest = line.replace(urlMatch[0], '').trim();
-                        return `<div style="padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.08);">
-                            <div style="color: #8892b0; font-size: 0.9rem; margin-bottom: 8px;">${rest}</div>
-                            <a href="${url}" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(100,255,218,0.1); padding: 12px 16px; border-radius: 8px; color: #64ffda; text-decoration: none; font-size: 0.9rem; border: 1px solid rgba(100,255,218,0.3); transition: all 0.2s;">
-                                <span style="font-size: 1rem;">🔗</span>
-                                <span style="flex:1; word-break: break-all;">${url}</span>
-                                <span style="color: #8892b0;">Open →</span>
-                            </a>
-                        </div>`;
-                    }
-                    
-                    // Check if line contains a command
-                    const cmdMatch = line.match(/📋 COPY & RUN IN TERMINAL: (.+)/);
-                    if (cmdMatch) {
-                        const cmd = cmdMatch[1];
-                        const rest = line.replace(cmdMatch[0], '').trim();
-                        return `<div style="padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.08);">
-                            <div style="color: #8892b0; font-size: 0.9rem; margin-bottom: 8px;">${rest}</div>
-                            <div style="background: #0d1117; border-radius: 8px; padding: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
-                                <code style="flex:1; font-family: 'SF Mono', Consolas, monospace; font-size: 0.8rem; color: #c9d1d9; overflow-x: auto; word-break: break-all;">${cmd}</code>
-                                <button onclick="copyToClipboard('${cmd.replace(/'/g, "\\'")}')" style="background: #238636; border: none; padding: 10px 14px; border-radius: 6px; color: white; cursor: pointer; font-size: 0.85rem; white-space: nowrap;">📋 Copy</button>
-                            </div>
-                        </div>`;
-                    }
-                    
-                    // Regular text line
-                    return `<div style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); color: #ccd6f6; font-size: 0.9rem; line-height: 1.6;">${line}</div>`;
-                }).join('');
+
+            // Helper: Make URLs clickable
+            function linkifyText(text) {
+                const urlRegex = /(https?:\/\/[^\s<>"']+)/g;
+                return text.replace(urlRegex, '<a href="$1" target="_blank" style="color: #58a6ff; text-decoration: underline;">$1</a>');
             }
-            
-            // Status badge color
-            const statusColor = task.status === 'done' ? '#2ecc71' : task.status === 'inprogress' ? '#3498db' : '#ffd93d';
-            const statusBg = task.status === 'done' ? 'rgba(46,204,113,0.2)' : task.status === 'inprogress' ? 'rgba(52,152,219,0.2)' : 'rgba(255,217,61,0.2)';
-            
+
+            // Helper: Create copyable command block
+            function createCommandBlock(cmd) {
+                const escapedCmd = cmd.replace(/'/g, "\\'").replace(/`/g, '\\`').replace(/"/g, '\\"');
+                return `<div style="background: #0d1117; padding: 12px 14px; border-radius: 8px; margin: 8px 0; font-family: 'Monaco', 'Menlo', monospace; font-size: 0.82rem; color: #7ee787; display: flex; align-items: center; gap: 12px; border: 1px solid #30363d;">
+                    <code style="flex: 1; word-break: break-all; white-space: pre-wrap;">${cmd}</code>
+                    <button onclick="copyToClipboard('${escapedCmd}')" style="background: #238636; border: none; padding: 8px 14px; border-radius: 6px; color: white; cursor: pointer; font-size: 0.8rem; white-space: nowrap; flex-shrink: 0;">📋 Copy</button>
+                </div>`;
+            }
+
+            // Helper: Create clickable URL button
+            function createUrlButton(url, label) {
+                return `<a href="${url}" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(88, 166, 255, 0.1); padding: 10px 16px; border-radius: 8px; color: #58a6ff; text-decoration: none; font-size: 0.85rem; border: 1px solid rgba(88, 166, 255, 0.3); margin: 8px 0; transition: all 0.2s;">
+                    <span>🔗</span>
+                    <span>${label || url}</span>
+                    <span style="font-size: 0.75rem;">↗</span>
+                </a>`;
+            }
+
+            // Parse and render instructions with inline actions
+            let stepsHtml = '';
+            if (task.instructions && task.instructions.length > 0) {
+                let currentStep = null;
+                let stepContent = [];
+
+                task.instructions.forEach((line, idx) => {
+                    // Skip decorative lines
+                    if (line.match(/^[━═─]+$/) || line.trim() === '') {
+                        return;
+                    }
+
+                    // Detect STEP header (📋 STEP X: or similar)
+                    const stepMatch = line.match(/^(📋\s*)?(STEP\s*\d+|WHAT\s+(THIS|IT)\s+\w+|IMPORTANT|⚠️)/i);
+                    if (stepMatch) {
+                        // Render previous step if exists
+                        if (currentStep) {
+                            stepsHtml += renderStep(currentStep, stepContent);
+                        }
+                        currentStep = line;
+                        stepContent = [];
+                    } else if (currentStep) {
+                        stepContent.push(line);
+                    } else {
+                        // No step yet, render as general info
+                        if (line.startsWith('✅')) {
+                            stepsHtml += `<div style="padding: 8px 12px; background: rgba(63, 185, 80, 0.1); border-radius: 6px; margin: 6px 0; color: #3fb950; font-size: 0.85rem;">${linkifyText(line)}</div>`;
+                        } else {
+                            stepsHtml += `<div style="padding: 6px 0; color: #e6edf3; font-size: 0.85rem; line-height: 1.5;">${linkifyText(line)}</div>`;
+                        }
+                    }
+                });
+
+                // Render last step
+                if (currentStep) {
+                    stepsHtml += renderStep(currentStep, stepContent);
+                }
+            }
+
+            // Render a single step with its content
+            function renderStep(header, content) {
+                let html = `<div style="background: #161b22; border: 1px solid #30363d; border-radius: 10px; margin: 12px 0; overflow: hidden;">`;
+
+                // Step header
+                const isWarning = header.includes('⚠️') || header.toLowerCase().includes('important');
+                const headerBg = isWarning ? 'rgba(210, 153, 34, 0.15)' : 'rgba(88, 166, 255, 0.1)';
+                const headerColor = isWarning ? '#d29922' : '#58a6ff';
+
+                html += `<div style="background: ${headerBg}; padding: 12px 16px; border-bottom: 1px solid #30363d;">
+                    <span style="color: ${headerColor}; font-weight: 600; font-size: 0.9rem;">${header}</span>
+                </div>`;
+
+                // Step content
+                html += `<div style="padding: 14px 16px;">`;
+
+                content.forEach(line => {
+                    const trimmed = line.trim();
+
+                    // Detect command patterns
+                    const isCommand = trimmed.match(/^(cd\s|npm\s|node\s|python3?\s|scp\s|wget\s|curl\s|git\s|dpkg\s|apt-get\s|cat\s|ls\s|vercel\s|google-chrome)/i) ||
+                                     (trimmed.startsWith('#') && trimmed.length < 80);
+
+                    // Detect URL patterns
+                    const urlMatch = trimmed.match(/^(GO\s*TO:|VISIT:|CHECK:|VIEW\s*CODE:)?\s*(https?:\/\/[^\s]+)/i);
+
+                    // Detect "RUN IN TERMINAL" instructions
+                    const isRunInstruction = trimmed.match(/^(RUN\s+(IN\s+)?(YOUR\s+)?(LOCAL\s+)?(HOSTINGER\s+)?TERMINAL:?)/i);
+
+                    if (isCommand && !trimmed.startsWith('#')) {
+                        html += createCommandBlock(trimmed);
+                    } else if (urlMatch) {
+                        const url = urlMatch[2];
+                        const label = urlMatch[1] ? urlMatch[1].replace(':', '').trim() + ': ' + url : url;
+                        html += createUrlButton(url, label);
+                    } else if (isRunInstruction) {
+                        html += `<div style="color: #d29922; font-size: 0.8rem; font-weight: 600; margin: 10px 0 4px 0; text-transform: uppercase;">${trimmed}</div>`;
+                    } else if (trimmed.startsWith('•') || trimmed.startsWith('-')) {
+                        html += `<div style="padding: 4px 0 4px 16px; color: #8b949e; font-size: 0.85rem;">${linkifyText(trimmed)}</div>`;
+                    } else if (trimmed.startsWith('(') && trimmed.endsWith(')')) {
+                        html += `<div style="color: #8b949e; font-size: 0.8rem; font-style: italic; margin: 4px 0;">${linkifyText(trimmed)}</div>`;
+                    } else if (trimmed) {
+                        html += `<div style="padding: 4px 0; color: #e6edf3; font-size: 0.85rem; line-height: 1.5;">${linkifyText(trimmed)}</div>`;
+                    }
+                });
+
+                html += `</div></div>`;
+                return html;
+            }
+
+            // Build links section (explicit links array)
+            let linksHtml = '';
+            if (task.links && task.links.length > 0) {
+                linksHtml = `<div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #30363d;">
+                    <div style="color: #58a6ff; font-weight: 600; margin-bottom: 12px; font-size: 0.9rem;">🔗 Quick Links</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                        ${task.links.map(l => `<a href="${l.url}" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(88, 166, 255, 0.1); padding: 10px 16px; border-radius: 8px; color: #58a6ff; text-decoration: none; font-size: 0.85rem; border: 1px solid rgba(88, 166, 255, 0.3);">
+                            <span>${l.icon || '🔗'}</span>
+                            <span>${l.text}</span>
+                            <span style="font-size: 0.75rem;">↗</span>
+                        </a>`).join('')}
+                    </div>
+                </div>`;
+            }
+
+            // Status badge
+            const statusColor = task.status === 'done' ? '#3fb950' : task.status === 'inprogress' ? '#58a6ff' : '#d29922';
+            const statusBg = task.status === 'done' ? 'rgba(63, 185, 80, 0.15)' : task.status === 'inprogress' ? 'rgba(88, 166, 255, 0.15)' : 'rgba(210, 153, 34, 0.15)';
+            const statusText = task.status === 'done' ? 'COMPLETED' : task.status === 'inprogress' ? 'IN PROGRESS' : 'TO DO';
+
             showModal(task.title, `
-                <div style="padding: 0 0 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px;">
-                    <span style="background: ${statusBg}; padding: 6px 14px; border-radius: 15px; font-size: 0.85rem; color: ${statusColor}; display: inline-block;">${task.date} • ${task.status.toUpperCase()}</span>
+                <div style="display: flex; align-items: center; gap: 12px; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid #30363d;">
+                    <span style="background: ${statusBg}; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; color: ${statusColor}; font-weight: 600;">${statusText}</span>
+                    <span style="color: #8b949e; font-size: 0.85rem;">📅 ${task.date}</span>
                 </div>
-                <div style="font-size: 0.95rem; line-height: 1.8;">
-                    ${html}
-                </div>
+                ${stepsHtml}
+                ${linksHtml}
             `);
         }
         
