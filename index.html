@@ -1897,7 +1897,9 @@
                     ${html}
                 </div>
             `);
-        }async function viewExecution(id) {
+        }
+        
+        async function viewExecution(id) {
             try {
                 const res = await fetch(`${N8N_API}?path=executions/${id}&includeData=true`);
                 const exec = await res.json();
