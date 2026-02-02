@@ -1115,10 +1115,121 @@
 
         // Default data
         const defaultTasks = [
-            { id: 1, title: "Setup nuxec-dashboard", date: "2026-01-30", status: "done" },
-            { id: 2, title: "Build Dashboard UI v4", date: "2026-02-01", status: "done" },
-            { id: 3, title: "Walmart Scraper Development", date: "2026-01-31", status: "inprogress" },
-            { id: 4, title: "Bank Statement Analyzer", date: "2026-02-02", status: "todo" }
+            { 
+                id: 1, 
+                title: "Setup nuxec-dashboard", 
+                date: "2026-01-30", 
+                status: "done",
+                instructions: [
+                    "✅ Dashboard created and deployed",
+                    "✅ Live at: https://nuxec-dashboard.vercel.app",
+                    "✅ GitHub: https://github.com/Hombecl/nuxec-dashboard"
+                ]
+            },
+            { 
+                id: 2, 
+                title: "Build Dashboard UI v4", 
+                date: "2026-02-01", 
+                status: "done",
+                instructions: [
+                    "✅ Complete UI redesign",
+                    "✅ Daily motivation quote",
+                    "✅ Real-time status polling",
+                    "✅ Consistent sidebar layout"
+                ]
+            },
+            { 
+                id: 3, 
+                title: "Walmart Scraper Development", 
+                date: "2026-01-31", 
+                status: "inprogress",
+                instructions: [
+                    "📋 Script: /root/.openclaw/workspace/walmart-scraper.js",
+                    "🔧 Run: node walmart-scraper.js",
+                    "⚠️ Issue: Needs residential proxy (IP blocked)",
+                    "📦 Solution: Buy from BrightData/SmartProxy",
+                    "🔗 Format: http://user:pass@ip:port"
+                ],
+                links: [
+                    {text:"📄 View Script",url:"https://github.com/Hombecl/nuxec-dashboard/blob/main/walmart-scraper.js"},
+                    {text:"💰 Buy Proxy",url:"https://brightdata.com"}
+                ]
+            },
+            { 
+                id: 4, 
+                title: "Bank Statement Analyzer", 
+                date: "2026-02-02", 
+                status: "todo",
+                instructions: [
+                    "📁 Upload to: /root/.openclaw/workspace/bank-statements/",
+                    "📄 Formats: .csv, .txt",
+                    "🔧 Run: python3 /root/.openclaw/workspace/bank-analyzer.py",
+                    "📊 Detects subscriptions & large transactions"
+                ]
+            },
+            { 
+                id: 5, 
+                title: "Subscription Email Scanner", 
+                date: "2026-01-31", 
+                status: "inprogress",
+                instructions: [
+                    "📋 Script: /root/.openclaw/workspace/subscription-scraper.gs",
+                    "🔗 Google Apps: https://script.google.com/home",
+                    "📝 Steps: Create project → Paste code → Run findSubscriptions()",
+                    "📧 Scans Gmail for recurring subscriptions"
+                ],
+                links: [
+                    {text:"🔗 Google Apps Script",url:"https://script.google.com/home"},
+                    {text:"📄 View Script",url:"https://github.com/Hombecl/nuxec-dashboard/blob/main/subscription-scraper.gs"}
+                ]
+            },
+            { 
+                id: 6, 
+                title: "Daily Summary Automation", 
+                date: "2026-02-01", 
+                status: "inprogress",
+                instructions: [
+                    "📋 Script: /root/.openclaw/workspace/daily-summary.py",
+                    "⏰ Schedule: Daily at 3:00 AM UTC (11:00 AM HK)",
+                    "🔧 Run manually: python3 daily-summary.py",
+                    "⚠️ Pending: Set up cron automation"
+                ]
+            },
+            { 
+                id: 7, 
+                title: "GMC Service Website", 
+                date: "2026-02-02", 
+                status: "inprogress",
+                instructions: [
+                    "📁 Location: /root/.openclaw/workspace/gmc-service-website/",
+                    "🛠️ Tech: Nuxt 3 + Vue 3",
+                    "🔧 Install: npm install",
+                    "🔧 Build: npm run build",
+                    "🔧 Deploy: vercel --prod",
+                    "📅 Deadline: Feb 5, 2026"
+                ],
+                links: [
+                    {text:"📦 View Repo",url:"https://github.com/Hombecl/gmc-service-website"}
+                ]
+            },
+            { 
+                id: 8, 
+                title: "Upwork GMC Misrepresentation Jobs", 
+                date: "2026-02-02", 
+                status: "todo",
+                instructions: [
+                    "🔍 Search Upwork: https://www.upwork.com/search/jobs/",
+                    "📝 Search: 'Google Merchant Center misrepresentation'",
+                    "📋 Apply with experience in:",
+                    "   • GMC policy violations",
+                    "   • Website recovery",
+                    "   • Compliance tools",
+                    "🔧 Build GMC Analysis Tool to detect violations"
+                ],
+                links: [
+                    {text:"🔍 Upwork",url:"https://www.upwork.com/search/jobs/"}
+                ]
+            }
         ];
 
         // ===== INIT =====
