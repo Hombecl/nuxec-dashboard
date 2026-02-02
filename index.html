@@ -1146,50 +1146,37 @@
                 instructions: [
                     "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
                     "📋 STEP 1: Install Dependencies",
-                    "   In Terminal, run:",
-                    "   ",
-                    "   cd /root/.openclaw/workspace && npm install puppeteer puppeteer-extra puppeteer-extra-plugin-stealth",
+                    "   Open Hostinger Terminal and run the command below.",
+                    "   This installs Puppeteer for browser automation.",
                     "",
                     "📋 STEP 2: View the Scraper Script",
-                    "   Full code at: /root/.openclaw/workspace/walmart-scraper.js",
-                    "   ",
-                    "   Or view on GitHub:",
-                    "   https://github.com/Hombecl/nuxec-dashboard/blob/main/walmart-scraper.js",
+                    "   The full code is on GitHub. Click the link below.",
                     "",
                     "📋 STEP 3: Run the Scraper",
-                    "   node walmart-scraper.js [product-url]",
-                    "   ",
-                    "   Example:",
-                    "   node walmart-scraper.js https://www.walmart.com/ip/483601746",
+                    "   Run the command to scrape a product page.",
                     "",
-                    "⚠️ IMPORTANT - Walmart Blocking Issue:",
-                    "   Walmart detects and blocks server IPs.",
-                    "   You NEED a residential proxy to bypass this.",
+                    "⚠️ IMPORTANT - Walmart Blocking:",
+                    "   Walmart detects server IPs and blocks them.",
+                    "   You need a residential proxy to bypass this.",
                     "",
                     "📋 STEP 4: Buy Residential Proxy",
-                    "   Recommended providers:",
-                    "   • BrightData: https://brightdata.com/residential-proxy",
-                    "   • SmartProxy: https://smartproxy.com/residential-proxy",
-                    "   • Oxylabs: https://oxylabs.io/residential-proxies",
+                    "   Recommended: BrightData, SmartProxy, or Oxylabs.",
+                    "   Cost: ~$15-50/month for 1GB-10GB data.",
                     "",
-                    "   Cost: ~$15-50/month for 1GB-10GB",
-                    "",
-                    "📋 STEP 5: Configure Proxy in Script",
-                    "   Edit walmart-scraper.js, add:",
-                    "   ",
-                    "   const proxy = 'http://user:pass@ip:port';",
-                    "   ",
-                    "   And update puppeteer.launch():",
-                    "   ",
-                    "   await puppeteer.launch({",
-                    "       args: ['--proxy-server=' + proxy]",
-                    "   });",
-                    "",
-                    "📋 STEP 6: Test URLs",
-                    "   • https://www.walmart.com/ip/Apple-AirPods-Pro-2nd-Gen/483601746",
-                    "   • https://www.walmart.com/ip/Samsung-65-Class-7-Series/123456789",
+                    "📋 STEP 5: Configure Proxy",
+                    "   Edit the script to add your proxy credentials.",
                     "",
                     "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                ],
+                commands: [
+                    "cd /root/.openclaw/workspace && npm install puppeteer puppeteer-extra puppeteer-extra-plugin-stealth",
+                    "node /root/.openclaw/workspace/walmart-scraper.js https://www.walmart.com/ip/483601746"
+                ],
+                links: [
+                    {text:"View Walmart Scraper on GitHub",url:"https://github.com/Hombecl/nuxec-dashboard/blob/main/walmart-scraper.js",icon:"📄"},
+                    {text:"Buy Residential Proxy (BrightData)",url:"https://brightdata.com/residential-proxy",icon:"💰"},
+                    {text:"SmartProxy Residential",url:"https://smartproxy.com/residential-proxy",icon:"🛒"},
+                    {text:"Puppeteer Documentation",url:"https://pptr.dev/",icon:"📖"}
                 ]
             },
             { 
@@ -1199,7 +1186,7 @@
                 status: "todo",
                 instructions: [
                     "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-                    "📋 STEP 1: Export Your Bank Statement",
+                    "📋 STEP 1: Export Bank Statement",
                     "   Export as CSV or TXT:",
                     "   • Chase: Account → Activity → Download → CSV",
                     "   • BoA: Accounts → Statements & Documents → Download",
@@ -1210,38 +1197,25 @@
                     "📋 STEP 2: Upload to Server",
                     "   Upload to: /root/.openclaw/workspace/bank-statements/",
                     "",
-                    "   Method A - Hostinger File Manager:",
-                    "   • Go to Hostinger → Files → File Manager",
-                    "   • Navigate to /root/.openclaw/workspace/bank-statements/",
-                    "   • Click 'Upload' → Select your CSV/TXT file",
-                    "",
-                    "   Method B - From your local terminal (SFTP):",
-                    "   scp your-statement.csv root@72.62.253.231:/root/.openclaw/workspace/bank-statements/",
-                    "",
-                    "📋 STEP 3: Verify Upload",
-                    "   ls -la /root/.openclaw/workspace/bank-statements/",
-                    "",
-                    "📋 STEP 4: Run the Analyzer",
-                    "   python3 /root/.openclaw/workspace/bank-analyzer.py",
-                    "",
-                    "📋 STEP 5: View Results",
-                    "   The analyzer will:",
-                    "   • Scan for recurring subscription charges",
-                    "   • Identify large transactions (>$100)",
-                    "   • Generate a summary report",
-                    "",
-                    "📋 SUPPORTED FORMATS:",
-                    "   • CSV (Comma Separated Values)",
-                    "   • TXT (Tab or comma separated)",
-                    "   • Must have: date, description, amount columns",
-                    "",
-                    "📋 EXAMPLE CSV FORMAT:",
-                    "   Date,Description,Amount",
-                    "   2026-01-15,Netflix,-15.99",
-                    "   2026-01-14,Amazon,-45.50",
-                    "   2026-01-13,Salary,+2500.00",
+                    "📋 STEP 3: Run the Analyzer",
+                    "   Run the command below to scan your statement.",
                     "",
                     "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                ],
+                commands: [
+                    "# Upload your statement via SFTP",
+                    "scp your-statement.csv root@72.62.253.231:/root/.openclaw/workspace/bank-statements/",
+                    "",
+                    "# Verify upload",
+                    "ls -la /root/.openclaw/workspace/bank-statements/",
+                    "",
+                    "# Run the analyzer",
+                    "python3 /root/.openclaw/workspace/bank-analyzer.py"
+                ],
+                links: [
+                    {text:"View Upload Folder",url:"#",icon:"📁"},
+                    {text:"View Analyzer Script",url:"https://github.com/Hombecl/nuxec-dashboard/blob/main/bank-analyzer.py",icon:"📄"},
+                    {text:"Sample CSV Format",url:"#",icon:"📊"}
                 ]
             },
             { 
@@ -1252,43 +1226,36 @@
                 instructions: [
                     "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
                     "📋 STEP 1: Open Google Apps Script",
-                    "   Go to: https://script.google.com/home",
-                    "   • Login with your Google account",
-                    "   • Click '+ New Project' button",
+                    "   Go to the URL below and login with your Google account.",
+                    "   Click '+ New Project' button.",
                     "",
                     "📋 STEP 2: Get the Apps Script Code",
-                    "   Option A - From server:",
-                    "   cat /root/.openclaw/workspace/subscription-scraper.gs",
-                    "",
-                    "   Option B - From GitHub (RECOMMENDED):",
-                    "   https://raw.githubusercontent.com/Hombecl/nuxec-dashboard/main/subscription-scraper.gs",
-                    "   • Open this URL in browser",
-                    "   • Select all (Ctrl+A) → Copy (Ctrl+C)",
+                    "   Open the GitHub raw URL below.",
+                    "   Select all (Ctrl+A) and copy (Ctrl+C).",
                     "",
                     "📋 STEP 3: Paste Code into Editor",
-                    "   • Delete existing code in editor",
-                    "   • Paste the copied code",
-                    "   • File → Save (or Ctrl+S)",
-                    "   • Name: 'SubscriptionScanner'",
+                    "   Delete existing code, paste the copied code.",
+                    "   Save (Ctrl+S) and name it 'SubscriptionScanner'.",
                     "",
                     "📋 STEP 4: Run the Script",
-                    "   • In the function dropdown, select 'findSubscriptions'",
-                    "   • Click ▶️ 'Run' button (top bar)",
-                    "   • First time: Review Permissions → Choose account",
-                    "   • Click 'Advanced' → Click 'Go to SubscriptionScanner (unsafe)'",
+                    "   Select 'findSubscriptions' from dropdown.",
+                    "   Click ▶️ Run button.",
+                    "   Grant permissions when prompted.",
                     "",
                     "📋 STEP 5: View Results",
-                    "   • Click 'View' → 'Logs' to see scan progress",
-                    "   • The script will email you a report",
-                    "   • Check Gmail for: '📋 Subscription Scan v2: X found'",
-                    "",
-                    "📋 WHAT IT DOES:",
-                    "   • Scans Gmail for subscription emails",
-                    "   • Keywords: subscription, billing, charged, etc.",
-                    "   • Excludes: newsletters, promotions, marketing",
-                    "   • Sends summary report to your email",
+                    "   Check your Gmail for the scan report.",
+                    "   Or click 'View' → 'Logs' for progress.",
                     "",
                     "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                ],
+                commands: [
+                    "# Get script from server (if needed)",
+                    "cat /root/.openclaw/workspace/subscription-scraper.gs"
+                ],
+                links: [
+                    {text:"Open Google Apps Script",url:"https://script.google.com/home",icon:"📝"},
+                    {text:"Get Apps Script Code (GitHub Raw)",url:"https://raw.githubusercontent.com/Hombecl/nuxec-dashboard/main/subscription-scraper.gs",icon:"📋"},
+                    {text:"View on GitHub",url:"https://github.com/Hombecl/nuxec-dashboard/blob/main/subscription-scraper.gs",icon:"📄"}
                 ]
             },
             { 
@@ -1670,50 +1637,47 @@
             const task = tasks.find(t => t.id === id);
             if (!task) return;
             
-            // Build instructions HTML
+            // Build instructions HTML (pure text steps)
             let instructionsHtml = '';
             if (task.instructions && task.instructions.length > 0) {
                 instructionsHtml = task.instructions.map((inst, i) => {
-                    if (typeof inst === 'string') {
-                        return `<div style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">${inst}</div>`;
-                    }
-                    return `<div style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                        <span style="color: #64ffda; font-weight: 600;">${inst.step}.</span> ${inst.text}
-                    </div>`;
+                    return `<div style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); color: #ccd6f6; font-size: 0.9rem; line-height: 1.5;">${inst}</div>`;
                 }).join('');
             }
             
-            // Build links HTML
-            let linksHtml = '';
-            if (task.links && task.links.length > 0) {
-                linksHtml = `<div style="margin-top: 15px;">
-                    <h4 style="color: #64ffda; margin-bottom: 10px;">🔗 Links</h4>
-                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                        ${task.links.map(l => `<a href="${l.url}" target="_blank" style="background: rgba(100,255,218,0.1); padding: 8px 12px; border-radius: 6px; color: #64ffda; text-decoration: none; font-size: 0.85rem;">${l.text}</a>`).join('')}
-                    </div>
-                </div>`;
-            }
-            
-            // Build commands section for terminal copy
+            // Build commands section with copy buttons
             let commandsHtml = '';
             if (task.commands && task.commands.length > 0) {
-                commandsHtml = `<div style="margin-top: 15px;">
-                    <h4 style="color: #64ffda; margin-bottom: 10px;">📋 Terminal Commands</h4>
-                    ${task.commands.map(c => `<div style="background: #0d1117; padding: 10px; border-radius: 6px; margin-bottom: 8px; font-family: monospace; font-size: 0.8rem; color: #c9d1d9; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="flex:1; overflow-x: auto;">${c}</span>
-                        <button onclick="copyToClipboard('${c.replace(/'/g, "\\'")}')" style="background: #238636; border: none; padding: 6px 10px; border-radius: 4px; color: white; cursor: pointer; margin-left: 10px;">📋</button>
+                commandsHtml = `<div style="margin-top: 20px;">
+                    <div style="color: #64ffda; font-weight: 600; margin-bottom: 12px; font-size: 0.9rem;">📋 TERMINAL COMMANDS (Click 📋 to copy)</div>
+                    ${task.commands.map(c => `<div style="background: #0d1117; padding: 12px 15px; border-radius: 8px; margin-bottom: 8px; font-family: 'SF Mono', 'Consolas', monospace; font-size: 0.8rem; color: #c9d1d9; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                        <span style="flex:1; overflow-x: auto; word-break: break-all;">${c}</span>
+                        <button onclick="copyToClipboard('${c.replace(/'/g, "\\'").replace(/`/g, '\\`')}')" style="background: #238636; border: none; padding: 8px 12px; border-radius: 6px; color: white; cursor: pointer; font-size: 0.8rem; white-space: nowrap;">📋 Copy</button>
                     </div>`).join('')}
                 </div>`;
             }
             
+            // Build links section with clickable URLs
+            let linksHtml = '';
+            if (task.links && task.links.length > 0) {
+                linksHtml = `<div style="margin-top: 20px;">
+                    <div style="color: #64ffda; font-weight: 600; margin-bottom: 12px; font-size: 0.9rem;">🔗 USEFUL LINKS (Click to open)</div>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        ${task.links.map(l => `<a href="${l.url}" target="_blank" style="display: flex; align-items: center; gap: 10px; background: rgba(100,255,218,0.08); padding: 12px 15px; border-radius: 8px; color: #64ffda; text-decoration: none; font-size: 0.85rem; border: 1px solid rgba(100,255,218,0.15); transition: all 0.2s;">
+                            <span style="font-size: 1rem;">${l.icon || '🔗'}</span>
+                            <span style="flex:1;">${l.text}</span>
+                            <span style="color: #8892b0; font-size: 0.75rem;">Open →</span>
+                        </a>`).join('')}
+                    </div>
+                </div>`;
+            }
+            
             showModal(task.title, `
-                <div class="modal-section">
-                    <h4>📅 Details</h4>
-                    <p><strong>Date:</strong> ${task.date}</p>
-                    <p><strong>Status:</strong> ${task.status}</p>
+                <div style="padding: 5px 0 15px 0; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 15px;">
+                    <span style="background: ${task.status === 'done' ? 'rgba(46,204,113,0.2)' : task.status === 'inprogress' ? 'rgba(52,152,219,0.2)' : 'rgba(255,217,61,0.2)'}; padding: 5px 12px; border-radius: 15px; font-size: 0.8rem; color: ${task.status === 'done' ? '#2ecc71' : task.status === 'inprogress' ? '#3498db' : '#ffd93d'};">${task.date} • ${task.status}</span>
                 </div>
-                ${instructionsHtml ? `<div style="margin-top: 15px;">
-                    <h4 style="color: #64ffda; margin-bottom: 10px;">📝 Steps</h4>
+                ${instructionsHtml ? `<div style="margin-bottom: 20px;">
+                    <div style="color: #64ffda; font-weight: 600; margin-bottom: 12px; font-size: 0.9rem;">📝 STEPS</div>
                     ${instructionsHtml}
                 </div>` : ''}
                 ${commandsHtml}
