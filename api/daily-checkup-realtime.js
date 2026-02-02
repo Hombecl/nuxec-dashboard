@@ -20,13 +20,13 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'AIRTABLE_API_KEY not configured' });
     }
 
-    const { limit = '10', store } = req.query;
+    const { limit = '15', store } = req.query;
 
     try {
         // Step 1: Fetch top products from Airtable (just basic info + SKU)
-        let filterFormula = "AND({7-Day Sales}>0, OR({Store}='WM19', {Store}='WM24'))";
+        let filterFormula = "AND({14-Day Sales}>0, OR({Store}='WM19', {Store}='WM24'))";
         if (store && store !== 'all') {
-            filterFormula = `AND({7-Day Sales}>0, {Store}='${store}')`;
+            filterFormula = `AND({14-Day Sales}>0, {Store}='${store}')`;
         }
 
         const fields = [
@@ -34,6 +34,7 @@ export default async function handler(req, res) {
             'Product ID',
             'Store',
             '7-Day Sales',
+            '14-Day Sales',
             '3-Day Sales',
             'Title',
             'Walmart Listing URL',
@@ -70,7 +71,7 @@ export default async function handler(req, res) {
 
         const airtableUrl = new URL(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}`);
         airtableUrl.searchParams.set('filterByFormula', filterFormula);
-        airtableUrl.searchParams.set('sort[0][field]', '7-Day Sales');
+        airtableUrl.searchParams.set('sort[0][field]', '14-Day Sales');
         airtableUrl.searchParams.set('sort[0][direction]', 'desc');
         airtableUrl.searchParams.set('maxRecords', limit);
         fields.forEach(field => airtableUrl.searchParams.append('fields[]', field));
@@ -173,6 +174,7 @@ export default async function handler(req, res) {
                 title: f.Title || f.SKU || 'Unknown Product',
                 store: f.Store || 'Unknown',
                 sales7Day: f['7-Day Sales'] || 0,
+                sales14Day: f['14-Day Sales'] || 0,
                 sales3Day: f['3-Day Sales'] || 0,
                 // Pricing from Airtable
                 productCost,
@@ -225,6 +227,7 @@ export default async function handler(req, res) {
             unknown: products.length - published - unpublished,
             zeroInventory,
             totalSales7Day: products.reduce((sum, p) => sum + (p.sales7Day || 0), 0),
+            totalSales14Day: products.reduce((sum, p) => sum + (p.sales14Day || 0), 0),
             totalSales3Day: products.reduce((sum, p) => sum + (p.sales3Day || 0), 0),
             // Last data update from scheduled workflow (every 6 hours)
             lastDataUpdate: lastDataUpdate ? lastDataUpdate.toISOString() : null,
