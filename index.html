@@ -1229,6 +1229,31 @@
                 links: [
                     {text:"🔍 Upwork",url:"https://www.upwork.com/search/jobs/"}
                 ]
+            },
+            { 
+                id: 9, 
+                title: "Browser Setup (Chrome + Puppeteer)", 
+                date: "2026-02-02", 
+                status: "todo",
+                instructions: [
+                    "📦 This enables Orland to control browser for:",
+                    "   • Take screenshots",
+                    "   • Fill forms",
+                    "   • Automate web tasks",
+                    "",
+                    "🔧 Commands to run in Hostinger Terminal:"
+                ],
+                commands: [
+                    "wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb",
+                    "dpkg -i google-chrome-stable_current_amd64.deb",
+                    "apt-get install -f -y",
+                    "google-chrome --version",
+                    "cd /root/.openclaw/workspace && npm install puppeteer"
+                ],
+                links: [
+                    {text:"📥 Chrome Download",url:"https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"},
+                    {text:"📖 Puppeteer Docs",url:"https://pptr.dev/"}
+                ]
             }
         ];
 
@@ -1536,12 +1561,55 @@
         function showTask(id) {
             const task = tasks.find(t => t.id === id);
             if (!task) return;
+            
+            // Build instructions HTML
+            let instructionsHtml = '';
+            if (task.instructions && task.instructions.length > 0) {
+                instructionsHtml = task.instructions.map((inst, i) => {
+                    if (typeof inst === 'string') {
+                        return `<div style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">${inst}</div>`;
+                    }
+                    return `<div style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <span style="color: #64ffda; font-weight: 600;">${inst.step}.</span> ${inst.text}
+                    </div>`;
+                }).join('');
+            }
+            
+            // Build links HTML
+            let linksHtml = '';
+            if (task.links && task.links.length > 0) {
+                linksHtml = `<div style="margin-top: 15px;">
+                    <h4 style="color: #64ffda; margin-bottom: 10px;">🔗 Links</h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        ${task.links.map(l => `<a href="${l.url}" target="_blank" style="background: rgba(100,255,218,0.1); padding: 8px 12px; border-radius: 6px; color: #64ffda; text-decoration: none; font-size: 0.85rem;">${l.text}</a>`).join('')}
+                    </div>
+                </div>`;
+            }
+            
+            // Build commands section for terminal copy
+            let commandsHtml = '';
+            if (task.commands && task.commands.length > 0) {
+                commandsHtml = `<div style="margin-top: 15px;">
+                    <h4 style="color: #64ffda; margin-bottom: 10px;">📋 Terminal Commands</h4>
+                    ${task.commands.map(c => `<div style="background: #0d1117; padding: 10px; border-radius: 6px; margin-bottom: 8px; font-family: monospace; font-size: 0.8rem; color: #c9d1d9; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="flex:1; overflow-x: auto;">${c}</span>
+                        <button onclick="copyToClipboard('${c.replace(/'/g, "\\'")}')" style="background: #238636; border: none; padding: 6px 10px; border-radius: 4px; color: white; cursor: pointer; margin-left: 10px;">📋</button>
+                    </div>`).join('')}
+                </div>`;
+            }
+            
             showModal(task.title, `
                 <div class="modal-section">
                     <h4>📅 Details</h4>
-                    <p>Date: ${task.date}</p>
-                    <p>Status: ${task.status}</p>
+                    <p><strong>Date:</strong> ${task.date}</p>
+                    <p><strong>Status:</strong> ${task.status}</p>
                 </div>
+                ${instructionsHtml ? `<div style="margin-top: 15px;">
+                    <h4 style="color: #64ffda; margin-bottom: 10px;">📝 Steps</h4>
+                    ${instructionsHtml}
+                </div>` : ''}
+                ${commandsHtml}
+                ${linksHtml}
             `);
         }
 
