@@ -46,6 +46,8 @@ export default async function handler(req, res) {
             // Publish status from Airtable (synced by other workflows)
             'WM Publish Status',
             'WM Inventory',
+            'WM FC Inventory',
+            'WM Default Inventory',
             // Scrape data for sellers and pricing
             'Scrape Seller Name',
             'Scrape Price',
@@ -115,12 +117,11 @@ export default async function handler(req, res) {
             const ourSellingPrice = f['Approved Base Price'] || null;
             const declaredPrice = f['Declared Price'] || null;
 
-            // Inventory from cached Airtable data (updated by scheduled workflow every 6 hours)
-            const cachedInventory = f['WM Inventory'] || 0;
-            // For now, we store total inventory; breakdown can be added to Airtable if needed
-            const defaultInventory = cachedInventory;
-            const fcInventory = 0; // FC inventory breakdown not stored separately yet
-            const totalInventory = cachedInventory;
+            // Inventory from cached Airtable data (updated by FC inventory workflows)
+            const fcInventory = f['WM FC Inventory'] || 0;
+            const defaultInventory = f['WM Default Inventory'] || 0;
+            // Use separate fields if available, fallback to combined WM Inventory
+            const totalInventory = (fcInventory + defaultInventory) || f['WM Inventory'] || 0;
 
             // Publish status from Airtable
             const wmStatus = f['WM Publish Status'] || '';
