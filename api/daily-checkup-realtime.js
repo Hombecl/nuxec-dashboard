@@ -112,10 +112,23 @@ export default async function handler(req, res) {
             }
         }
 
+        // Helper function to extract Product ID from Walmart URL
+        // URLs look like: https://www.walmart.com/ip/Product-Name/123456789?...
+        const extractProductIdFromUrl = (url) => {
+            if (!url) return null;
+            // Match pattern: /ip/anything/NUMBER or just /NUMBER at end before query params
+            const match = url.match(/\/ip\/[^\/]+\/(\d+)/) || url.match(/\/(\d{6,})(?:\?|$)/);
+            return match ? match[1] : null;
+        };
+
         // Process Airtable data
         const products = records.map((record) => {
             const f = record.fields;
             const sku = f.SKU || '';
+
+            // Extract Product ID - prioritize URL extraction as it's most reliable
+            const urlProductId = extractProductIdFromUrl(f['Primary Supplier Link']);
+            const productId = urlProductId || f['Product ID'] || f['WM Product ID'] || '';
 
             // Pricing data from Airtable
             const productCost = f['Product Cost'] || null;
@@ -176,7 +189,7 @@ export default async function handler(req, res) {
             return {
                 id: record.id,
                 sku,
-                productId: f['Product ID'] || f['WM Product ID'] || '',
+                productId,
                 title: f.Title || f.SKU || 'Unknown Product',
                 store: f.Store || 'Unknown',
                 sales7Day: f['7-Day Sales'] || 0,
@@ -259,6 +272,9 @@ export default async function handler(req, res) {
                         const relatedProducts = relatedRecords.map((record) => {
                             const f = record.fields;
                             const sku = f.SKU || '';
+                            // Extract Product ID from URL (most reliable)
+                            const urlProductId = extractProductIdFromUrl(f['Primary Supplier Link']);
+                            const productId = urlProductId || f['Product ID'] || f['WM Product ID'] || '';
                             const productCost = f['Product Cost'] || null;
                             const ourSellingPrice = f['Approved Base Price'] || null;
                             const declaredPrice = f['Declared Price'] || null;
@@ -299,7 +315,7 @@ export default async function handler(req, res) {
                             return {
                                 id: record.id,
                                 sku,
-                                productId: f['Product ID'] || f['WM Product ID'] || '',
+                                productId,
                                 title: f.Title || f.SKU || 'Unknown Product',
                                 store: f.Store || 'Unknown',
                                 sales7Day: f['7-Day Sales'] || 0,
