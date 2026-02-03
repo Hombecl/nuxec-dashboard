@@ -2364,6 +2364,7 @@
             const renderProductGroup = (group, idx) => {
                 const statusColor = group.hasWinningStore ? '#3fb950' : (group.hasInventoryWarning ? '#f85149' : '#8b949e');
                 const storeCount = group.storeProducts.length;
+                const groupId = `store-details-${idx}`;
 
                 return `
                     <div style="background: #21262d; padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid ${statusColor}; position: relative;">
@@ -2406,10 +2407,15 @@
                             ${group.lowest3PPrice ? `<span style="margin-left: 12px; font-size: 0.6rem; color: #d29922;">Lowest 3P: $${group.lowest3PPrice.toFixed(2)}</span>` : ''}
                         </div>
 
-                        <!-- Store Products (sub-rows) -->
+                        <!-- Store Products (collapsible) -->
                         <div style="border-top: 1px solid #30363d; padding-top: 8px;">
-                            <div style="font-size: 0.55rem; color: #8b949e; margin-bottom: 6px; text-transform: uppercase; font-weight: 600;">Store Details</div>
-                            ${group.storeProducts.map(p => renderProductRow(p, idx, true)).join('')}
+                            <div onclick="toggleStoreDetails('${groupId}')" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 4px 0;">
+                                <span style="font-size: 0.55rem; color: #8b949e; text-transform: uppercase; font-weight: 600;">Store Details</span>
+                                <span id="${groupId}-icon" style="font-size: 0.7rem; color: #58a6ff; transition: transform 0.2s;">▶</span>
+                            </div>
+                            <div id="${groupId}" style="display: none; margin-top: 6px;">
+                                ${group.storeProducts.map(p => renderProductRow(p, idx, true)).join('')}
+                            </div>
                         </div>
                     </div>
                 `;
@@ -2480,6 +2486,21 @@
                 document.body.removeChild(input);
                 showToast('SKU copied: ' + sku, 'success');
             });
+        }
+
+        // Toggle store details expand/collapse
+        function toggleStoreDetails(groupId) {
+            const details = document.getElementById(groupId);
+            const icon = document.getElementById(groupId + '-icon');
+            if (details && icon) {
+                if (details.style.display === 'none') {
+                    details.style.display = 'block';
+                    icon.style.transform = 'rotate(90deg)';
+                } else {
+                    details.style.display = 'none';
+                    icon.style.transform = 'rotate(0deg)';
+                }
+            }
         }
 
         // Track current product index for navigation
