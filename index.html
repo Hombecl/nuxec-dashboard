@@ -2271,7 +2271,7 @@
         }
 
         function renderDailyCheckupModal(data) {
-            const { summary, products } = data;
+            const { summary, productGroups, products, grouped } = data;
 
             // Format last update time
             const lastUpdateTime = summary.lastDataUpdate
@@ -2294,6 +2294,127 @@
                 isStale = diffHours >= 6;
             }
 
+            // Helper function to render a single product row
+            const renderProductRow = (p, idx, isSubRow = false) => {
+                let statusColor = '#8b949e';
+                let statusLabel = '❓';
+                let inventoryBadge = '';
+                const pubStatus = p.publishedStatus || p.publishStatus;
+
+                if (p.inventoryWarning || p.totalInventory === 0) {
+                    statusColor = '#f85149';
+                    statusLabel = '⚠️ 0 INV';
+                    inventoryBadge = '<span style="font-size: 0.55rem; padding: 1px 4px; background: rgba(248,81,73,0.3); color: #f85149; border-radius: 3px; margin-left: 4px;">RESTOCK</span>';
+                } else if (pubStatus === 'UNPUBLISHED') {
+                    statusColor = '#f85149';
+                    statusLabel = '🚫 UNPUB';
+                } else if (pubStatus === 'PUBLISHED' || pubStatus === 'Published' || pubStatus?.includes('ACTIVE')) {
+                    statusColor = '#3fb950';
+                    statusLabel = '✅ PUB';
+                } else if (pubStatus?.includes('PROBLEM') || pubStatus?.includes('SYSTEM')) {
+                    statusColor = '#d29922';
+                    statusLabel = '⚠️ ISSUE';
+                }
+
+                const walmartPrice = p.walmartPrice ? `$${p.walmartPrice.toFixed(2)}` : '-';
+                const ourPrice = p.ourSellingPrice ? `$${p.ourSellingPrice.toFixed(2)}` : '-';
+                const marginDisplay = p.marginDollar !== null ? `$${p.marginDollar.toFixed(2)}` : '-';
+                const marginColor = p.marginDollar && p.marginDollar > 3 ? '#3fb950' : (p.marginDollar && p.marginDollar > 0 ? '#d29922' : '#f85149');
+                const totalInv = p.totalInventory || 0;
+                const invColor = totalInv === 0 ? '#f85149' : (totalInv < 5 ? '#d29922' : '#3fb950');
+
+                return `
+                    <div style="background: ${isSubRow ? '#161b22' : '#21262d'}; padding: ${isSubRow ? '8px' : '10px'}; border-radius: ${isSubRow ? '6px' : '8px'}; margin-bottom: ${isSubRow ? '4px' : '8px'}; border-left: 3px solid ${statusColor}; ${isSubRow ? 'margin-left: 16px;' : 'position: relative;'}">
+                        ${!isSubRow ? `<div style="position: absolute; top: -6px; left: -6px; width: 22px; height: 22px; background: #58a6ff; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${idx + 1}</div>` : ''}
+                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; ${!isSubRow ? 'padding-left: 12px;' : ''}">
+                            <span onclick="event.stopPropagation(); copySKU('${p.sku}')" style="font-weight: 600; font-size: ${isSubRow ? '0.7rem' : '0.8rem'}; cursor: copy; padding: 2px 6px; background: #161b22; border-radius: 4px; border: 1px solid #30363d;" title="Click to copy">${p.sku}</span>
+                            <span style="font-size: 0.55rem; padding: 2px 4px; border-radius: 3px; background: ${p.store === 'WM19' ? 'rgba(255,127,80,0.2)' : 'rgba(88,166,255,0.2)'}; color: ${p.store === 'WM19' ? '#ff7f50' : '#58a6ff'};">${p.store}</span>
+                            <span style="font-size: 0.6rem; color: ${statusColor};">${statusLabel}</span>
+                            ${inventoryBadge}
+                        </div>
+                        ${!isSubRow ? `<div style="font-size: 0.65rem; color: #8b949e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 6px;">${p.title}</div>` : ''}
+                        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; font-size: 0.6rem;">
+                            <div style="text-align: center;">
+                                <div style="color: #8b949e;">WM Price</div>
+                                <div style="font-weight: 600;">${walmartPrice}</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="color: #8b949e;">Our Price</div>
+                                <div style="font-weight: 600; color: #58a6ff;">${ourPrice}</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="color: #8b949e;">Margin</div>
+                                <div style="font-weight: 600; color: ${marginColor};">${marginDisplay}</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="color: #8b949e;">Inventory</div>
+                                <div style="font-weight: 700; color: ${invColor};">${totalInv}</div>
+                                <div style="font-size: 0.5rem; color: #8b949e;">D:${p.defaultInventory || 0} F:${p.fcInventory || 0}</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="color: #8b949e;">7D Sales</div>
+                                <div style="font-weight: 700; color: #58a6ff;">${p.sales7Day}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            };
+
+            // Helper function to render a product group
+            const renderProductGroup = (group, idx) => {
+                const statusColor = group.hasWinningStore ? '#3fb950' : (group.hasInventoryWarning ? '#f85149' : '#8b949e');
+                const storeCount = group.storeProducts.length;
+
+                return `
+                    <div style="background: #21262d; padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid ${statusColor}; position: relative;">
+                        <div style="position: absolute; top: -6px; left: -6px; width: 22px; height: 22px; background: #58a6ff; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${idx + 1}</div>
+
+                        <!-- Group Header -->
+                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; padding-left: 12px;">
+                            <span style="font-weight: 600; font-size: 0.75rem; color: #58a6ff;">${group.productId}</span>
+                            <span style="font-size: 0.55rem; padding: 2px 6px; border-radius: 3px; background: rgba(88,166,255,0.2); color: #58a6ff; font-weight: 600;">${storeCount} store${storeCount > 1 ? 's' : ''}</span>
+                            ${group.hasWinningStore ? '<span style="font-size: 0.55rem; color: #3fb950;">🏆 Winning</span>' : '<span style="font-size: 0.55rem; color: #f85149;">📉 Losing</span>'}
+                            ${group.hasInventoryWarning ? '<span style="font-size: 0.55rem; padding: 1px 4px; background: rgba(248,81,73,0.3); color: #f85149; border-radius: 3px;">LOW STOCK</span>' : ''}
+                        </div>
+
+                        <!-- Title -->
+                        <div style="font-size: 0.65rem; color: #8b949e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 6px;">${group.title}</div>
+
+                        <!-- Group Stats -->
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; font-size: 0.6rem; margin-bottom: 8px;">
+                            <div style="text-align: center;">
+                                <div style="color: #8b949e;">3D Sales</div>
+                                <div style="font-weight: 700; color: #58a6ff;">${group.totalSales3Day}</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="color: #8b949e;">7D Sales</div>
+                                <div style="font-weight: 700; color: #58a6ff;">${group.totalSales7Day}</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="color: #8b949e;">14D Sales</div>
+                                <div style="font-weight: 700; color: #58a6ff;">${group.totalSales14Day}</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="color: #8b949e;">Sellers</div>
+                                <div style="font-weight: 600;">${group.totalSellers} (${group.thirdPartySellers} 3P)</div>
+                            </div>
+                        </div>
+
+                        <!-- Walmart Link -->
+                        <div style="margin-bottom: 8px;">
+                            <a href="${group.walmartUrl}" target="_blank" style="font-size: 0.6rem; color: #58a6ff; text-decoration: none;">🔗 View on Walmart</a>
+                            ${group.lowest3PPrice ? `<span style="margin-left: 12px; font-size: 0.6rem; color: #d29922;">Lowest 3P: $${group.lowest3PPrice.toFixed(2)}</span>` : ''}
+                        </div>
+
+                        <!-- Store Products (sub-rows) -->
+                        <div style="border-top: 1px solid #30363d; padding-top: 8px;">
+                            <div style="font-size: 0.55rem; color: #8b949e; margin-bottom: 6px; text-transform: uppercase; font-weight: 600;">Store Details</div>
+                            ${group.storeProducts.map(p => renderProductRow(p, idx, true)).join('')}
+                        </div>
+                    </div>
+                `;
+            };
+
             const html = `
                 <!-- Data freshness indicator -->
                 <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; padding: 8px; background: ${isStale ? 'rgba(210,153,34,0.15)' : 'rgba(63,185,80,0.15)'}; border-radius: 6px; border: 1px solid ${isStale ? 'rgba(210,153,34,0.3)' : 'rgba(63,185,80,0.3)'};">
@@ -2306,8 +2427,9 @@
                 <!-- Summary Stats - Top Row (mobile responsive) -->
                 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px;">
                     <div style="background: #21262d; padding: 8px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 1rem; font-weight: 700; color: #58a6ff;">${summary.totalProducts}</div>
-                        <div style="font-size: 0.55rem; color: #8b949e;">Products</div>
+                        <div style="font-size: 1rem; font-weight: 700; color: #58a6ff;">${grouped ? summary.totalGroups : summary.totalProducts}</div>
+                        <div style="font-size: 0.55rem; color: #8b949e;">${grouped ? 'Listings' : 'Products'}</div>
+                        ${grouped ? `<div style="font-size: 0.5rem; color: #8b949e;">${summary.totalProducts} SKUs</div>` : ''}
                     </div>
                     <div style="background: rgba(63,185,80,0.1); padding: 8px; border-radius: 8px; text-align: center; border: 1px solid rgba(63,185,80,0.3);">
                         <div style="font-size: 1rem; font-weight: 700; color: #3fb950;">${summary.published || 0}</div>
@@ -2326,94 +2448,15 @@
                 ${summary.zeroInventory > 0 ? `<div style="background: rgba(248,81,73,0.15); border: 1px solid rgba(248,81,73,0.3); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 0.75rem; color: #f85149;">⚠️ ${summary.zeroInventory} product(s) have 0 inventory - may lose sales!</div>` : ''}
                 ${summary.unpublished > 0 ? `<div style="background: rgba(210,153,34,0.15); border: 1px solid rgba(210,153,34,0.3); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 0.75rem; color: #d29922;">⚠️ ${summary.unpublished} product(s) are UNPUBLISHED!</div>` : ''}
 
+                <!-- Grouped/Ungrouped indicator -->
+                ${grouped ? `<div style="font-size: 0.65rem; color: #58a6ff; margin-bottom: 8px; text-align: center;">📦 Grouped by Walmart Product ID · Same listing across stores shown together</div>` : ''}
+
                 <!-- Product List with scroll -->
                 <div style="overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; max-height: calc(70vh - 180px);">
-                    ${products.map((p, idx) => {
-                        // Determine status color based on REAL-TIME publish status
-                        let statusColor = '#8b949e';
-                        let statusLabel = '❓';
-                        let inventoryBadge = '';
-
-                        // Use real-time publishedStatus if available
-                        const pubStatus = p.publishedStatus || p.publishStatus;
-
-                        if (p.inventoryWarning || p.totalInventory === 0) {
-                            statusColor = '#f85149';
-                            statusLabel = '⚠️ 0 INV';
-                            inventoryBadge = '<span style="font-size: 0.55rem; padding: 1px 4px; background: rgba(248,81,73,0.3); color: #f85149; border-radius: 3px; margin-left: 4px;">RESTOCK</span>';
-                        } else if (pubStatus === 'UNPUBLISHED') {
-                            statusColor = '#f85149';
-                            statusLabel = '🚫 UNPUB';
-                        } else if (pubStatus === 'PUBLISHED' || pubStatus === 'Published' || pubStatus?.includes('ACTIVE')) {
-                            statusColor = '#3fb950';
-                            statusLabel = '✅ PUB';
-                        } else if (pubStatus?.includes('PROBLEM') || pubStatus?.includes('SYSTEM')) {
-                            statusColor = '#d29922';
-                            statusLabel = '⚠️ ISSUE';
-                        }
-
-                        // Price comparison - use real-time walmartPrice if available
-                        const walmartPrice = p.walmartPrice ? `$${p.walmartPrice.toFixed(2)}` : (p.walmartComPrice ? `$${p.walmartComPrice.toFixed(2)}` : '-');
-                        const ourPrice = p.ourSellingPrice ? `$${p.ourSellingPrice.toFixed(2)}` : '-';
-                        const marginDisplay = p.marginDollar !== null ? `$${p.marginDollar.toFixed(2)}` : '-';
-                        const marginColor = p.marginDollar && p.marginDollar > 3 ? '#3fb950' : (p.marginDollar && p.marginDollar > 0 ? '#d29922' : '#f85149');
-
-                        // Real-time inventory display
-                        const totalInv = p.totalInventory || 0;
-                        const invColor = totalInv === 0 ? '#f85149' : (totalInv < 5 ? '#d29922' : '#3fb950');
-
-                        return `
-                            <div style="background: #21262d; padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid ${statusColor}; position: relative;" onclick="showProductDetail(${idx})">
-                                <!-- Product index badge -->
-                                <div style="position: absolute; top: -6px; left: -6px; width: 22px; height: 22px; background: #58a6ff; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${idx + 1}</div>
-                                <!-- Row 1: SKU (copyable) + Store + Status -->
-                                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; padding-left: 12px;">
-                                    <span onclick="event.stopPropagation(); copySKU('${p.sku}')" style="font-weight: 600; font-size: 0.8rem; cursor: copy; padding: 2px 6px; background: #161b22; border-radius: 4px; border: 1px solid #30363d;" title="Click to copy">${p.sku}</span>
-                                    <span style="font-size: 0.55rem; padding: 2px 4px; border-radius: 3px; background: ${p.store === 'WM19' ? 'rgba(255,127,80,0.2)' : 'rgba(88,166,255,0.2)'}; color: ${p.store === 'WM19' ? '#ff7f50' : '#58a6ff'};">${p.store}</span>
-                                    <span style="font-size: 0.6rem; color: ${statusColor};">${statusLabel}</span>
-                                    ${inventoryBadge}
-                                </div>
-
-                                <!-- Row 2: Title -->
-                                <div style="font-size: 0.65rem; color: #8b949e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 6px;">${p.title}</div>
-
-                                <!-- Row 3: Real-time data grid -->
-                                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; font-size: 0.6rem;">
-                                    <div style="text-align: center;">
-                                        <div style="color: #8b949e;">WM Price</div>
-                                        <div style="font-weight: 600;">${walmartPrice}</div>
-                                    </div>
-                                    <div style="text-align: center;">
-                                        <div style="color: #8b949e;">Our Price</div>
-                                        <div style="font-weight: 600; color: #58a6ff;">${ourPrice}</div>
-                                    </div>
-                                    <div style="text-align: center;">
-                                        <div style="color: #8b949e;">Margin</div>
-                                        <div style="font-weight: 600; color: ${marginColor};">${marginDisplay}</div>
-                                    </div>
-                                    <div style="text-align: center;">
-                                        <div style="color: #8b949e;">Inventory</div>
-                                        <div style="font-weight: 700; color: ${invColor};">${totalInv}</div>
-                                        <div style="font-size: 0.5rem; color: #8b949e;">D:${p.defaultInventory || 0} F:${p.fcInventory || 0}</div>
-                                    </div>
-                                    <div style="text-align: center;">
-                                        <div style="color: #8b949e;">7D Sales</div>
-                                        <div style="font-weight: 700; color: #58a6ff;">${p.sales7Day}</div>
-                                    </div>
-                                </div>
-
-                                <!-- Row 4: Sellers info -->
-                                ${p.thirdPartySellers > 0 || (p.sellers && p.sellers.length > 0) ? `
-                                <div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid #30363d; font-size: 0.55rem; color: #8b949e;">
-                                    <span>👥 ${p.totalSellers || 1} seller(s)</span>
-                                    ${p.thirdPartySellers > 0 ? `<span style="margin-left: 8px; color: #d29922;">${p.thirdPartySellers} 3P</span>` : ''}
-                                    ${p.lowest3PPrice ? `<span style="margin-left: 8px;">Lowest 3P: $${p.lowest3PPrice.toFixed(2)}</span>` : ''}
-                                    ${p.ourRank ? `<span style="margin-left: 8px; color: ${p.ourRank === 1 ? '#3fb950' : '#58a6ff'};">Rank #${p.ourRank}</span>` : ''}
-                                </div>
-                                ` : ''}
-                            </div>
-                        `;
-                    }).join('')}
+                    ${grouped
+                        ? productGroups.map((group, idx) => renderProductGroup(group, idx)).join('')
+                        : products.map((p, idx) => renderProductRow(p, idx, false)).join('')
+                    }
                 </div>
 
                 <div style="font-size: 0.65rem; color: #8b949e; margin-top: 8px; text-align: center;">

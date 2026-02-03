@@ -20,14 +20,18 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'AIRTABLE_API_KEY not configured' });
     }
 
-    const { limit = '15', store } = req.query;
+    const { limit = '15', store, grouped = 'true' } = req.query;
+    const isGrouped = grouped !== 'false' && (!store || store === 'all');
 
     try {
-        // Step 1: Fetch top products from Airtable (just basic info + SKU)
+        // Build filter formula
         let filterFormula = "AND({14-Day Sales}>0, OR({Store}='WM19', {Store}='WM24'))";
         if (store && store !== 'all') {
             filterFormula = `AND({14-Day Sales}>0, {Store}='${store}')`;
         }
+
+        // When grouping, fetch more records to ensure enough unique Product IDs
+        const fetchLimit = isGrouped ? Math.max(parseInt(limit) * 3, 50) : parseInt(limit);
 
         const fields = [
             'SKU',
@@ -75,7 +79,7 @@ export default async function handler(req, res) {
         airtableUrl.searchParams.set('filterByFormula', filterFormula);
         airtableUrl.searchParams.set('sort[0][field]', '14-Day Sales');
         airtableUrl.searchParams.set('sort[0][direction]', 'desc');
-        airtableUrl.searchParams.set('maxRecords', limit);
+        airtableUrl.searchParams.set('maxRecords', String(fetchLimit));
         fields.forEach(field => airtableUrl.searchParams.append('fields[]', field));
 
         const airtableResponse = await fetch(airtableUrl.toString(), {
@@ -107,7 +111,7 @@ export default async function handler(req, res) {
             }
         }
 
-        // Step 2: Process Airtable data (all data is cached from scheduled workflow)
+        // Process Airtable data
         const products = records.map((record) => {
             const f = record.fields;
             const sku = f.SKU || '';
@@ -216,21 +220,113 @@ export default async function handler(req, res) {
             };
         });
 
+        // Group products by Product ID if grouped mode is enabled
+        if (isGrouped) {
+            const groupMap = new Map();
+
+            // Group all products by Product ID
+            for (const product of products) {
+                const key = product.productId || product.sku; // Fallback to SKU if no Product ID
+                if (!groupMap.has(key)) {
+                    groupMap.set(key, []);
+                }
+                groupMap.get(key).push(product);
+            }
+
+            // Create ProductGroup objects
+            const productGroups = [];
+            for (const [productId, storeProducts] of groupMap.entries()) {
+                // Use the first product for shared data (they're same listing)
+                const firstProduct = storeProducts[0];
+
+                // Aggregate sales across all stores
+                const totalSales3Day = storeProducts.reduce((sum, p) => sum + p.sales3Day, 0);
+                const totalSales7Day = storeProducts.reduce((sum, p) => sum + p.sales7Day, 0);
+                const totalSales14Day = storeProducts.reduce((sum, p) => sum + p.sales14Day, 0);
+
+                // Check status flags
+                const hasInventoryWarning = storeProducts.some(p => p.inventoryWarning);
+                const hasWinningStore = storeProducts.some(p => p.isWinning);
+
+                // Get most recent lastChecked
+                const lastChecked = storeProducts
+                    .map(p => p.lastChecked)
+                    .filter(Boolean)
+                    .sort()
+                    .reverse()[0] || null;
+
+                productGroups.push({
+                    productId,
+                    title: firstProduct.title,
+                    walmartUrl: firstProduct.walmartUrl,
+                    totalSales3Day,
+                    totalSales7Day,
+                    totalSales14Day,
+                    totalSellers: firstProduct.totalSellers,
+                    thirdPartySellers: firstProduct.thirdPartySellers,
+                    buyBoxSeller: firstProduct.buyBoxSeller,
+                    lowest3PPrice: firstProduct.lowest3PPrice,
+                    sellers: firstProduct.sellers,
+                    brand: firstProduct.brand,
+                    rating: firstProduct.rating,
+                    reviewCount: firstProduct.reviewCount,
+                    hasInventoryWarning,
+                    hasWinningStore,
+                    storeProducts: storeProducts.sort((a, b) => a.store.localeCompare(b.store)),
+                    lastChecked,
+                });
+            }
+
+            // Sort groups by total 14-day sales and limit
+            productGroups.sort((a, b) => b.totalSales14Day - a.totalSales14Day);
+            const limitedGroups = productGroups.slice(0, parseInt(limit));
+
+            // Calculate summary for grouped view
+            const allProductsInGroups = limitedGroups.flatMap(g => g.storeProducts);
+            const published = allProductsInGroups.filter(p => p.publishedStatus === 'PUBLISHED').length;
+            const unpublished = allProductsInGroups.filter(p => p.publishedStatus === 'UNPUBLISHED').length;
+            const zeroInventory = allProductsInGroups.filter(p => p.inventoryWarning).length;
+
+            const summary = {
+                totalGroups: limitedGroups.length,
+                totalProducts: allProductsInGroups.length,
+                published,
+                unpublished,
+                unknown: allProductsInGroups.length - published - unpublished,
+                zeroInventory,
+                totalSales7Day: limitedGroups.reduce((sum, g) => sum + g.totalSales7Day, 0),
+                totalSales14Day: limitedGroups.reduce((sum, g) => sum + g.totalSales14Day, 0),
+                totalSales3Day: limitedGroups.reduce((sum, g) => sum + g.totalSales3Day, 0),
+                lastDataUpdate: lastDataUpdate ? lastDataUpdate.toISOString() : null,
+                dataSource: 'cached',
+                refreshInterval: '6 hours',
+            };
+
+            return res.status(200).json({
+                success: true,
+                grouped: true,
+                summary,
+                productGroups: limitedGroups,
+            });
+        }
+
+        // Non-grouped mode
+        const limitedProducts = products.slice(0, parseInt(limit));
+
         // Calculate summary stats
-        const published = products.filter(p => p.publishedStatus === 'PUBLISHED').length;
-        const unpublished = products.filter(p => p.publishedStatus === 'UNPUBLISHED').length;
-        const zeroInventory = products.filter(p => p.inventoryWarning).length;
+        const published = limitedProducts.filter(p => p.publishedStatus === 'PUBLISHED').length;
+        const unpublished = limitedProducts.filter(p => p.publishedStatus === 'UNPUBLISHED').length;
+        const zeroInventory = limitedProducts.filter(p => p.inventoryWarning).length;
 
         const summary = {
-            totalProducts: products.length,
+            totalProducts: limitedProducts.length,
             published,
             unpublished,
-            unknown: products.length - published - unpublished,
+            unknown: limitedProducts.length - published - unpublished,
             zeroInventory,
-            totalSales7Day: products.reduce((sum, p) => sum + (p.sales7Day || 0), 0),
-            totalSales14Day: products.reduce((sum, p) => sum + (p.sales14Day || 0), 0),
-            totalSales3Day: products.reduce((sum, p) => sum + (p.sales3Day || 0), 0),
-            // Last data update from scheduled workflow (every 6 hours)
+            totalSales7Day: limitedProducts.reduce((sum, p) => sum + (p.sales7Day || 0), 0),
+            totalSales14Day: limitedProducts.reduce((sum, p) => sum + (p.sales14Day || 0), 0),
+            totalSales3Day: limitedProducts.reduce((sum, p) => sum + (p.sales3Day || 0), 0),
             lastDataUpdate: lastDataUpdate ? lastDataUpdate.toISOString() : null,
             dataSource: 'cached',
             refreshInterval: '6 hours',
@@ -238,8 +334,9 @@ export default async function handler(req, res) {
 
         return res.status(200).json({
             success: true,
+            grouped: false,
             summary,
-            products,
+            products: limitedProducts,
         });
 
     } catch (error) {
