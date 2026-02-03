@@ -36,6 +36,7 @@ export default async function handler(req, res) {
         const fields = [
             'SKU',
             'Product ID',
+            'WM Product ID',  // Some records use this instead of 'Product ID'
             'Store',
             '7-Day Sales',
             '14-Day Sales',
@@ -175,7 +176,7 @@ export default async function handler(req, res) {
             return {
                 id: record.id,
                 sku,
-                productId: f['Product ID'] || '',
+                productId: f['Product ID'] || f['WM Product ID'] || '',
                 title: f.Title || f.SKU || 'Unknown Product',
                 store: f.Store || 'Unknown',
                 sales7Day: f['7-Day Sales'] || 0,
@@ -233,8 +234,8 @@ export default async function handler(req, res) {
             let allRelatedProducts = [...products]; // Start with what we have
 
             if (productIdsWithSales.length > 0) {
-                // Build OR formula to fetch all related SKUs
-                const productIdConditions = productIdsWithSales.map(id => `{Product ID}='${id}'`).join(', ');
+                // Build OR formula to fetch all related SKUs (check both Product ID and WM Product ID)
+                const productIdConditions = productIdsWithSales.map(id => `OR({Product ID}='${id}', {WM Product ID}='${id}')`).join(', ');
                 const relatedFilterFormula = `AND(OR(${productIdConditions}), OR({Store}='WM19', {Store}='WM24'))`;
 
                 const relatedUrl = new URL(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}`);
@@ -298,7 +299,7 @@ export default async function handler(req, res) {
                             return {
                                 id: record.id,
                                 sku,
-                                productId: f['Product ID'] || '',
+                                productId: f['Product ID'] || f['WM Product ID'] || '',
                                 title: f.Title || f.SKU || 'Unknown Product',
                                 store: f.Store || 'Unknown',
                                 sales7Day: f['7-Day Sales'] || 0,
