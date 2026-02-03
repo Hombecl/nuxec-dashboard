@@ -222,10 +222,134 @@ export default async function handler(req, res) {
 
         // Group products by Product ID if grouped mode is enabled
         if (isGrouped) {
+            // Step 1: Get unique Product IDs from products with sales
+            const productIdsWithSales = [...new Set(
+                products
+                    .filter(p => p.productId) // Only those with valid Product ID
+                    .map(p => p.productId)
+            )];
+
+            // Step 2: Fetch ALL SKUs for these Product IDs (including 0 sales from other stores)
+            let allRelatedProducts = [...products]; // Start with what we have
+
+            if (productIdsWithSales.length > 0) {
+                // Build OR formula to fetch all related SKUs
+                const productIdConditions = productIdsWithSales.map(id => `{Product ID}='${id}'`).join(', ');
+                const relatedFilterFormula = `AND(OR(${productIdConditions}), OR({Store}='WM19', {Store}='WM24'))`;
+
+                const relatedUrl = new URL(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}`);
+                relatedUrl.searchParams.set('filterByFormula', relatedFilterFormula);
+                relatedUrl.searchParams.set('maxRecords', '200'); // Enough for related products
+                fields.forEach(field => relatedUrl.searchParams.append('fields[]', field));
+
+                try {
+                    const relatedResponse = await fetch(relatedUrl.toString(), {
+                        headers: {
+                            'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                            'Content-Type': 'application/json',
+                        }
+                    });
+
+                    if (relatedResponse.ok) {
+                        const relatedData = await relatedResponse.json();
+                        const relatedRecords = relatedData.records || [];
+
+                        // Process related records with same logic as main products
+                        const relatedProducts = relatedRecords.map((record) => {
+                            const f = record.fields;
+                            const sku = f.SKU || '';
+                            const productCost = f['Product Cost'] || null;
+                            const ourSellingPrice = f['Approved Base Price'] || null;
+                            const declaredPrice = f['Declared Price'] || null;
+                            const fcInventory = f['WM FC Inventory'] || 0;
+                            const defaultInventory = f['WM Default Inventory'] || 0;
+                            const totalInventory = (fcInventory + defaultInventory) || f['WM Inventory'] || 0;
+                            const wmStatus = f['WM Publish Status'] || '';
+                            let publishedStatus;
+                            if (wmStatus.includes('PUBLISHED') || wmStatus.includes('ACTIVE')) {
+                                publishedStatus = 'PUBLISHED';
+                            } else if (wmStatus.includes('UNPUBLISHED') || wmStatus.includes('RETIRED')) {
+                                publishedStatus = 'UNPUBLISHED';
+                            } else {
+                                publishedStatus = wmStatus || 'Unknown';
+                            }
+                            const walmartPrice = f['Scrape Current Price'] || f['Scrape Price'] || null;
+                            let marginDollar = null;
+                            let marginPercent = null;
+                            if (ourSellingPrice && productCost) {
+                                const platformFee = ourSellingPrice * 0.105;
+                                const shippingCost = 4.5;
+                                marginDollar = ourSellingPrice - productCost - shippingCost - platformFee;
+                                marginPercent = marginDollar / ourSellingPrice;
+                            }
+                            const inventoryWarning = totalInventory === 0;
+                            let sellers = [];
+                            try {
+                                if (f['Daily Check All Sellers']) {
+                                    sellers = JSON.parse(f['Daily Check All Sellers']);
+                                }
+                            } catch { sellers = []; }
+                            const totalSellers = f['Scrape Total Sellers'] || sellers.length || 1;
+                            const thirdPartySellers = f['Scrape 3P Seller Count'] || 0;
+                            const lowest3PPrice = f['Daily Check Lowest 3P Price'] || f['Scrape Price 3P'] || null;
+                            const ourRank = f['Daily Check Our Rank'] || null;
+                            const isWinning = f['Daily Check Is Winning'] || (ourSellingPrice && lowest3PPrice ? ourSellingPrice <= lowest3PPrice : false);
+
+                            return {
+                                id: record.id,
+                                sku,
+                                productId: f['Product ID'] || '',
+                                title: f.Title || f.SKU || 'Unknown Product',
+                                store: f.Store || 'Unknown',
+                                sales7Day: f['7-Day Sales'] || 0,
+                                sales14Day: f['14-Day Sales'] || 0,
+                                sales3Day: f['3-Day Sales'] || 0,
+                                productCost,
+                                ourSellingPrice,
+                                declaredPrice,
+                                walmartPrice,
+                                defaultInventory,
+                                fcInventory,
+                                totalInventory,
+                                inventoryWarning,
+                                publishedStatus,
+                                marginDollar,
+                                marginPercent,
+                                sellers,
+                                totalSellers,
+                                thirdPartySellers,
+                                lowest3PPrice,
+                                ourRank,
+                                isWinning,
+                                buyBoxSeller: f['Scrape Seller Name'] || 'Unknown',
+                                productName: f.Title,
+                                brand: f['Scrape Brand'] || null,
+                                rating: f['Scrape Rating'] || null,
+                                reviewCount: f['Scrape Review Count'] || 0,
+                                availability: f['Scrape Availability Status'] || 'Unknown',
+                                lowStockWarning: f['Scrape Low Stock Message'] || null,
+                                supplierLink: f['Primary Supplier Link'] || null,
+                                walmartUrl: f['Walmart Listing URL'] || `https://www.walmart.com/ip/${f['Product ID']}`,
+                                lastChecked: f['Daily Check Last Run'] || null,
+                                isCached: true,
+                            };
+                        });
+
+                        // Merge: use related products (more complete) and add any from original that aren't duplicates
+                        const seenSkus = new Set(relatedProducts.map(p => p.sku));
+                        const uniqueOriginal = products.filter(p => !seenSkus.has(p.sku));
+                        allRelatedProducts = [...relatedProducts, ...uniqueOriginal];
+                    }
+                } catch (e) {
+                    console.log('Failed to fetch related products:', e.message);
+                    // Fall back to original products
+                }
+            }
+
             const groupMap = new Map();
 
             // Group all products by Product ID
-            for (const product of products) {
+            for (const product of allRelatedProducts) {
                 const key = product.productId || product.sku; // Fallback to SKU if no Product ID
                 if (!groupMap.has(key)) {
                     groupMap.set(key, []);
